@@ -28,12 +28,12 @@ window.CONFIG = {
   API_URL: (IS_NODE_SERVER ? '' : VPS_ORIGIN) + '/jpstagedesign/api',
   FSCAUTH_URL: VPS_ORIGIN + '/fscauth',
   
-  // URLs de Output (se usan cuando el usuario hace clic en "Abrir Output")
+  // URLs de Output (se usan cuando el usuario hace clic en "Abrir Output Completo")
   // - En local (localhost/127.0.0.1): mismo host local
-  // - En el FTP: apuntan al FTP
+  // - En el FTP: apuntan al FTP (pagina estatica output/index.html)
   // - En el VPS: apuntan al VPS
-  OUTPUT_URL: IS_LOCAL_HOST ? (location.origin + '/jpstagedesign/')
-            : (IS_FTP_HOST ? FTP_ORIGIN + '/jpstagedesign/' : VPS_ORIGIN + '/jpstagedesign/'),
+  OUTPUT_URL: IS_LOCAL_HOST ? (location.origin + '/jpstagedesign/output/')
+            : (IS_FTP_HOST ? FTP_ORIGIN + '/jpstagedesign/output/' : VPS_ORIGIN + '/jpstagedesign/output/'),
   OUTPUT_3D_URL: IS_LOCAL_HOST ? (location.origin + '/jpstagedesign/output3d.html')
             : (IS_FTP_HOST ? FTP_ORIGIN + '/jpstagedesign/output3d.html' : VPS_ORIGIN + '/jpstagedesign/output3d.html'),
   

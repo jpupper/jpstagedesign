@@ -356,10 +356,12 @@
     const input = document.getElementById('customLogoInput');
     const btnReset = document.getElementById('btnResetLogo');
     const statusMsg = document.getElementById('logoUploadStatus');
+    // API del logo: en el FTP (estatico) tiene que apuntar al VPS, no al host actual
+    const API_LOGO = ((window.CONFIG && window.CONFIG.API_URL) || '/jpstagedesign/api') + '/logo';
 
     // Cargar logo actual
     try {
-      const res = await fetch((window.CONFIG?.BASE || '/jpstagedesign') + '/api/logo');
+      const res = await fetch(API_LOGO);
       const data = await res.json();
       if (data.ok && data.logoUrl) {
         updateAppLogo(data.logoUrl);
@@ -381,7 +383,7 @@
         }
 
         try {
-          const res = await fetch((window.CONFIG?.BASE || '/jpstagedesign') + '/api/logo', {
+          const res = await fetch(API_LOGO, {
             method: 'POST',
             body: formData
           });
@@ -415,7 +417,7 @@
           statusMsg.className = 'status-msg';
         }
         try {
-          const res = await fetch((window.CONFIG?.BASE || '/jpstagedesign') + '/api/logo', {
+          const res = await fetch(API_LOGO, {
             method: 'DELETE'
           });
           const data = await res.json();
