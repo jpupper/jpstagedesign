@@ -1346,6 +1346,26 @@
       color: #98a0ae;
     }
 
+    /* 🔒 Lock Source: aviso bajo el toggle/dropdown */
+    .insp-hint {
+      margin: 2px 0 6px 0;
+      padding: 6px 8px;
+      font-size: 9px;
+      line-height: 1.5;
+      color: #9aa3b2;
+      background: rgba(191, 85, 236, 0.07);
+      border: 1px dashed rgba(191, 85, 236, 0.3);
+      border-radius: 6px;
+    }
+
+    .insp-hint b { color: #d9a8ff; }
+
+    /* 🔒 candadito en la fila de la jerarquía */
+    .hier-lock {
+      font-size: 9px;
+      filter: drop-shadow(0 0 4px rgba(191, 85, 236, 0.8));
+    }
+
     .insp-row input[type="text"],
     .insp-row input[type="number"],
     .insp-row select {
@@ -2965,7 +2985,7 @@
         row.dataset.id = item.id;
         row.innerHTML = `
           <span class="hier-icon">${item.muted ? '💤' : hierarchyIconFor(kind, item)}</span>
-          <span class="hier-name">${escapeHtml(item.name || 'Elemento')}</span>
+          <span class="hier-name">${escapeHtml(item.name || 'Elemento')}${item.lockSource ? ' <span class="hier-lock" title="Lock Source: fijo en ' + escapeHtml(item.lockSource.name || '') + '">🔒</span>' : ''}</span>
           <span class="hier-actions">
             <button class="hier-eye" title="${item.muted ? 'Mostrar' : 'Ocultar'}">${item.muted ? '🚫' : '👁️'}</button>
             <button class="hier-del" title="Eliminar">🗑️</button>
@@ -3074,6 +3094,80 @@
       return b;
     }
 
+    // --- 🔒 Lock Source: filas del inspector (toggle + dropdown de inputs) ---
+    // Devuelve un DocumentFragment con: [Lock ON/OFF] [Input ▾] [hint]
+    function buildLockRows(item, kind, rerender) {
+      const frag = document.createDocumentFragment();
+      const isLocked = !!(item.lockSource && item.lockSource.id);
+
+      // Si todavía no llegó la biblioteca de inputs, pedirla y re-renderizar una vez
+      if (!inputsLibrary.length && !inputsLibraryLoading) {
+        inputsLibraryLoading = true;
+        loadInputsLibrary(true).then(() => {
+          inputsLibraryLoading = false;
+          if (rerender) rerender();
+        });
+      }
+
+      // Dropdown de inputs (agrupado por tipo)
+      const sel = document.createElement('select');
+      sel.dataset.insp = 'lockSource';
+      sel.disabled = !isLocked;
+      const optNone = document.createElement('option');
+      optNone.value = '';
+      optNone.textContent = inputsLibrary.length ? '— Elegí un input —' : 'Cargando inputs…';
+      sel.appendChild(optNone);
+      LOCK_TYPE_GROUPS.forEach(g => {
+        const mats = inputsLibrary.filter(m => g.types.includes(String(m.type)));
+        if (!mats.length) return;
+        const og = document.createElement('optgroup');
+        og.label = g.label;
+        mats.forEach(m => {
+          const o = document.createElement('option');
+          o.value = m.id;
+          o.textContent = m.name || m.id;
+          og.appendChild(o);
+        });
+        sel.appendChild(og);
+      });
+      if (isLocked) sel.value = item.lockSource.id;
+
+      // Toggle
+      const btn = inspBtn(isLocked ? '🔒 ON' : '🔓 OFF', isLocked ? 'active' : '', () => {
+        if (item.lockSource) {
+          clearLockSource(item, kind);
+        } else {
+          const elegido = inputsLibrary.find(m => m.id === sel.value);
+          const mat = elegido || inputsLibrary[0];
+          if (!mat) { showToast('No hay inputs cargados en la biblioteca todavía'); return; }
+          setLockSource(item, kind, mat);
+        }
+        if (rerender) rerender();
+      });
+      btn.dataset.inspbtn = 'lock';
+
+      frag.appendChild(inspRow('Lock', btn));
+      frag.appendChild(inspRow('Input', sel));
+
+      sel.addEventListener('change', () => {
+        const m = inputsLibrary.find(x => x.id === sel.value);
+        if (!m) { if (item.lockSource) clearLockSource(item, kind); }
+        else setLockSource(item, kind, m);
+        if (rerender) rerender();
+      });
+
+      const hint = document.createElement('div');
+      hint.className = 'insp-hint';
+      if (isLocked) {
+        hint.innerHTML = `🔒 Fijo en <b>${escapeHtml(item.lockSource.name || item.lockSource.id)}</b> (${escapeHtml(lockTypeLabel(item.lockSource.type))}).<br>Este elemento <b>ignora la botonera</b> y reproduce siempre este input, al 100%.`;
+      } else {
+        hint.innerHTML = '🔓 Sin lock: reproduce lo que llega de la botonera.<br>Activalo para dejarlo fijo en un input.';
+      }
+      frag.appendChild(hint);
+
+      return frag;
+    }
+
     // Actuales transforms sobre el mesh (sin rebuild completo) para edición en vivo
     function applyScreenMeshTransform(item) {
       if (!screensGroup || !item) return;
@@ -3142,6 +3236,19 @@
       if (muteBtn) {
         muteBtn.textContent = item.muted ? '🚫 Oculto' : '👁️ Visible';
         muteBtn.classList.toggle('active', !item.muted);
+      }
+      // 🔒 Lock Source: mantener sincronizado el toggle y el dropdown
+      const lockBtn = body.querySelector('[data-inspbtn="lock"]');
+      if (lockBtn) {
+        const locked = !!(item.lockSource && item.lockSource.id);
+        lockBtn.textContent = locked ? '🔒 ON' : '🔓 OFF';
+        lockBtn.classList.toggle('active', locked);
+      }
+      const lockSel = body.querySelector('[data-insp="lockSource"]');
+      if (lockSel) {
+        const v = (item.lockSource && item.lockSource.id) || '';
+        if (Array.from(lockSel.options).some(o => o.value === String(v))) lockSel.value = String(v);
+        lockSel.disabled = !v;
       }
     }
 
@@ -3275,6 +3382,15 @@
         beamWrap.children[0].title = 'Distancia de tiro (m)';
         beamWrap.children[1].title = 'Ángulo del haz (°)';
         body.appendChild(inspRow('Haz', beamWrap));
+      }
+
+      // ---- 🔒 LOCK SOURCE (pantallas, teles y proyectores) ----
+      if (sel.kind === 'screen' || sel.kind === 'projector') {
+        body.appendChild(inspSep('🔒 Lock Source'));
+        body.appendChild(buildLockRows(item, sel.kind, () => {
+          lastInspectorKey = null;
+          renderInspector();
+        }));
       }
 
       // ---- OBJETO 3D ----
@@ -3746,6 +3862,9 @@
       setupFurnitureSystem();
       loadTemplates();
       update3DMappingUI();   // refleja el modo de mapeo (🪞 ESPEJO por defecto)
+
+      // 🔒 Biblioteca de inputs (la usa el dropdown de Lock Source del inspector)
+      loadInputsLibrary(true);
       
       // Crear sala síncronamente antes de la conexión socket
       createRoom();
@@ -4584,6 +4703,7 @@
       if (idx === -1) return;
       const s = stageScreens[idx];
       if (s.texture) s.texture.dispose();
+      disposeLockRuntime('screen:' + id);   // 🔒 liberar el runtime del lock de esa pantalla
       stageScreens.splice(idx, 1);
 
       if (selectedScreen && selectedScreen.id === id) {
@@ -5068,6 +5188,18 @@
         if (beamMesh && beamMesh.material) {
           const isMuted = (p.muted === true);
           const showBeamActual = (p.showBeam !== false) && !isMuted;
+
+          // ===== 🔒 LOCK SOURCE: el proyector proyecta SIEMPRE su input fijo =====
+          const lockTex = lockTextureFor(p, 'projector');
+          if (lockTex) {
+            beamMesh.material.map = lockTex;
+            beamMesh.material.color.setHex(0xffffff);
+            beamMesh.material.blending = THREE.AdditiveBlending;
+            beamMesh.material.opacity = showBeamActual ? 0.35 : 0.0;
+            beamMesh.material.needsUpdate = true;
+            return;
+          }
+
           const wallTex = getTextureForWallName(p.targetWall);
           const usePaintlight = paintlightEnabled && wallTex;
           if (usePaintlight) {
@@ -5605,6 +5737,7 @@
     function deleteProjector(id) {
       if (!projectors.length) return;
       projectors = projectors.filter(p => p.id !== id);
+      disposeLockRuntime('proj:' + id);   // 🔒 liberar el runtime del lock de ese proyector
       if (selectedProjector && selectedProjector.id === id) {
         selectedProjector = projectors[0] || null;
       }
@@ -5946,7 +6079,9 @@
           },
           sliceIndex: s.sliceIndex !== undefined ? s.sliceIndex : -1,
           screenType: s.screenType || 'projector',
-          muted: s.muted === true
+          muted: s.muted === true,
+          // 🔒 Lock Source: input fijo de esta pantalla (null = responde a la botonera)
+          lockSource: s.lockSource || null
         })),
         bed: savedBedConfig,
         furniture: furnitureItems.map(f => ({
@@ -6004,7 +6139,9 @@
           beamAngle: p.beamAngle !== undefined ? p.beamAngle : 75,
           showBeam: p.showBeam !== false,
           muted: p.muted === true,
-          beamColor: p.beamColor || '#00e5ff'
+          beamColor: p.beamColor || '#00e5ff',
+          // 🔒 Lock Source: input fijo de este proyector (null = responde a la botonera)
+          lockSource: p.lockSource || null
         })),
         budgetCategories: customBudgetCategories
       };
@@ -6107,6 +6244,9 @@
         if (hgtEl) hgtEl.value = ROOM_HEIGHT;
       }
 
+      // 🔒 Al recargar una configuración, descartar los runtimes de lock viejos
+      disposeAllLockRuntimes();
+
       // 1.5. Pantallas y Paredes de Escenario (stageScreens)
       if (Array.isArray(config.screens)) {
         screensInitialized = true;
@@ -6122,7 +6262,9 @@
           rotation: s.rotation || { x: 0, y: 0, z: 0 },
           scale: s.scale || { x: 1, y: 1, z: 1 },
           sliceIndex: s.sliceIndex !== undefined ? s.sliceIndex : -1,
-          muted: s.muted === true
+          muted: s.muted === true,
+          // 🔒 Lock Source (compat: configs viejas no lo tienen)
+          lockSource: (s.lockSource && s.lockSource.id) ? s.lockSource : null
         }));
         rebuildScreens3D();
         updateScreensSelectUI();
@@ -6188,7 +6330,9 @@
           beamAngle: p.beamAngle !== undefined ? p.beamAngle : 75,
           showBeam: p.showBeam !== false,
           muted: p.muted === true,
-          beamColor: p.beamColor || '#00e5ff'
+          beamColor: p.beamColor || '#00e5ff',
+          // 🔒 Lock Source (compat: configs viejas no lo tienen)
+          lockSource: (p.lockSource && p.lockSource.id) ? p.lockSource : null
         }));
         selectedProjector = null;
         updateProjectorsSelectUI();
@@ -6445,9 +6589,10 @@
     }
 
     function updateWallTextures(sourceElement) {
-      if (!sourceElement) return;
-      const srcW = sourceElement.videoWidth || sourceElement.naturalWidth || sourceElement.width || 1024;
-      const srcH = sourceElement.videoHeight || sourceElement.naturalHeight || sourceElement.height || 512;
+      // El contenido global puede ser null: en ese caso sólo se refrescan los
+      // elementos con 🔒 LOCK SOURCE (y se apaga todo lo demás).
+      const srcW = sourceElement ? (sourceElement.videoWidth || sourceElement.naturalWidth || sourceElement.width || 1024) : 0;
+      const srcH = sourceElement ? (sourceElement.videoHeight || sourceElement.naturalHeight || sourceElement.height || 512) : 0;
 
       // NOTA: el techo ya NO existe como superficie. No se dibuja nada arriba:
       // sólo las pantallas / teles / proyectores que el usuario agrega.
@@ -6462,6 +6607,20 @@
           s.texture.needsUpdate = true;
         };
 
+        // Pantalla oculta por el usuario: siempre negra
+        if (s.muted) { blank(); return; }
+
+        // ===== 🔒 LOCK SOURCE =====
+        // Este elemento ignora la botonera (sockets): reproduce SIEMPRE su input fijo.
+        const lockEl = lockSourceElementFor(s, 'screen');
+        if (lockEl) {
+          ctx.drawImage(lockEl, 0, 0, lockEl.width, lockEl.height, 0, 0, s.canvas.width, s.canvas.height);
+          s.texture.needsUpdate = true;
+          return;
+        }
+
+        if (!sourceElement) { blank(); return; }
+
         // Screen Projector Sync: sólo aplica a pantallas que DEPENDEN de un proyector.
         // Las LED y las teles touch son autoemisivas: siempre reproducen el contenido
         // de la botonera, aunque no haya ningún proyector apuntándolas.
@@ -6475,8 +6634,6 @@
           });
           if (!hasActiveProjector) { blank(); return; }
         }
-
-        if (s.muted) { blank(); return; }
 
         // --- MOTOR DE MAPEO ---
         const r = resolveSourceRect(s, idx, srcW, srcH);
@@ -6496,14 +6653,9 @@
       } else if (videoElement && (videoElement.readyState >= 2 || !videoElement.paused)) {
         updateWallTextures(videoElement);
       } else {
-        // Sin contenido dinámico cargado aún: apagar todas las pantallas
-        stageScreens.forEach(s => {
-          if (s.ctx && s.canvas && s.texture) {
-            s.ctx.fillStyle = '#000000';
-            s.ctx.fillRect(0, 0, s.canvas.width, s.canvas.height);
-            s.texture.needsUpdate = true;
-          }
-        });
+        // Sin contenido dinámico cargado aún: apagar las pantallas SIN lock
+        // (las que tienen 🔒 LOCK SOURCE siguen mostrando su input fijo).
+        updateWallTextures(null);
       }
     }
 
@@ -6681,13 +6833,14 @@
     function syncWebLayers() {
       if (!css3dRenderer || !css3dScene || !webLayerRoot) return;
 
-      const url = webLiveEnabled ? currentWebUrl() : null;
-      if (!url || !screensGroup) {
+      if (!screensGroup) {
         if (webLayers.size) clearWebLayers();
         webLayerRoot.style.display = 'none';
         return;
       }
 
+      // Página que manda la botonera (puede ser null si el contenido actual no es web)
+      const globalUrl = webLiveEnabled ? currentWebUrl() : null;
       const wanted = new Set();
 
       stageScreens.forEach((s, idx) => {
@@ -6695,16 +6848,30 @@
         const group = screensGroup.getObjectByName('screen_' + s.id);
         if (!group || group.visible === false) return;
 
-        // Screen Sync: mismo criterio que la textura (sólo pantallas con proyector)
-        if (screenProjSync && normalizeScreenType(s.screenType) === 'projector') {
-          const normTarget = normalizeWallName(s.name);
-          const hasActiveProjector = (allProjectorsVisible !== false) && projectors.some(p => {
-            const pNorm = normalizeWallName(p.targetWall);
-            const matches = (pNorm === normTarget || p.targetWall === s.name || p.targetWall === s.id);
-            return matches && !p.muted && p.showBeam !== false;
-          });
-          if (!hasActiveProjector) return;
+        let url = globalUrl;
+        let slice = -1;
+
+        if (s.lockSource) {
+          // 🔒 LOCK: la pantalla decide sola. Si su input fijo NO es una página web,
+          // no lleva capa web (aunque la botonera esté mostrando una).
+          if (String(s.lockSource.type) !== 'web') return;
+          url = s.lockSource.src || s.lockSource.url || null;
+          slice = -1;                                   // 100% de la página
+        } else {
+          if (!url) return;
+          // Screen Sync: mismo criterio que la textura (sólo pantallas con proyector)
+          if (screenProjSync && normalizeScreenType(s.screenType) === 'projector') {
+            const normTarget = normalizeWallName(s.name);
+            const hasActiveProjector = (allProjectorsVisible !== false) && projectors.some(p => {
+              const pNorm = normalizeWallName(p.targetWall);
+              const matches = (pNorm === normTarget || p.targetWall === s.name || p.targetWall === s.id);
+              return matches && !p.muted && p.showBeam !== false;
+            });
+            if (!hasActiveProjector) return;
+          }
+          slice = webSliceFor(s, idx);
         }
+        if (!url) return;
 
         wanted.add(s.id);
 
@@ -6712,7 +6879,6 @@
         const h = Math.max(0.2, Number(s.height) || 2.5);
         // Viewport con la MISMA proporción que la pantalla → la página no se deforma
         const vh = Math.max(160, Math.round(WEB_LAYER_VW * (h / w)));
-        const slice = webSliceFor(s, idx);
 
         let entry = webLayers.get(s.id);
         if (entry && (entry.url !== url || entry.vh !== vh || entry.slice !== slice)) {
@@ -6733,7 +6899,274 @@
       });
 
       Array.from(webLayers.keys()).forEach(id => { if (!wanted.has(id)) removeWebLayer(id); });
-      webLayerRoot.style.display = 'block';
+      webLayerRoot.style.display = wanted.size ? 'block' : 'none';
+    }
+
+    // ============================================================
+    // 🔒 LOCK SOURCE — un elemento fijo a un input, independiente de los sockets
+    // ============================================================
+    // Si una pantalla / tele / proyector tiene `lockSource`, IGNORA todo lo que
+    // llega de la botonera (sceneChanged / sceneCleared / blackout) y reproduce
+    // SIEMPRE ese input, al 100%. Cada elemento lockeado tiene su propio runtime
+    // (canvas + CanvasTexture) porque puede estar mostrando algo distinto del
+    // resto de la escena.
+
+    const LOCK_TYPE_GROUPS = [
+      { id: 'effect',  label: '✨ Efectos / Shaders', types: ['shader', 'effect'] },
+      { id: 'image',   label: '🖼️ Imágenes',          types: ['image'] },
+      { id: 'video',   label: '🎥 Videos',            types: ['video'] },
+      { id: 'youtube', label: '🎬 YouTube',           types: ['youtube'] },
+      { id: 'web',     label: '🌐 Páginas Web',       types: ['web'] }
+    ];
+
+    const LOCK_W = 1024;
+    const LOCK_H = 512;
+    const lockRuntimes = new Map();      // 'screen:<id>' | 'proj:<id>' -> runtime
+    const lockWebUrls = new Map();       // 'screen:<id>' -> url (páginas web lockeadas)
+    let inputsLibrary = [];              // biblioteca de inputs para el dropdown
+    let inputsLibraryAt = 0;
+    let inputsLibraryLoading = false;
+
+    function lockKeyFor(item, kind) {
+      return (kind === 'projector' ? 'proj:' : 'screen:') + (item && item.id);
+    }
+
+    function lockTypeLabel(type) {
+      const g = LOCK_TYPE_GROUPS.find(x => x.types.includes(String(type)));
+      return g ? g.label : String(type || '');
+    }
+
+    /** Biblioteca de inputs del servidor (cache corto). Es la que llena el dropdown. */
+    async function loadInputsLibrary(force) {
+      if (!force && inputsLibrary.length && (Date.now() - inputsLibraryAt) < 30000) return inputsLibrary;
+      try {
+        const base = (window.BACKEND_URL || '') + '/jpstagedesign/api/materials';
+        const res = await fetch(base);
+        const data = await res.json();
+        if (data && Array.isArray(data.materials)) {
+          inputsLibrary = data.materials;
+          inputsLibraryAt = Date.now();
+        }
+      } catch (e) {
+        console.warn('[LOCK] No se pudo leer la biblioteca de inputs:', e);
+      }
+      return inputsLibrary;
+    }
+
+    function disposeLockRuntime(key) {
+      const rt = lockRuntimes.get(key);
+      if (!rt) return;
+      try { if (rt.video) { rt.video.pause(); rt.video.src = ''; } } catch (e) { /* noop */ }
+      try { if (rt.shaderCtx && typeof Shaders !== 'undefined') Shaders.stop(rt.shaderCtx); } catch (e) { /* noop */ }
+      try { if (rt.texture) rt.texture.dispose(); } catch (e) { /* noop */ }
+      lockRuntimes.delete(key);
+    }
+
+    function disposeAllLockRuntimes() {
+      Array.from(lockRuntimes.keys()).forEach(disposeLockRuntime);
+    }
+
+    /** Dibuja el cartel de referencia de una página web lockeada (la página real va en la capa CSS3D). */
+    function drawLockWebPlaceholder(rt) {
+      const c = rt.ctx, W = rt.canvas.width, H = rt.canvas.height;
+      const g = c.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0d1117'); g.addColorStop(1, '#05070a');
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.textAlign = 'center';
+      c.fillStyle = '#00e5ff'; c.font = 'bold 40px monospace';
+      c.fillText('🌐 PÁGINA WEB (LOCK)', W / 2, H / 2 - 10);
+      try {
+        const host = new URL(rt.source.src || rt.source.url).hostname;
+        c.fillStyle = '#9aa3b2'; c.font = '24px monospace';
+        c.fillText(host, W / 2, H / 2 + 30);
+      } catch (e) { /* noop */ }
+      c.fillStyle = '#5b6472'; c.font = '16px monospace';
+      c.fillText('🔒 fijo en este elemento · ignora la botonera', W / 2, H / 2 + 66);
+      c.textAlign = 'start';
+    }
+
+    /** Prepara el contenido del runtime según el tipo de input lockeado. */
+    async function initLockRuntimeSource(rt) {
+      const src = rt.source;
+      const type = rt.type;
+
+      if (type === 'shader') {
+        if (typeof Shaders === 'undefined') {
+          // shaders.js se carga dinámicamente: reintentar cuando esté listo
+          if (typeof ensureShadersLoaded === 'function') {
+            ensureShadersLoaded(() => { initLockRuntimeSource(rt); });
+            return;
+          }
+          rt.error = 'Shaders no disponible';
+          return;
+        }
+        const name = String(src.effect || src.shader || src.id || 'space').replace(/^(effect|shader)-/, '').toLowerCase();
+        let code = null;
+        try { if (Shaders.getShader) code = await Shaders.getShader(name); } catch (e) { /* noop */ }
+        if (!code) code = Shaders[name] || Shaders.space;
+        if (!code) { rt.error = 'shader no encontrado'; return; }
+        rt.shaderCtx = Shaders.initShader(rt.canvas, code, { uniforms: src.uniforms });
+        if (rt.shaderCtx) {
+          rt.uniforms = src.uniforms || null;
+          rt.ready = true;
+          Shaders.render(rt.shaderCtx, rt.canvas);
+          rt.texture.needsUpdate = true;
+        } else {
+          rt.error = 'no se pudo compilar el shader';
+        }
+        return;
+      }
+
+      if (type === 'image' || type === 'youtube') {
+        const url = (type === 'youtube')
+          ? ('https://img.youtube.com/vi/' + (src.videoId || '') + '/maxresdefault.jpg')
+          : (src.src || src.url);
+        if (!url) { rt.error = 'input sin URL'; return; }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          rt.ctx.drawImage(img, 0, 0, rt.canvas.width, rt.canvas.height);
+          rt.texture.needsUpdate = true;
+          rt.ready = true;
+        };
+        img.onerror = () => { rt.error = 'no se pudo cargar la imagen'; };
+        img.src = url;
+        rt.img = img;
+        return;
+      }
+
+      if (type === 'video') {
+        const url = src.src || src.url;
+        if (!url) { rt.error = 'video sin URL'; return; }
+        const v = document.createElement('video');
+        v.crossOrigin = 'anonymous';
+        v.src = url;
+        v.loop = true; v.muted = true; v.playsInline = true; v.autoplay = true;
+        v.oncanplay = () => {
+          rt.ready = true;
+          v.play().catch(() => { /* noop */ });
+        };
+        v.onerror = () => { rt.error = 'no se pudo cargar el video'; };
+        rt.video = v;
+        return;
+      }
+
+      if (type === 'web') {
+        drawLockWebPlaceholder(rt);
+        rt.ready = true;
+        rt.texture.needsUpdate = true;
+        return;
+      }
+
+      rt.error = 'tipo de input no soportado: ' + type;
+    }
+
+    /**
+     * Runtime del lock de un elemento. Devuelve null si no está lockeado.
+     * Se crea/recicla solo cuando cambia el input elegido.
+     */
+    function getLockRuntime(item, kind) {
+      if (!item || !item.lockSource || !item.lockSource.id) return null;
+      const key = lockKeyFor(item, kind);
+      const src = item.lockSource;
+      let rt = lockRuntimes.get(key);
+      if (rt && rt.sourceId === src.id) return rt;
+      if (rt) disposeLockRuntime(key);
+
+      const cv = document.createElement('canvas');
+      cv.width = LOCK_W; cv.height = LOCK_H;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, LOCK_W, LOCK_H);
+      const texture = new THREE.CanvasTexture(cv);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+
+      rt = {
+        key, item, kind, sourceId: src.id, source: src,
+        canvas: cv, ctx, texture,
+        type: String(src.type || '').toLowerCase() === 'effect' ? 'shader' : String(src.type || '').toLowerCase(),
+        ready: false, error: null,
+        img: null, video: null, shaderCtx: null, uniforms: null
+      };
+      lockRuntimes.set(key, rt);
+      initLockRuntimeSource(rt);
+      return rt;
+    }
+
+    /** Canvas con el contenido fijo de un elemento lockeado (o null si no lo está). */
+    function lockSourceElementFor(item, kind) {
+      const rt = getLockRuntime(item, kind);
+      return rt ? rt.canvas : null;
+    }
+
+    /** Textura del lock, para los haces de los proyectores. */
+    function lockTextureFor(item, kind) {
+      const rt = getLockRuntime(item, kind);
+      return rt ? (rt.ready ? rt.texture : null) : null;
+    }
+
+    /** Avanza los contenidos animados de cada lock (se llama desde animate()). */
+    function syncLockRuntimes() {
+      if (!lockRuntimes.size) return;
+      lockRuntimes.forEach(rt => {
+        if (rt.type === 'shader') {
+          if (rt.shaderCtx && typeof Shaders !== 'undefined') {
+            Shaders.render(rt.shaderCtx, rt.canvas);
+            rt.texture.needsUpdate = true;
+          }
+        } else if (rt.type === 'video') {
+          if (rt.video && rt.video.readyState >= 2) {
+            rt.ctx.drawImage(rt.video, 0, 0, rt.canvas.width, rt.canvas.height);
+            rt.texture.needsUpdate = true;
+            rt.ready = true;
+          }
+        }
+      });
+    }
+
+    /** Fija (o cambia) el input de un elemento y lo deja lockeado. */
+    function setLockSource(item, kind, material) {
+      if (!item || !material) return null;
+      item.lockSource = {
+        id: material.id,
+        name: material.name || material.id,
+        type: (material.type === 'effect') ? 'shader' : material.type,
+        src: material.src || null,
+        effect: material.effect || null,
+        shader: material.shader || null,
+        videoId: material.videoId || null,
+        uniforms: material.uniforms || null
+      };
+      disposeLockRuntime(lockKeyFor(item, kind));   // recrear con el input nuevo
+      getLockRuntime(item, kind);
+      if (kind === 'screen' && item.lockSource.type === 'web') lockWebUrls.set(lockKeyFor(item, kind), item.lockSource.src || item.lockSource.url || '');
+      else lockWebUrls.delete(lockKeyFor(item, kind));
+      refreshWallTextures();
+      updateAllProjectorBeamsTextures();
+      renderHierarchy();
+      saveRoom3DConfigToServer();
+      const kindLabel = kind === 'projector' ? 'Proyector' : 'Pantalla';
+      showToast(`🔒 ${kindLabel} fijado a "${item.lockSource.name}"`);
+      return item.lockSource;
+    }
+
+    /** Quita el lock: el elemento vuelve a responder a la botonera. */
+    function clearLockSource(item, kind) {
+      if (!item) return;
+      item.lockSource = null;
+      lockWebUrls.delete(lockKeyFor(item, kind));
+      disposeLockRuntime(lockKeyFor(item, kind));
+      refreshWallTextures();
+      updateAllProjectorBeamsTextures();
+      renderHierarchy();
+      saveRoom3DConfigToServer();
+      showToast('🔓 Lock quitado: vuelve a responder a la botonera');
+    }
+
+    /** ¿Hay algún elemento lockeado? */
+    function hasAnyLock() {
+      return stageScreens.some(s => s.lockSource) || projectors.some(p => p.lockSource);
     }
 
     // ============================================================
@@ -6742,11 +7175,18 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      
+
+      // 🔒 Avanzar los contenidos lockeados (shaders y videos propios)
+      syncLockRuntimes();
+      const lockActivo = lockRuntimes.size > 0;
+
       if (currentContent.type === 'shader' && webglShaderCtx && offscreenShaderCanvas) {
         updateWallTextures(offscreenShaderCanvas);
       } else if (currentContent.type === 'video' && videoElement && videoElement.readyState >= 2) {
         updateWallTextures(videoElement);
+      } else if (lockActivo) {
+        // Sin contenido global: igual hay que refrescar los elementos lockeados
+        updateWallTextures(null);
       }
 
       // 1. Escalar cotas técnicas 3D dinámicamente según la distancia de la cámara (Requisito 5)
@@ -7005,16 +7445,9 @@
         videoElement.src = '';
         videoElement = null;
       }
-      textures.forEach(texture => {
-        if (texture && texture.image) {
-          const ctx = texture.image.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, texture.image.width, texture.image.height);
-            texture.needsUpdate = true;
-          }
-        }
-      });
+      // Apagar las pantallas SIN lock (blackout / sceneCleared de la botonera).
+      // Las que tienen 🔒 LOCK SOURCE siguen reproduciendo su input fijo.
+      updateWallTextures(null);
     }
 
     // ============================================================
