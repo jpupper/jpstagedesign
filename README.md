@@ -30,7 +30,15 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
    * **Modo Advanced**: Gestión de la biblioteca de inputs (subida de imágenes/videos por Drag & Drop o URL, shaders WebGL procedurales en vivo, **páginas web por URL**, reasignación de botones).
      * Selector de **tipo de input** al agregar por URL: `Auto-detectar` / `Página Web` / `Imagen` / `Video (archivo)` / `YouTube`.
      * En modo Auto, una URL sin extensión de archivo se interpreta como **página web** y queda guardada en INPUTS (grupo *Páginas Web* en la asignación de botones); al dispararla, el **Output** la embebe en un `<iframe>` a pantalla completa.
-   * **Selector de Estilo Visual** (arriba a la derecha): `Claro` / `Oscuro` / `Matrix` (negro absoluto + verde fósforo con scanlines). La tipografía de la interfaz es estilo **consola retro** (monoespaciada). La preferencia se guarda en `localStorage`.
+   * **Selector de Estilo Visual** (arriba a la derecha):
+     `Claro` / `Oscuro` / `Matrix` / **`✧ Minimal Neon`**. La tipografía de la interfaz es estilo
+     **consola retro** (monoespaciada). La preferencia se guarda en `localStorage` (`fsc_theme`).
+     * **Matrix** — fondo negro absoluto, **sólo los bordes en verde** (`#00ff41`), **letras blancas** y
+       fondos de contenedores/inputs en **negro puro**, con scanlines muy sutiles.
+     * **Minimal Neon** — negro profundo, líneas finas de 1px cian/magenta (acentos), sin glow agresivo.
+     * Los temas se aplican con clases en el `<body>` (`dark-mode` / `matrix-mode` / `neon-mode`) desde
+       `applyStyle()` en `menu.js`; agregar un tema nuevo son 3 lugares: `THEME_CLASSES` + `VALID_STYLES`,
+       la `<option>` del `#styleSelect` en `index.html`, y el bloque CSS `body.menu-body.<tema>-mode`.
    * **Configuración de Sala**: Medidas de habitación (largo, ancho, alto) y selección de modo de mapeo
      (**🪞 Espejo** vs **🧩 Reparto** — ver más abajo).
 
@@ -87,6 +95,11 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
      (pantalla, proyector u objeto 3D) para seleccionarlo — la selección es **mutuamente excluyente** y
      enciende el gizmo. Con el elemento seleccionado, **`Supr` / `Delete` lo elimina** (sólo en modo ADMIN;
      en modo User la tecla no hace nada).
+   * **`ALT` + click = DUPLICAR** (en el viewport 3D): mantené apretado **ALT** y clickeá una **pantalla**,
+     un **proyector** o un **objeto 3D** y se crea una copia desplazada, que queda seleccionada al instante.
+     Es el camino rápido para armar repeticiones; el click normal (sin ALT) sigue seleccionando.
+     Implementación: `onCanvasPointerDown()` detecta `event.altKey` sobre el raycast y llama a
+     `duplicateScreen()` / `duplicateProjectorById()` / `duplicateFurnitureItem()`.
    * **💾 Tab Guardar — TEMPLATES DE ESCENARIO**: guardá el escenario completo con un nombre y recargalo cuando
      quieras (lista con fecha + cantidad de pantallas/proyectores/objetos, botones *Cargar* y *eliminar*).
      API: `GET/POST /api/templates`, `GET/DELETE /api/templates/:slug` (archivos en `data/templates/*.json`).
@@ -99,6 +112,20 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
      * Botón `🛏️ Cama` para reinsertar el modelo por defecto. `API: POST/GET /api/models`.
      * Los objetos se guardan en la config (`furniture: [...]`) y se migran automáticamente desde el formato
        legacy (`bed`) de versiones anteriores.
+   * **🌐 PÁGINAS WEB EN VIVO EN EL 3D (capa CSS3D)** — las páginas web ya **no** son un cartel simbólico:
+     se monta un `<iframe>` **real** encima del canvas WebGL, en una capa CSS3D (`public/js/CSS3DRenderer.js`,
+     copia local de three.js r128) que usa **la misma cámara** que la escena. La página se ve **en vivo y en
+     perspectiva**, pegada a cada pantalla que esté mostrando contenido web, y se mueve con la órbita.
+     * El viewport del iframe usa **la misma proporción que la pantalla** (`WEB_LAYER_VW = 1600`), así la
+       página **no se deforma**. La escala CSS3D es uniforme: `w / 1600`.
+     * **Respeta el motor de mapeo**: en 🧩 REPARTO el iframe mide 4× y se desplaza para mostrar el slice
+       que le toca (usa la misma función `resolveSourceRect`). En 🪞 ESPEJO muestra la página completa.
+     * **Respeta Screen Sync**: sólo aplica a pantallas tipo *Con Proyector* (LED/touch son autoemisivas).
+     * Botón **🌐 Web Live** en la barra inferior: prende/apaga la capa (si la apagás volvés al cartel
+       de referencia). La capa tiene `pointer-events: none` para no robarle el mouse a la órbita ni al gizmo.
+     * Si una web **bloquea** su carga en iframe (`X-Frame-Options` / `CSP`), el cartel de referencia queda
+       visible detrás (fondo transparente) y lo avisa explícitamente — es una limitación del sitio, no del app.
+     * La **salida limpia** (`/output/`) ya embebía la web a pantalla completa desde antes (`renderWeb` en `output.js`).
    * **Diseño Dinámico de Pantallas y Paredes**:
      * Agregar y quitar paredes/pantallas libremente (`＋ AGREGAR PANTALLA / PARED`).
      * **Tipo de pantalla** al agregar (modal de elección) y editable luego desde el panel:
@@ -106,7 +133,11 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
        * 📱 **Tele Touch** — monitor/pantalla táctil con marco y cámara. No requiere proyector.
        * 🎦 **Pantalla con Proyector** — superficie de proyección; al crearla o al cambiar el tipo a *Proyector* se **agrega automáticamente un proyector** apuntándola.
      * Presets rápidos: `4 Paredes (Perímetro)`, `U-Stage (3 Paredes)`, `Frontal Única`.
-     * Control exacto por pantalla: Ancho (m), Alto (m), Posición X/Y/Z, Rotación X/Y/Z, y selección de slice de contenido (Slice 1 a 4, o Completo).
+     * Control exacto por pantalla: **Ancho (m), Alto (m) y LARGO (m)** — las **3 dimensiones**, porque las
+       teles/LED suelen ser más gruesas que una placa fina. El **Largo** es la profundidad del chasis
+       (`screen.depth`): si no lo tocás se usa el grosor por defecto del tipo (LED 0.07 m · Tele Touch 0.09 m ·
+       Con Proyector 0.04 m). Junto con Posición X/Y/Z, Rotación X/Y/Z y el slice de contenido
+       (Slice 1 a 4, o Completo). Se persiste en la config de la sala (`screens[].depth`).
      * Manipulación directa en 3D con Gizmo interactivo (Trasladar / Rotar).
      * Mute / Ocultar pantalla, duplicar pantalla y centrar en el espacio.
      * Etiquetas dimensionales 3D flotantes con medidas exactas y nombre de pantalla.

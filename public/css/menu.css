@@ -2606,14 +2606,14 @@ body.menu-body.dark-mode .style-select option {
 }
 
 /* ============================================================
-   TEMA MATRIX (negro absoluto + verde fósforo)
+   TEMA MATRIX — SOLO BORDES VERDES · TEXTO BLANCO · CONTENEDORES NEGROS
    ============================================================ */
 body.menu-body.matrix-mode {
-  background: #000400 !important;
-  color: #00ff41 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
 }
 
-/* Scanlines + leve vignette */
+/* Scanlines muy sutiles (el verde fuerte queda reservado para los bordes) */
 body.menu-body.matrix-mode::before {
   content: '';
   position: fixed;
@@ -2622,8 +2622,8 @@ body.menu-body.matrix-mode::before {
   z-index: 999;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 255, 65, 0.06) 0px,
-    rgba(0, 255, 65, 0.06) 1px,
+    rgba(0, 255, 65, 0.03) 0px,
+    rgba(0, 255, 65, 0.03) 1px,
     transparent 1px,
     transparent 3px
   );
@@ -2644,7 +2644,7 @@ body.menu-body.matrix-mode .menu-container {
   z-index: 10;
 }
 
-/* Superficies (paneles, tarjetas, inputs) */
+/* Superficies (paneles, tarjetas, inputs): FONDO NEGRO + borde verde + letra blanca */
 body.menu-body.matrix-mode .adv-section,
 body.menu-body.matrix-mode .settings-panel,
 body.menu-body.matrix-mode .advanced-status,
@@ -2660,11 +2660,11 @@ body.menu-body.matrix-mode .btn-panel-action,
 body.menu-body.matrix-mode .btn-screen-slice,
 body.menu-body.matrix-mode .mode-inline-btn,
 body.menu-body.matrix-mode .mode-btn {
-  background: rgba(0, 38, 10, 0.55) !important;
-  border-color: rgba(0, 255, 65, 0.45) !important;
-  color: #00ff41 !important;
-  box-shadow: inset 0 0 12px rgba(0, 255, 65, 0.12), 0 0 8px rgba(0, 255, 65, 0.08);
-  text-shadow: 0 0 6px rgba(0, 255, 65, 0.45);
+  background: #000000 !important;
+  border-color: rgba(0, 255, 65, 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 body.menu-body.matrix-mode .adv-title,
@@ -2676,24 +2676,24 @@ body.menu-body.matrix-mode h2,
 body.menu-body.matrix-mode h3,
 body.menu-body.matrix-mode h4,
 body.menu-body.matrix-mode label {
-  color: #00ff41 !important;
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.55);
+  color: #ffffff !important;
+  text-shadow: none !important;
 }
 
 body.menu-body.matrix-mode .mat-type,
 body.menu-body.matrix-mode .status-msg,
 body.menu-body.matrix-mode .slot-row input.slot-name-input::placeholder,
 body.menu-body.matrix-mode .adv-row input::placeholder {
-  color: #00b437 !important;
-  text-shadow: 0 0 5px rgba(0, 255, 65, 0.35);
+  color: rgba(255, 255, 255, 0.6) !important;
+  text-shadow: none !important;
 }
 
 body.menu-body.matrix-mode .btn-blackout {
-  background: #001a06 !important;
+  background: #000000 !important;
   border-color: #00ff41 !important;
-  color: #00ff41 !important;
-  box-shadow: 0 0 16px rgba(0, 255, 65, 0.3);
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.35);
+  text-shadow: none !important;
 }
 
 body.menu-body.matrix-mode .btn-blackout .btn-blackout-indicator {
@@ -2702,9 +2702,9 @@ body.menu-body.matrix-mode .btn-blackout .btn-blackout-indicator {
 }
 
 body.menu-body.matrix-mode .btn-settings {
-  background: rgba(0, 38, 10, 0.75) !important;
-  border-color: rgba(0, 255, 65, 0.5) !important;
-  color: #00ff41 !important;
+  background: #000000 !important;
+  border-color: rgba(0, 255, 65, 0.6) !important;
+  color: #ffffff !important;
 }
 
 body.menu-body.matrix-mode .btn-settings-icon svg,
@@ -2715,9 +2715,9 @@ body.menu-body.matrix-mode .btn-open3d .btn-open3d-icon {
 }
 
 body.menu-body.matrix-mode .user-btn {
-  background: rgba(0, 30, 8, 0.7) !important;
-  border-color: rgba(0, 255, 65, 0.4) !important;
-  box-shadow: inset 0 0 18px rgba(0, 255, 65, 0.1);
+  background: #000000 !important;
+  border-color: rgba(0, 255, 65, 0.5) !important;
+  box-shadow: none !important;
 }
 
 body.menu-body.matrix-mode .user-btn:hover,
@@ -2738,24 +2738,171 @@ body.menu-body.matrix-mode .dropzone:hover {
 }
 
 body.menu-body.matrix-mode .style-selector {
-  background: rgba(0, 30, 8, 0.9);
+  background: #000000;
   border-color: #00ff41;
-  color: #00ff41;
-  box-shadow: 0 0 16px rgba(0, 255, 65, 0.35);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.3);
 }
 
 body.menu-body.matrix-mode .style-selector-icon,
 body.menu-body.matrix-mode .style-select {
-  color: #00ff41;
+  color: #ffffff;
 }
 
 body.menu-body.matrix-mode .style-select option {
-  background: #001a06;
-  color: #00ff41;
+  background: #000000;
+  color: #ffffff;
 }
 
 body.menu-body.matrix-mode .shader-reload-indicator {
-  color: #00ff41;
-  border-color: rgba(0, 255, 65, 0.4);
+  color: #ffffff;
+  border-color: rgba(0, 255, 65, 0.5);
+}
+
+/* ============================================================
+   TEMA MINIMAL NEON — negro profundo, líneas finas cian/magenta
+   ============================================================ */
+body.menu-body.neon-mode {
+  background: #05060a !important;
+  color: #e8fbff !important;
+}
+
+body.menu-body.neon-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  background:
+    radial-gradient(60% 45% at 12% 0%, rgba(0, 240, 255, 0.10), transparent 70%),
+    radial-gradient(55% 45% at 88% 100%, rgba(255, 0, 200, 0.10), transparent 70%);
+}
+
+body.menu-body.neon-mode .bg-shader-canvas {
+  opacity: 0.12;
+  filter: grayscale(0.4) brightness(0.6);
+}
+
+body.menu-body.neon-mode .logo-img {
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.55)) saturate(1.2);
+}
+
+body.menu-body.neon-mode .menu-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Superficies: negro puro, borde fino 1px cian, sin relleno de color */
+body.menu-body.neon-mode .adv-section,
+body.menu-body.neon-mode .settings-panel,
+body.menu-body.neon-mode .advanced-status,
+body.menu-body.neon-mode .mat-item,
+body.menu-body.neon-mode .dropzone,
+body.menu-body.neon-mode .slot-row select,
+body.menu-body.neon-mode .slot-row input.slot-name-input,
+body.menu-body.neon-mode .adv-row input,
+body.menu-body.neon-mode .adv-row select,
+body.menu-body.neon-mode .setting-group input,
+body.menu-body.neon-mode .btn-save,
+body.menu-body.neon-mode .btn-panel-action,
+body.menu-body.neon-mode .btn-screen-slice,
+body.menu-body.neon-mode .mode-inline-btn,
+body.menu-body.neon-mode .mode-btn {
+  background: #0a0c12 !important;
+  border: 1px solid rgba(0, 240, 255, 0.35) !important;
+  color: #e8fbff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body.menu-body.neon-mode .adv-title,
+body.menu-body.neon-mode .mat-name,
+body.menu-body.neon-mode .user-btn-label,
+body.menu-body.neon-mode .slot-num,
+body.menu-body.neon-mode .settings-header h3,
+body.menu-body.neon-mode h2,
+body.menu-body.neon-mode h3,
+body.menu-body.neon-mode h4,
+body.menu-body.neon-mode label {
+  color: #e8fbff !important;
+  text-shadow: none !important;
+  letter-spacing: 0.06em;
+}
+
+body.menu-body.neon-mode .mat-type,
+body.menu-body.neon-mode .status-msg,
+body.menu-body.neon-mode .slot-row input.slot-name-input::placeholder,
+body.menu-body.neon-mode .adv-row input::placeholder {
+  color: rgba(232, 251, 255, 0.5) !important;
+  text-shadow: none !important;
+}
+
+/* Detalles de acento: líneas finas, sin bloom */
+body.menu-body.neon-mode .btn-blackout {
+  background: #0a0c12 !important;
+  border: 1px solid #ff00c8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(255, 0, 200, 0.35);
+  text-shadow: none !important;
+}
+
+body.menu-body.neon-mode .btn-blackout .btn-blackout-indicator {
+  background: #ff00c8;
+  box-shadow: 0 0 8px #ff00c8;
+}
+
+body.menu-body.neon-mode .btn-settings,
+body.menu-body.neon-mode .user-btn {
+  background: #0a0c12 !important;
+  border: 1px solid rgba(0, 240, 255, 0.45) !important;
+  color: #e8fbff !important;
+  box-shadow: none !important;
+}
+
+body.menu-body.neon-mode .btn-settings:hover,
+body.menu-body.neon-mode .user-btn:hover,
+body.menu-body.neon-mode .user-btn.active {
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.35) !important;
+}
+
+body.menu-body.neon-mode .btn-settings-icon svg,
+body.menu-body.neon-mode .btn-settings-icon svg circle,
+body.menu-body.neon-mode .btn-open3d .btn-open3d-icon {
+  color: #00f0ff !important;
+  stroke: #00f0ff;
+}
+
+body.menu-body.neon-mode .user-btn-thumb {
+  filter: saturate(0.5) brightness(0.8);
+  opacity: 0.5;
+}
+
+body.menu-body.neon-mode .dropzone.dragover,
+body.menu-body.neon-mode .dropzone:hover {
+  border-color: #00f0ff !important;
+  background: #0e1218 !important;
+}
+
+body.menu-body.neon-mode .style-selector {
+  background: #0a0c12;
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  color: #e8fbff;
+  box-shadow: none;
+}
+
+body.menu-body.neon-mode .style-selector-icon,
+body.menu-body.neon-mode .style-select {
+  color: #e8fbff;
+}
+
+body.menu-body.neon-mode .style-select option {
+  background: #0a0c12;
+  color: #e8fbff;
+}
+
+body.menu-body.neon-mode .shader-reload-indicator {
+  color: #e8fbff;
+  border-color: rgba(0, 240, 255, 0.4);
 }
 

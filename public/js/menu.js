@@ -2204,14 +2204,16 @@
     });
   }
   
-  // --- ESTILOS VISUALES (Claro / Oscuro / Matrix) ---
-  const THEME_CLASSES = ['dark-mode', 'matrix-mode'];
+  // --- ESTILOS VISUALES (Claro / Oscuro / Matrix / Minimal Neon) ---
+  const THEME_CLASSES = ['dark-mode', 'matrix-mode', 'neon-mode'];
+  const VALID_STYLES = ['light', 'dark', 'matrix', 'neon'];
 
   function applyStyle(style) {
-    currentStyle = (style === 'dark' || style === 'matrix') ? style : 'light';
+    currentStyle = VALID_STYLES.indexOf(style) !== -1 ? style : 'light';
     THEME_CLASSES.forEach(c => document.body.classList.remove(c));
     if (currentStyle === 'dark') document.body.classList.add('dark-mode');
     if (currentStyle === 'matrix') document.body.classList.add('matrix-mode');
+    if (currentStyle === 'neon') document.body.classList.add('neon-mode');
     document.body.setAttribute('data-style', currentStyle);
     if (styleSelect) styleSelect.value = currentStyle;
     localStorage.setItem('fsc_theme', currentStyle);

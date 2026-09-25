@@ -1508,6 +1508,8 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+  <!-- Capa CSS3D: permite mostrar PÁGINAS WEB EN VIVO sobre las pantallas del 3D -->
+  <script src="/jpstagedesign/js/CSS3DRenderer.js?v=20260926"></script>
   <!-- Shaders WebGL -->
   <script src="/jpstagedesign/js/shaders.js?v=20260925"></script>
   <!-- Socket.IO desde CDN (carga síncrona) -->
@@ -1595,6 +1597,7 @@
     <button class="tool-btn" id="tb-inside">Dentro</button>
     <div class="tool-sep"></div>
     <button class="tool-btn" id="tb-mapping" title="Alternar entre 1P Duplicado y 4P Extendido 360°">🌐 4P Extendido</button>
+    <button class="tool-btn active" id="tb-weblive" title="Mostrar las páginas web EN VIVO sobre las pantallas (iframe real en 3D)">🌐 Web Live</button>
     <div class="tool-sep"></div>
     <button class="tool-btn" id="tb-dims" title="Mostrar/Ocultar Cotas 3D">📐 Cotas</button>
     <button class="tool-btn" id="tb-wire">Wire</button>
@@ -1632,7 +1635,7 @@
     </div>
 
     <div class="panel-key-hint">
-      Tip: clickeá un elemento en la escena para seleccionarlo · <kbd>Supr</kbd> lo borra · <kbd>P</kbd> sale del modo admin
+      Tip: clickeá un elemento para seleccionarlo · <kbd>ALT</kbd> + click lo <b>duplica</b> · <kbd>Supr</kbd> lo borra · <kbd>P</kbd> sale del modo admin
     </div>
 
     <!-- Barra de TABS (reemplaza a los encabezados de acordeón) -->
@@ -1779,6 +1782,16 @@
             <input type="range" id="screenAlto" min="0.5" max="15" step="0.05" value="2.0" style="flex: 1;">
             <input type="number" id="screenAltoNum" min="0.2" max="30" step="0.05" value="2.0" class="coord-num-input" title="Alto de pantalla en metros">
           </div>
+        </div>
+        <div class="control-row">
+          <label style="width: 65px;">Largo (m)</label>
+          <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+            <input type="range" id="screenLargo" min="0.02" max="1.2" step="0.005" value="0.07" style="flex: 1;">
+            <input type="number" id="screenLargoNum" min="0.02" max="3" step="0.005" value="0.07" class="coord-num-input" title="Profundidad / grosor del chasis en metros (para teles o gabinetes más gruesos)">
+          </div>
+        </div>
+        <div style="margin: 2px 0 2px 0; color: #6c7686; font-size: 9px; line-height: 1.35;">
+          <b>Largo</b> = profundidad del chasis (las teles LED/touch suelen ser más gruesas que una placa fina).
         </div>
 
         <!-- Mapeo de Contenido / Slice -->
@@ -3737,6 +3750,9 @@
       // Crear sala síncronamente antes de la conexión socket
       createRoom();
 
+      // Capa de páginas web en vivo (CSS3D sobre el canvas)
+      setupWeb3DLayer();
+
       // Eventos de ventana
       window.addEventListener('resize', onWindowResize);
       window.addEventListener('keydown', onKeyDown);
@@ -4097,6 +4113,18 @@
       return (t === 'led' || t === 'touch' || t === 'projector') ? t : 'projector';
     }
 
+    /** Grosor (profundidad / "largo") por defecto del chasis según el tipo de pantalla. */
+    function defaultScreenDepth(screenType) {
+      const t = normalizeScreenType(screenType);
+      return t === 'touch' ? 0.09 : (t === 'led' ? 0.07 : 0.04);
+    }
+
+    /** Grosor efectivo: el que fijó el usuario con el slider "Largo" o el default del tipo. */
+    function screenDepthOf(s) {
+      const d = Number(s && s.depth);
+      return (isFinite(d) && d > 0) ? d : defaultScreenDepth(s && s.screenType);
+    }
+
     // Textura reutilizable: trama de píxeles LED (puntos verdes/blancos sobre negro)
     let _ledDotTexture = null;
     function getLedDotTexture() {
@@ -4140,7 +4168,7 @@
 
       const w = Math.max(0.2, Number(s.width) || 4.5);
       const h = Math.max(0.2, Number(s.height) || 2.5);
-      const depth = screenType === 'touch' ? 0.09 : (screenType === 'led' ? 0.07 : 0.04);
+      const depth = screenDepthOf(s);
 
       // Superficie de proyección frontal (+Z)
       const frontGeo = new THREE.PlaneGeometry(w, h);
@@ -4375,6 +4403,7 @@
         screenType: screenType,
         width: opts.width || 4.5,
         height: opts.height || 2.5,
+        depth: (opts.depth !== undefined && opts.depth !== null) ? opts.depth : defaultScreenDepth(screenType),
         position: opts.position || { x: 0, y: (opts.height || 2.5) / 2, z: (stageScreens.length * 0.4) },
         rotation: opts.rotation || { x: 0, y: 0, z: 0 },
         scale: opts.scale || { x: 1, y: 1, z: 1 },
@@ -4506,6 +4535,48 @@
       refreshWallTextures();
       saveRoom3DConfigToServer();
       showToast(`📋 Pantalla duplicada`);
+    }
+
+    // Duplica un PROYECTOR (mismo destino, desplazado un poco). Se usa con ALT+click.
+    function duplicateProjectorById(id) {
+      const src = projectors.find(p => p.id === id);
+      if (!src) return null;
+      const clone = JSON.parse(JSON.stringify(src));
+      clone.id = 'proj-' + Date.now();
+      clone.name = `${src.name || 'Proyector'} (Copia)`;
+      clone.position = {
+        x: Number(((src.position?.x || 0) + 0.5).toFixed(2)),
+        y: Number((src.position?.y || 2).toFixed(2)),
+        z: Number(((src.position?.z || 0) + 0.5).toFixed(2))
+      };
+      projectors.push(clone);
+      rebuildProjectors3D();
+      updateProjectorsSelectUI();
+      updateProjectorUIControls();
+      selectProjector(clone.id);
+      saveRoom3DConfigToServer();
+      showToast('📋 Proyector duplicado');
+      return clone;
+    }
+
+    // Duplica un OBJETO 3D (OBJ/GLB) desplazado. Se usa con ALT+click.
+    function duplicateFurnitureItem(id) {
+      const src = furnitureItems.find(f => f.id === id);
+      if (!src) return null;
+      const clone = addFurnitureItem({
+        name: `${src.name || 'Objeto 3D'} (Copia)`,
+        src: src.src,
+        ext: src.ext,
+        scale: src.scale,
+        rotation: { ...(src.rotation || { x: 0, y: 0, z: 0 }) },
+        position: {
+          x: Number(((src.position?.x || 0) + 0.5).toFixed(2)),
+          y: Number((src.position?.y || 0).toFixed(2)),
+          z: Number(((src.position?.z || 0) + 0.5).toFixed(2))
+        }
+      });
+      showToast('📋 Objeto 3D duplicado');
+      return clone;
     }
 
     function deleteScreen(id) {
@@ -4667,6 +4738,7 @@
     function updateScreenUIControls() {
       const hintId = 'screenEmptyHint';
       const screenPanelIds = ['screenNameInput', 'screenTypeSelect', 'screenAncho', 'screenAnchoNum', 'screenAlto', 'screenAltoNum',
+        'screenLargo', 'screenLargoNum',
         'screenSliceSelect', 'screenPosX', 'screenPosXNum', 'screenPosY', 'screenPosYNum', 'screenPosZ', 'screenPosZNum',
         'screenRotX', 'screenRotXNum', 'screenRotY', 'screenRotYNum', 'screenRotZ', 'screenRotZNum',
         'btnToggleScreenMute', 'btnDeleteSelectedScreen', 'btnCenterScreen', 'btnDuplicateScreen'];
@@ -4700,6 +4772,8 @@
       const wNum = document.getElementById('screenAnchoNum');
       const hRng = document.getElementById('screenAlto');
       const hNum = document.getElementById('screenAltoNum');
+      const dRng = document.getElementById('screenLargo');
+      const dNum = document.getElementById('screenLargoNum');
       const sliceSel = document.getElementById('screenSliceSelect');
 
       const posX = document.getElementById('screenPosX');
@@ -4723,11 +4797,15 @@
       if (typeSel) typeSel.value = normalizeScreenType(selectedScreen.screenType);
       const wVal = Number(selectedScreen.width || 4.5).toFixed(2);
       const hVal = Number(selectedScreen.height || 2.5).toFixed(2);
+      // El "Largo" (profundidad del chasis) usa el default del tipo si el usuario no lo tocó
+      const dVal = Number(screenDepthOf(selectedScreen)).toFixed(3);
 
       if (wRng) wRng.value = wVal;
       if (wNum) wNum.value = wVal;
       if (hRng) hRng.value = hVal;
       if (hNum) hNum.value = hVal;
+      if (dRng) dRng.value = dVal;
+      if (dNum) dNum.value = dVal;
 
       if (sliceSel) sliceSel.value = selectedScreen.sliceIndex !== undefined ? String(selectedScreen.sliceIndex) : '-2';
 
@@ -5407,6 +5485,17 @@
         return;
       }
 
+      // ===== ALT + click = DUPLICAR el elemento bajo el cursor =====
+      // (pantalla, telé / proyector u objeto 3D). El clon se selecciona solo.
+      if (event.altKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (target.kind === 'screen') duplicateScreen(target.id);
+        else if (target.kind === 'projector') duplicateProjectorById(target.id);
+        else if (target.kind === 'furniture') duplicateFurnitureItem(target.id);
+        return;
+      }
+
       if (target.kind === 'projector') selectProjector(target.id);
       else if (target.kind === 'screen') selectScreen(target.id);
       else if (target.kind === 'furniture') selectFurniture(target.id);
@@ -5729,6 +5818,8 @@
         if (sAncho) selectedScreen.width = parseFloat(sAncho.value) || selectedScreen.width;
         const sAlto = document.getElementById('screenAltoNum');
         if (sAlto) selectedScreen.height = parseFloat(sAlto.value) || selectedScreen.height;
+        const sLargo = document.getElementById('screenLargoNum');
+        if (sLargo) selectedScreen.depth = parseFloat(sLargo.value) || screenDepthOf(selectedScreen);
         const sSlice = document.getElementById('screenSliceSelect');
         if (sSlice) selectedScreen.sliceIndex = sSlice.value;
         const spx = document.getElementById('screenPosXNum');
@@ -5836,6 +5927,8 @@
           name: s.name || 'Pantalla',
           width: Number(s.width) || 4.5,
           height: Number(s.height) || 2.5,
+          // "Largo" = profundidad del chasis (3ª dimensión). Default por tipo si no se tocó.
+          depth: parseFloat(screenDepthOf(s).toFixed(3)),
           position: {
             x: parseFloat((s.position?.x || 0).toFixed(3)),
             y: parseFloat((s.position?.y || 1.25).toFixed(3)),
@@ -6023,6 +6116,8 @@
           screenType: s.screenType || 'projector',
           width: Number(s.width) || 4.5,
           height: Number(s.height) || 2.5,
+          // Compat: configs viejas sin "largo" → undefined y manda el default del tipo
+          depth: (s.depth !== undefined && s.depth !== null && isFinite(Number(s.depth))) ? Number(s.depth) : undefined,
           position: s.position || { x: 0, y: 1.25, z: 0 },
           rotation: s.rotation || { x: 0, y: 0, z: 0 },
           scale: s.scale || { x: 1, y: 1, z: 1 },
@@ -6486,6 +6581,162 @@
     }
 
     // ============================================================
+    // CAPA DE PÁGINAS WEB EN VIVO (CSS3D sobre el canvas WebGL)
+    // ============================================================
+    // Antes las páginas web sólo se veían como un cartel simbólico (no se puede
+    // texturizar un <iframe> dentro de WebGL). Ahora se monta un <iframe> REAL
+    // en una capa CSS3D encima del canvas, transformado con la MISMA matriz de
+    // cámara: la página se ve en vivo y en perspectiva, pegada a la pantalla.
+
+    const WEB_LAYER_VW = 1600;       // ancho virtual del viewport de la página (px)
+    let css3dRenderer = null;
+    let css3dScene = null;
+    let webLayerRoot = null;
+    let webLiveEnabled = true;       // se puede apagar desde la toolbar
+    const webLayers = new Map();     // screenId -> { obj, box, frame, url, vh, slice }
+
+    const _webPos = new THREE.Vector3();
+    const _webQuat = new THREE.Quaternion();
+    const _webScl = new THREE.Vector3();
+
+    function setupWeb3DLayer() {
+      if (typeof THREE.CSS3DRenderer !== 'function' || typeof THREE.CSS3DObject !== 'function') {
+        console.warn('[3D] CSS3DRenderer no disponible: las páginas web se verán como cartel simbólico.');
+        return;
+      }
+      const container = document.getElementById('canvas-container');
+      if (!container) return;
+
+      css3dRenderer = new THREE.CSS3DRenderer();
+      webLayerRoot = css3dRenderer.domElement;
+      webLayerRoot.id = 'web3d-layer';
+      webLayerRoot.style.position = 'fixed';
+      webLayerRoot.style.top = '0';
+      webLayerRoot.style.left = '0';
+      webLayerRoot.style.pointerEvents = 'none';   // no roba el mouse: órbita/gizmo siguen funcionando
+      webLayerRoot.style.zIndex = '240';           // por debajo del panel de control (250)
+      webLayerRoot.style.display = 'none';
+      container.appendChild(webLayerRoot);
+
+      css3dRenderer.setSize(window.innerWidth, window.innerHeight);
+      css3dScene = new THREE.Scene();
+      console.log('[3D] Capa de páginas web en vivo lista');
+    }
+
+    /** URL de la página web que se está mostrando ahora (o null). */
+    function currentWebUrl() {
+      if (!currentContent || currentContent.type !== 'web') return null;
+      const u = currentContent.webUrl
+        || (currentScene && (currentScene.src || currentScene.url))
+        || null;
+      return u || null;
+    }
+
+    /** Qué porción de la página le toca a esta pantalla (-1 = página completa). */
+    function webSliceFor(screen, idx) {
+      const r = resolveSourceRect(screen, idx, 4, 1);   // 4 columnas virtuales = reparto en 4
+      return r.slice > 0 ? (r.slice - 1) : -1;
+    }
+
+    function createWebLayer(screenId, url, vh, slice) {
+      const box = document.createElement('div');
+      // Fondo TRANSPARENTE a propósito: si la página bloquea su carga en iframe
+      // (X-Frame-Options / CSP), se sigue viendo el cartel informativo de la
+      // pantalla que está debajo, en vez de un rectángulo negro vacío.
+      box.style.cssText = `width:${WEB_LAYER_VW}px; height:${vh}px; overflow:hidden; background:transparent;`;
+
+      const frame = document.createElement('iframe');
+      frame.setAttribute('scrolling', 'no');
+      frame.setAttribute('allowfullscreen', 'true');
+      frame.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+      const frameW = (slice >= 0) ? WEB_LAYER_VW * 4 : WEB_LAYER_VW;
+      const frameLeft = (slice >= 0) ? -(slice * WEB_LAYER_VW) : 0;
+      frame.style.cssText = `position:absolute; top:0; left:${frameLeft}px; width:${frameW}px; height:${vh}px; border:0; background:transparent;`;
+      frame.src = url;
+      box.appendChild(frame);
+
+      const obj = new THREE.CSS3DObject(box);
+      obj.element.style.pointerEvents = 'none';
+      css3dScene.add(obj);
+
+      const entry = { obj, box, frame, url, vh, slice };
+      webLayers.set(screenId, entry);
+      return entry;
+    }
+
+    function removeWebLayer(screenId) {
+      const entry = webLayers.get(screenId);
+      if (!entry) return;
+      try { if (entry.frame) entry.frame.src = 'about:blank'; } catch (e) { /* noop */ }
+      if (css3dScene) css3dScene.remove(entry.obj);
+      if (entry.box && entry.box.parentNode) entry.box.parentNode.removeChild(entry.box);
+      webLayers.delete(screenId);
+    }
+
+    function clearWebLayers() {
+      Array.from(webLayers.keys()).forEach(removeWebLayer);
+    }
+
+    /** Reposiciona/crea/borra los iframes en vivo según la escena actual. */
+    function syncWebLayers() {
+      if (!css3dRenderer || !css3dScene || !webLayerRoot) return;
+
+      const url = webLiveEnabled ? currentWebUrl() : null;
+      if (!url || !screensGroup) {
+        if (webLayers.size) clearWebLayers();
+        webLayerRoot.style.display = 'none';
+        return;
+      }
+
+      const wanted = new Set();
+
+      stageScreens.forEach((s, idx) => {
+        if (s.muted) return;
+        const group = screensGroup.getObjectByName('screen_' + s.id);
+        if (!group || group.visible === false) return;
+
+        // Screen Sync: mismo criterio que la textura (sólo pantallas con proyector)
+        if (screenProjSync && normalizeScreenType(s.screenType) === 'projector') {
+          const normTarget = normalizeWallName(s.name);
+          const hasActiveProjector = (allProjectorsVisible !== false) && projectors.some(p => {
+            const pNorm = normalizeWallName(p.targetWall);
+            const matches = (pNorm === normTarget || p.targetWall === s.name || p.targetWall === s.id);
+            return matches && !p.muted && p.showBeam !== false;
+          });
+          if (!hasActiveProjector) return;
+        }
+
+        wanted.add(s.id);
+
+        const w = Math.max(0.2, Number(s.width) || 4.5);
+        const h = Math.max(0.2, Number(s.height) || 2.5);
+        // Viewport con la MISMA proporción que la pantalla → la página no se deforma
+        const vh = Math.max(160, Math.round(WEB_LAYER_VW * (h / w)));
+        const slice = webSliceFor(s, idx);
+
+        let entry = webLayers.get(s.id);
+        if (entry && (entry.url !== url || entry.vh !== vh || entry.slice !== slice)) {
+          removeWebLayer(s.id);
+          entry = null;
+        }
+        if (!entry) entry = createWebLayer(s.id, url, vh, slice);
+
+        // Posicionar el iframe exactamente donde está la malla de la pantalla
+        group.updateWorldMatrix(true, false);
+        group.matrixWorld.decompose(_webPos, _webQuat, _webScl);
+        const k = (w / WEB_LAYER_VW) * (_webScl.x || 1);
+        entry.obj.position.copy(_webPos);
+        entry.obj.quaternion.copy(_webQuat);
+        entry.obj.scale.set(k, k, _webScl.z || 1);
+        entry.obj.visible = true;
+        entry.obj.updateMatrixWorld(true);
+      });
+
+      Array.from(webLayers.keys()).forEach(id => { if (!wanted.has(id)) removeWebLayer(id); });
+      webLayerRoot.style.display = 'block';
+    }
+
+    // ============================================================
     // LOOP DE ANIMACIÓN
     // ============================================================
 
@@ -6533,8 +6784,16 @@
 
       // (Eliminada la vista de mapeo de techo: el techo ya no existe como superficie)
 
+      // Capa de PÁGINAS WEB EN VIVO: reposicionar los iframes sobre las pantallas
+      syncWebLayers();
+
       controls.update();
       renderer.render(scene, camera);
+
+      // Render de la capa CSS3D después del WebGL, con la cámara ya actualizada
+      if (css3dRenderer && css3dScene && webLayers.size) {
+        css3dRenderer.render(css3dScene, camera);
+      }
     }
 
     // ============================================================
@@ -6676,6 +6935,9 @@
       } catch (e) { /* noop */ }
       c.fillStyle = '#5b6472'; c.font = '16px monospace';
       c.fillText('Se muestra en vivo en el Output / pantalla real', 512, 338);
+      c.fillStyle = '#4a5260'; c.font = '14px monospace';
+      c.fillText('Si ves este cartel en el 3D: la página bloqueó su carga', 512, 364);
+      c.fillText('en iframe (X-Frame-Options / CSP). Probá con 🌐 Web Live.', 512, 384);
       c.textAlign = 'start';
 
       currentLoadedImage = cv;
@@ -6779,6 +7041,15 @@
       // (Eliminada la vista "👀 Techo": el techo ya no existe como superficie)
       document.getElementById('tb-mapping').addEventListener('click', () => {
         set3DMappingMode(mappingMode === 'extended' ? 'duplicated' : 'extended');
+      });
+      document.getElementById('tb-weblive').addEventListener('click', () => {
+        webLiveEnabled = !webLiveEnabled;
+        document.getElementById('tb-weblive').classList.toggle('active', webLiveEnabled);
+        if (!webLiveEnabled) clearWebLayers();
+        else refreshWallTextures();
+        showToast(webLiveEnabled
+          ? '🌐 Páginas web en vivo: ACTIVADO'
+          : '🌐 Páginas web en vivo: desactivado (se ve el cartel de referencia)');
       });
       document.getElementById('tb-dims').addEventListener('click', () => {
         dimensionsVisible = !dimensionsVisible;
@@ -7080,17 +7351,20 @@
         });
       }
 
-      // Dimensiones de Pantalla (Ancho / Alto)
-      function bindScreenDim(rangeId, numId, isWidth = true) {
+      // Dimensiones de Pantalla (Ancho / Alto / Largo)
+      // `prop` = 'width' | 'height' | 'depth'  (mantiene compatibilidad con el flag booleano viejo)
+      function bindScreenDim(rangeId, numId, prop = 'width') {
         const rng = document.getElementById(rangeId);
         const num = document.getElementById(numId);
         if (!rng || !num) return;
 
+        const key = (prop === true) ? 'width' : (prop === false ? 'height' : prop);
+        const minVal = key === 'depth' ? 0.02 : 0.2;
+
         const updateDim = (val, shouldSave = false) => {
           if (!selectedScreen) return;
-          const v = Math.max(0.2, parseFloat(val) || 1.0);
-          if (isWidth) selectedScreen.width = v;
-          else selectedScreen.height = v;
+          const v = Math.max(minVal, parseFloat(val) || minVal);
+          selectedScreen[key] = v;
 
           // Reconstruir geometría de la pantalla
           rebuildScreens3D();
@@ -7111,8 +7385,9 @@
         num.addEventListener('change', (e) => updateDim(e.target.value, true));
       }
 
-      bindScreenDim('screenAncho', 'screenAnchoNum', true);
-      bindScreenDim('screenAlto', 'screenAltoNum', false);
+      bindScreenDim('screenAncho', 'screenAnchoNum', 'width');
+      bindScreenDim('screenAlto', 'screenAltoNum', 'height');
+      bindScreenDim('screenLargo', 'screenLargoNum', 'depth');
 
       // Posición y Rotación de Pantalla (Sliders + Inputs numéricos)
       function updateSelectedScreenTransforms(fromNumInputs = false, shouldSave = false) {
@@ -7978,6 +8253,7 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      if (css3dRenderer) css3dRenderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     // ============================================================
