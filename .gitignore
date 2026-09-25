@@ -1,0 +1,67 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+# Windows device file — conflicts with git indexing
+nul
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project files
+proyects/
+
+# Large binary / generated files
+checkpoints.db
+checkpoints.db-shm
+checkpoints.db-wal
+vector_store/
+rag_uploads/
+
+# Temp images for Hermes
+temp_images/
+
+.env
+
+# Ruteo config por máquina (se genera desde el menú Config Global → Rutas)
+routing.json
+
+# Server-side data (moved from root)
+db/checkpoints.db
+db/checkpoints.db-shm
+db/checkpoints.db-wal
+logs/
+
+# Electron build artifacts
+electron/node_modules/
+electron/dist/
+electron/assets/icon.ico
+
+# Compiled desktop installer
+compiled/
+electron/assets/icon.png
+
+# Server-side runtime data (biblioteca de materiales y uploads)
+data/
+public/uploads/
+
+# Backups de verificación (nunca versionar)
+.backup*/
+*.bak

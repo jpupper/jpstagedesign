@@ -1,0 +1,1087 @@
+{
+  "transform": {
+    "rotation": 204.8,
+    "flipX": false,
+    "flipY": true
+  },
+  "blob": {
+    "enabled": true,
+    "radius": 150,
+    "minPoints": 1,
+    "maxPoints": 260,
+    "maxMove": 800,
+    "sensitivity": 50,
+    "minRange": 150,
+    "smoothing": 5,
+    "persistence": 0,
+    "filterType": "ema",
+    "showVisuals": true,
+    "showBounds": false,
+    "showCentroid": true,
+    "centroidSize": 0.01,
+    "showVelocity": false,
+    "showId": false
+  },
+  "output": {
+    "udp": true,
+    "osc": true,
+    "oscBlobAddress": "/lidar/blob",
+    "hotspotOscPort": 4444,
+    "targetIp": "127.0.0.1",
+    "normUseSelection": true,
+    "normalization": {
+      "useSelectionArea": true,
+      "minX": -10,
+      "maxX": 10,
+      "minY": -10,
+      "maxY": 10,
+      "outMinX": 0,
+      "outMaxX": 1,
+      "outMinY": 0,
+      "outMaxY": 1
+    },
+    "targets": [
+      {
+        "enabled": true,
+        "ip": "127.0.0.1",
+        "udpPort": 3333,
+        "oscPort": 3334
+      },
+      {
+        "enabled": false,
+        "ip": "192.168.1.100",
+        "udpPort": 3333,
+        "oscPort": 3334
+      },
+      {
+        "enabled": false,
+        "ip": "192.168.1.101",
+        "udpPort": 3333,
+        "oscPort": 3334
+      },
+      {
+        "enabled": false,
+        "ip": "192.168.1.102",
+        "udpPort": 3333,
+        "oscPort": 3334
+      },
+      {
+        "enabled": false,
+        "ip": "192.168.1.103",
+        "udpPort": 3333,
+        "oscPort": 3334
+      }
+    ]
+  },
+  "selection": {
+    "active": true,
+    "x": -0.01371087148169442,
+    "y": -0.27855745967381745,
+    "width": 0.6627252517562886,
+    "height": 0.49230038520021135,
+    "rotation": 0,
+    "locked": false,
+    "targetRes": "1920x1080",
+    "scaleMode": "fit",
+    "customW": "1920",
+    "customH": "1080"
+  },
+  "sensorParams": {
+    "_primary": {
+      "rotation": 80.1,
+      "flipX": true,
+      "flipY": false,
+      "pointSize": 6,
+      "renderMode": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1,
+        "rotation": 0
+      },
+      "zones": [],
+      "gridWarp": {
+        "enabled": true,
+        "rows": 3,
+        "cols": 3,
+        "showGrid": true,
+        "interpolation": "bilinear",
+        "nudgeStep": 0.01,
+        "gridPoints": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ]
+        ]
+      },
+      "masks": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      }
+    },
+    "_PRIMARY": {
+      "rotation": 0,
+      "flipX": false,
+      "flipY": false,
+      "pointSize": 3,
+      "boxActive": false,
+      "boxCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "boxSize": {
+        "x": 0,
+        "y": 0
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": 0,
+      "offsetY": 0,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "rotation": 0
+      },
+      "zones": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      }
+    },
+    "COM3": {
+      "rotation": 204.8,
+      "flipX": false,
+      "flipY": true,
+      "pointSize": 6,
+      "boxActive": true,
+      "boxCenter": {
+        "x": -0.01371087148169442,
+        "y": -0.27855745967381745
+      },
+      "boxSize": {
+        "x": 0.6627252517562886,
+        "y": 0.49230038520021135
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": -0.6286684081285159,
+      "offsetY": -0.3138889578653925,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": true,
+        "x": -0.01371087148169442,
+        "y": -0.27855745967381745,
+        "width": 0.6627252517562886,
+        "height": 0.49230038520021135,
+        "rotation": 0
+      },
+      "zones": [],
+      "gridWarp": {
+        "enabled": true,
+        "rows": 3,
+        "cols": 3,
+        "showGrid": true,
+        "interpolation": "bilinear",
+        "nudgeStep": 0.01,
+        "gridPoints": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ]
+        ]
+      },
+      "masks": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      }
+    },
+    "NULL": {
+      "rotation": 0,
+      "flipX": false,
+      "flipY": false,
+      "pointSize": 3,
+      "boxActive": false,
+      "boxCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "boxSize": {
+        "x": 0,
+        "y": 0
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": 0,
+      "offsetY": 0,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "rotation": 0
+      },
+      "zones": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      }
+    },
+    "COM6": {
+      "rotation": 80.1,
+      "flipX": true,
+      "flipY": false,
+      "pointSize": 6,
+      "boxActive": false,
+      "boxCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "boxSize": {
+        "x": 0,
+        "y": 0
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": 0,
+      "offsetY": 0,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "rotation": 0
+      },
+      "zones": [],
+      "masks": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      },
+      "gridWarp": {
+        "enabled": true,
+        "rows": 3,
+        "cols": 3,
+        "showGrid": true,
+        "interpolation": "bilinear",
+        "nudgeStep": 0.01,
+        "gridPoints": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.3333333333333333,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 0.6666666666666666,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.3333333333333333,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 0.6666666666666666,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "offsetX": 0,
+              "offsetY": 0
+            }
+          ]
+        ]
+      }
+    },
+    "null": {
+      "rotation": 0,
+      "flipX": false,
+      "flipY": false,
+      "pointSize": 6,
+      "boxActive": false,
+      "boxCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "boxSize": {
+        "x": 0,
+        "y": 0
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": 0,
+      "offsetY": 0,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "rotation": 0
+      },
+      "zones": [],
+      "targets": [
+        {
+          "enabled": true,
+          "ip": "127.0.0.1",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.100",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.101",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.102",
+          "udpPort": 3333,
+          "oscPort": 3334
+        },
+        {
+          "enabled": false,
+          "ip": "192.168.1.103",
+          "udpPort": 3333,
+          "oscPort": 3334
+        }
+      ],
+      "normalization": {
+        "useSelectionArea": true,
+        "minX": -10,
+        "maxX": 10,
+        "minY": -10,
+        "maxY": 10,
+        "outMinX": 0,
+        "outMaxX": 1,
+        "outMinY": 0,
+        "outMaxY": 1
+      }
+    },
+    "COM5": {
+      "rotation": 0,
+      "flipX": false,
+      "flipY": false,
+      "pointSize": 3,
+      "boxActive": false,
+      "boxCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "boxSize": {
+        "x": 0,
+        "y": 0
+      },
+      "boxRotation": 0,
+      "renderMode": 0,
+      "offsetX": 0,
+      "offsetY": 0,
+      "maxFps": 0,
+      "zIndex": 0,
+      "selection": {
+        "active": false,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "rotation": 0
+      },
+      "zones": []
+    }
+  },
+  "sensorAliases": {},
+  "hotspots": [],
+  "view": {
+    "showGrid": true,
+    "showDistanceCircles": true,
+    "pointSize": 6,
+    "motorSpeed": 0,
+    "screenRef": {
+      "enabled": false,
+      "hideLabels": false,
+      "width": 5,
+      "height": 2.5,
+      "position": "center",
+      "sensorHeight": 0.3,
+      "distance": 3,
+      "angle": 0,
+      "sensorX": 0,
+      "sensorY": 0,
+      "screenX": 0,
+      "screenY": 0
+    },
+    "screenRefs": {
+      "_primary": {
+        "enabled": false,
+        "hideLabels": false,
+        "width": 5,
+        "height": 2.5,
+        "position": "center",
+        "sensorHeight": 0.3,
+        "distance": 3,
+        "angle": 0,
+        "sensorX": 0,
+        "sensorY": 0,
+        "screenX": 0,
+        "screenY": 0
+      },
+      "COM3": {
+        "enabled": false,
+        "hideLabels": false,
+        "width": 5,
+        "height": 2.5,
+        "position": "center",
+        "sensorHeight": 0.3,
+        "distance": 3,
+        "angle": 0,
+        "sensorX": 0,
+        "sensorY": 0,
+        "screenX": 0,
+        "screenY": 0
+      }
+    }
+  },
+  "persistence": {
+    "enabled": false,
+    "trailDuration": 0.5,
+    "fadeThreshold": 20
+  },
+  "camera": {
+    "zoom": 3.8574255306969722,
+    "posX": 0.4368177881294203,
+    "posY": -0.5830438250866643,
+    "targetX": 0.4368177881294203,
+    "targetY": -0.583043825086665
+  },
+  "spout": {
+    "enabled": null,
+    "showCalib": false,
+    "resolution": "1024"
+  },
+  "gridWarp": {
+    "enabled": true,
+    "rows": 3,
+    "cols": 3,
+    "showGrid": true,
+    "interpolation": "bilinear",
+    "nudgeStep": 0.01,
+    "gridPoints": [
+      [
+        {
+          "x": 0,
+          "y": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 0.3333333333333333,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0.3333333333333333,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0.3333333333333333,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1,
+          "y": 0.3333333333333333,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 0.6666666666666666,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0.6666666666666666,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0.6666666666666666,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1,
+          "y": 0.6666666666666666,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1,
+          "y": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ]
+    ]
+  },
+  "masks": [],
+  "oscInput": {
+    "enabled": true,
+    "port": 6060
+  },
+  "spoutInput": {
+    "enabled": false,
+    "visible": true,
+    "fitToSelection": true,
+    "opacity": 1,
+    "senderName": "",
+    "connected": false
+  },
+  "autosaveEnabled": true
+}

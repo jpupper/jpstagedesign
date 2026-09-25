@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" width="220" height="60" fill="none">
+  <defs>
+    <linearGradient id="neonCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff" />
+      <stop offset="100%" stop-color="#0077ff" />
+    </linearGradient>
+    <linearGradient id="neonPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bf55ec" />
+      <stop offset="100%" stop-color="#00e5ff" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Stage Box / Beam Icon -->
+  <g transform="translate(6, 8)" filter="url(#glow)">
+    <!-- Stage Floor Perspective -->
+    <polygon points="4,34 16,18 36,18 48,34" fill="rgba(0, 229, 255, 0.15)" stroke="url(#neonCyan)" stroke-width="1.5" stroke-linejoin="round" />
+    <!-- Projection Beams / Walls -->
+    <line x1="4" y1="34" x2="26" y2="4" stroke="url(#neonPurple)" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="48" y1="34" x2="26" y2="4" stroke="url(#neonPurple)" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="16" y1="18" x2="26" y2="4" stroke="#00e5ff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2" />
+    <line x1="36" y1="18" x2="26" y2="4" stroke="#00e5ff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2" />
+    
+    <!-- Central Projector Lens Emitter -->
+    <circle cx="26" cy="4" r="3.2" fill="#00ffff" />
+    <circle cx="26" cy="4" r="5.5" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.6" />
+    
+    <!-- Horizon stage line -->
+    <circle cx="16" cy="18" r="1.5" fill="#00e5ff" />
+    <circle cx="36" cy="18" r="1.5" fill="#00e5ff" />
+    <circle cx="4" cy="34" r="2" fill="#00f5ff" />
+    <circle cx="48" cy="34" r="2" fill="#00f5ff" />
+  </g>
+
+  <!-- Typography -->
+  <g transform="translate(68, 12)">
+    <!-- JP Accent Badge -->
+    <text x="0" y="22" font-family="'Metropolis', 'Montserrat', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="21" fill="url(#neonCyan)" letter-spacing="1">JP</text>
+    <!-- STAGE DESIGN -->
+    <text x="34" y="22" font-family="'Metropolis', 'Montserrat', 'Inter', -apple-system, sans-serif" font-weight="800" font-size="20" fill="#ffffff" letter-spacing="1.5">STAGE</text>
+    <text x="1" y="36" font-family="'Consolas', 'Courier New', monospace" font-weight="700" font-size="9" fill="#00e5ff" letter-spacing="3.8" opacity="0.9">DESIGN 3D</text>
+    <!-- Dot indicator -->
+    <circle cx="118" cy="33" r="2" fill="#00ff88" filter="url(#glow)" />
+  </g>
+</svg>

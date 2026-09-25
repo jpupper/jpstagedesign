@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JPStageDesign - Presupuesto Técnico de Proyección</title>
+  <link rel="stylesheet" href="/jpstagedesign/css/menu.css">
+  <style>
+    :root {
+      --bg-dark: #0d0e12;
+      --card-bg: rgba(22, 24, 30, 0.9);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent: #00e5ff;
+      --accent-grad: linear-gradient(135deg, #00e5ff, #7b2cbf);
+      --text-main: #f0f2f5;
+      --text-muted: #8b92a5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Metropolis', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 30px 20px;
+      line-height: 1.5;
+    }
+
+    .presupuesto-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Header */
+    .p-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 25px;
+      margin-bottom: 30px;
+    }
+
+    .p-brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .p-logo {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-grad);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .p-brand-text h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .p-brand-text p {
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+
+    .p-meta {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .p-meta .p-doc-id {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    /* Badges & Stats */
+    .room-specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 35px;
+    }
+
+    .spec-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .spec-card-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .spec-card-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .spec-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Section titles */
+    .p-section-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .p-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* Tables */
+    .p-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 35px;
+      font-size: 12px;
+    }
+
+    .p-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .p-table td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e1e4ea;
+    }
+
+    .p-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .p-table td.text-right, .p-table th.text-right {
+      text-align: right;
+    }
+
+    .badge-wall {
+      display: inline-block;
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    /* Financial Summary */
+    .summary-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-left: auto;
+      max-width: 400px;
+      margin-bottom: 35px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .summary-row.total {
+      border-top: 1px solid var(--border-color);
+      margin-top: 10px;
+      padding-top: 14px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .summary-row.total .total-amount {
+      color: var(--accent);
+      font-size: 22px;
+    }
+
+    /* Notes */
+    .notes-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .notes-card h5 {
+      color: #fff;
+      margin-bottom: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 25px;
+    }
+
+    .btn-action {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-grad);
+      color: #000;
+      font-weight: 700;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #ccc;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* Printable CSS */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #111111 !important;
+        padding: 0 !important;
+      }
+      .presupuesto-container {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 10px !important;
+        max-width: 100% !important;
+        background: transparent !important;
+      }
+      .action-bar, .no-print {
+        display: none !important;
+      }
+      .p-table th {
+        background: #f1f1f1 !important;
+        color: #333 !important;
+      }
+      .p-table td {
+        color: #111 !important;
+        border-bottom: 1px solid #ddd !important;
+      }
+      .spec-card, .summary-box, .notes-card {
+        border: 1px solid #ddd !important;
+        background: #fafafa !important;
+        color: #222 !important;
+      }
+      .spec-card-value, .summary-row.total .total-amount {
+        color: #006699 !important;
+      }
+      .badge-wall {
+        background: #eef7ff !important;
+        color: #005588 !important;
+        border: 1px solid #99ccee !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="presupuesto-container">
+    <!-- Header -->
+    <header class="p-header">
+      <div class="p-brand">
+        <div class="p-logo">JP</div>
+        <div class="p-brand-text">
+          <h1 id="budgetMainTitle">Presupuesto</h1>
+          <p id="budgetSubTitle">Presupuesto Técnico & Mapeo 3D</p>
+        </div>
+      </div>
+      <div class="p-meta">
+        <div class="p-doc-id" id="docId">PROP-2026-0042</div>
+        <div id="docDate">Fecha: 14/09/2026</div>
+        <div>Validez: 30 días</div>
+      </div>
+    </header>
+
+    <!-- Room Specs -->
+    <div class="p-section-title">Especificaciones del Espacio & Sala</div>
+    <div class="room-specs-grid">
+      <div class="spec-card">
+        <div class="spec-card-label">Dimensiones Sala (L × An × Al)</div>
+        <div class="spec-card-value" id="specDims">44.80 × 30.15 × 2.00 m</div>
+        <div class="spec-card-sub" id="specDimsCm">4480 × 3015 × 200 cm</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-label">Superficie de Piso</div>
+        <div class="spec-card-value" id="specFloorArea">135.07 m²</div>
+        <div class="spec-card-sub">Área total habitable</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-label">Área Total de Proyección</div>
+        <div class="spec-card-value" id="specProjArea">434.87 m²</div>
+        <div class="spec-card-sub" id="specProjDetail">4 Paredes (299.8 m²)</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-card-label">Modo de Mapeo</div>
+        <div class="spec-card-value" id="specMapping">🪞 Espejo (duplicado)</div>
+        <div class="spec-card-sub">Sincronización Master/Slave FSC</div>
+      </div>
+    </div>
+
+    <!-- Projectors Table -->
+    <div class="p-section-title">Equipamiento de Proyección</div>
+    <table class="p-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Dispositivo / Modelo</th>
+          <th>Objetivo / Cobertura</th>
+          <th>Posición (X, Y, Z)</th>
+          <th class="text-right">Cant.</th>
+          <th class="text-right">Precio Unit. (USD)</th>
+          <th class="text-right">Subtotal (USD)</th>
+        </tr>
+      </thead>
+      <tbody id="projectorsTableBody">
+        <!-- Generado dinámicamente -->
+      </tbody>
+    </table>
+
+    <!-- Dynamic Budget Categories -->
+    <div id="dynamicBudgetCategoriesContainer">
+      <!-- Se genera dinámicamente desde config.budgetCategories -->
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="summary-box">
+      <div class="summary-row">
+        <span>Subtotal Proyectores:</span>
+        <strong id="sumProjectors">$ 0.00</strong>
+      </div>
+      <div id="summaryCategoriesRows">
+        <!-- Subtotales dinámicos por categoría -->
+      </div>
+      <div class="summary-row total">
+        <span>INVERSIÓN TOTAL:</span>
+        <span class="total-amount" id="sumGrandTotal">$ 0.00</span>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes-card">
+      <div id="budgetTermsContent">
+        <h5>Términos y Notas Técnicas de Instalación:</h5>
+        <p>• Los valores expresados son en dólares estadounidenses (USD) y no contemplan impuestos locales aplicables.<br>
+        • El sistema JPStageDesign incluye la suite de software en tiempo real FSC (Fullscreencode) con botonera táctil y sincronización automática.<br>
+        • Se requiere acometida eléctrica de 220V 10A debidamente estabilizada en los puntos de anclaje de techo para cada proyector.<br>
+        • Garantía de equipamiento según fabricante (24 a 36 meses). Soporte técnico y mantenimiento de software FSC incluido por 6 meses.</p>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar no-print">
+      <a href="/jpstagedesign/output3d.html" class="btn-action btn-secondary">
+        ← Volver al Simulador 3D
+      </a>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-action btn-secondary" onclick="loadDataFromServer()">
+          🔄 Recargar Datos
+        </button>
+        <button class="btn-action btn-primary" onclick="window.print()">
+          🖨️ Imprimir / Guardar en PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_CONFIG = {
+      room: { length: 4480, width: 3015, height: 200 },
+      mappingMode: 'duplicated',
+      projectors: [
+        { id: 'proj-1', name: 'Proyector 1 - Frontal', targetWall: 'Pared Frontal', price: 1800, position: { x: 0, y: 1.6, z: -0.9 }, beamDistance: 2.4, beamAngle: 75 },
+        { id: 'proj-2', name: 'Proyector 2 - Trasera', targetWall: 'Pared Trasera', price: 1800, position: { x: 0, y: 1.6, z: 0.9 }, beamDistance: 2.4, beamAngle: 75 },
+        { id: 'proj-3', name: 'Proyector 3 - Derecha', targetWall: 'Pared Derecha', price: 1800, position: { x: -1.1, y: 1.6, z: 0 }, beamDistance: 3.4, beamAngle: 75 },
+        { id: 'proj-4', name: 'Proyector 4 - Izquierda', targetWall: 'Pared Izquierda', price: 1800, position: { x: 1.1, y: 1.6, z: 0 }, beamDistance: 3.4, beamAngle: 75 },
+        { id: 'proj-5', name: 'Proyector 5 - Techo', targetWall: 'Techo', price: 1800, position: { x: 0, y: 0.45, z: 0 }, beamDistance: 1.5, beamAngle: 85 }
+      ]
+    };
+
+    function formatMoney(amount) {
+      return '$ ' + Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderBudget(config) {
+      const room = config.room || { length: 4480, width: 3015, height: 200 };
+      const lenM = (room.length / 100);
+      const widM = (room.width / 100);
+      const hgtM = (room.height / 100);
+
+      // Metros y superficies
+      document.getElementById('specDims').textContent = `${lenM.toFixed(2)} × ${widM.toFixed(2)} × ${hgtM.toFixed(2)} m`;
+      document.getElementById('specDimsCm').textContent = `${room.length} × ${room.width} × ${room.height} cm`;
+
+      const floorArea = (lenM * widM);
+      const wallsArea = (2 * lenM * hgtM) + (2 * widM * hgtM);
+      const totalProjArea = wallsArea; // Sólo paredes/pantallas (el techo ya no es superficie de proyección)
+
+      document.getElementById('specFloorArea').textContent = `${floorArea.toFixed(2)} m²`;
+      document.getElementById('specProjArea').textContent = `${totalProjArea.toFixed(2)} m²`;
+      document.getElementById('specProjDetail').textContent = `4 Paredes (${wallsArea.toFixed(1)} m²)`;
+      document.getElementById('specMapping').textContent = config.mappingMode === 'extended' ? '🧩 Reparto 4P' : '🪞 Espejo (duplicado)';
+
+      // Proyectores
+      const projectors = Array.isArray(config.projectors) && config.projectors.length > 0 
+        ? config.projectors 
+        : DEFAULT_CONFIG.projectors;
+
+      const tbody = document.getElementById('projectorsTableBody');
+      tbody.innerHTML = '';
+
+      let projSubtotal = 0;
+      projectors.forEach((p, idx) => {
+        const price = Number(p.price) || 0;
+        projSubtotal += price;
+
+        const tr = document.createElement('tr');
+        const posStr = p.position ? `X: ${(p.position.x || 0).toFixed(2)}, Y: ${(p.position.y || 0).toFixed(2)}, Z: ${(p.position.z || 0).toFixed(2)}` : 'N/A';
+        
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><strong>${p.name || ('Proyector ' + (idx + 1))}</strong><div style="font-size:10px; color:#888;">Lente Tiro Corto / Láser WUXGA</div></td>
+          <td><span class="badge-wall">${p.targetWall || 'Pared General'}</span></td>
+          <td style="font-family:monospace; font-size:11px; color:#aaa;">${posStr}</td>
+          <td class="text-right">1</td>
+          <td class="text-right">${formatMoney(price)}</td>
+          <td class="text-right"><strong>${formatMoney(price)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Renderizar categorías e ítems adicionales dinámicos
+      const dynamicContainer = document.getElementById('dynamicBudgetCategoriesContainer');
+      if (dynamicContainer) {
+        dynamicContainer.innerHTML = '';
+      }
+
+      const summaryCategoriesRows = document.getElementById('summaryCategoriesRows');
+      if (summaryCategoriesRows) {
+        summaryCategoriesRows.innerHTML = '';
+      }
+
+      let totalCustomItems = 0;
+      const categories = Array.isArray(config.budgetCategories) ? config.budgetCategories : [];
+
+      categories.forEach((cat) => {
+        if (!cat) return;
+        const catName = cat.name || 'Categoría';
+        const items = Array.isArray(cat.items) ? cat.items : [];
+        if (items.length === 0) return;
+
+        let catSubtotal = 0;
+
+        const catSection = document.createElement('div');
+        catSection.className = 'budget-category-section';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'p-section-title';
+        titleDiv.textContent = catName;
+        catSection.appendChild(titleDiv);
+
+        const table = document.createElement('table');
+        table.className = 'p-table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th style="width: 40px;">#</th>
+              <th>Concepto</th>
+              <th>Detalle Técnico</th>
+              <th class="text-right">Cant.</th>
+              <th class="text-right">Precio Unit. (USD)</th>
+              <th class="text-right">Subtotal (USD)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tBody = table.querySelector('tbody');
+        items.forEach((item, idx) => {
+          const qty = Number(item.qty) || 1;
+          const price = Number(item.unitPrice) || 0;
+          const sub = qty * price;
+          catSubtotal += sub;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${idx + 1}</td>
+            <td><strong>${item.concept || 'Ítem'}</strong></td>
+            <td>${item.detail || '-'}</td>
+            <td class="text-right">${qty}</td>
+            <td class="text-right">${formatMoney(price)}</td>
+            <td class="text-right"><strong>${formatMoney(sub)}</strong></td>
+          `;
+          tBody.appendChild(row);
+        });
+
+        catSection.appendChild(table);
+        if (dynamicContainer) dynamicContainer.appendChild(catSection);
+
+        totalCustomItems += catSubtotal;
+
+        if (summaryCategoriesRows) {
+          const sRow = document.createElement('div');
+          sRow.className = 'summary-row';
+          sRow.innerHTML = `
+            <span>Subtotal ${catName}:</span>
+            <strong>${formatMoney(catSubtotal)}</strong>
+          `;
+          summaryCategoriesRows.appendChild(sRow);
+        }
+      });
+
+      const grandTotal = projSubtotal + totalCustomItems;
+
+      document.getElementById('sumProjectors').textContent = formatMoney(projSubtotal);
+      document.getElementById('sumGrandTotal').textContent = formatMoney(grandTotal);
+
+      // Nombre del presupuesto
+      const titleEl = document.getElementById('budgetMainTitle');
+      if (titleEl) {
+        titleEl.textContent = (config.budgetName && config.budgetName.trim()) ? config.budgetName.trim() : 'Presupuesto';
+      }
+
+      // Términos y Notas Técnicas de Instalación
+      const termsContainer = document.getElementById('budgetTermsContent');
+      if (termsContainer) {
+        if (config.budgetTerms && config.budgetTerms.trim()) {
+          const lines = config.budgetTerms.trim().split('\n');
+          let html = '';
+          lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            if (trimmed.endsWith(':')) {
+              html += `<h5 style="margin-top: 8px; margin-bottom: 4px; font-weight: 700; color: #fff;">${escapeHtml(trimmed)}</h5>`;
+            } else {
+              html += `<p style="margin-bottom: 4px;">${escapeHtml(trimmed)}</p>`;
+            }
+          });
+          termsContainer.innerHTML = html;
+        } else {
+          termsContainer.innerHTML = `
+            <h5>Términos y Notas Técnicas de Instalación:</h5>
+            <p>• Los valores expresados son en dólares estadounidenses (USD) y no contemplan impuestos locales aplicables.<br>
+            • El sistema JPStageDesign incluye la suite de software en tiempo real FSC (Fullscreencode) con botonera táctil y sincronización automática.<br>
+            • Se requiere acometida eléctrica de 220V 10A debidamente estabilizada en los puntos de anclaje de techo para cada proyector.<br>
+            • Garantía de equipamiento según fabricante (24 a 36 meses). Soporte técnico y mantenimiento de software FSC incluido por 6 meses.</p>
+          `;
+        }
+      }
+
+      // Fecha
+      const today = new Date();
+      document.getElementById('docDate').textContent = 'Fecha: ' + today.toLocaleDateString('es-AR');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    async function loadDataFromServer() {
+      const candidates = ['/jpstagedesign/api/room3d-config', '/api/room3d-config', '/futurex/api/room3d-config'];
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url + '?t=' + Date.now());
+          if (res.ok) {
+            const data = await res.json();
+            if (data.ok && data.config) {
+              renderBudget(data.config);
+              return;
+            }
+          }
+        } catch (err) {
+          // continuar con siguiente candidato
+        }
+      }
+
+      // Fallback a localStorage
+      try {
+        const local = localStorage.getItem('jpstagedesign_room3d_config') || localStorage.getItem('futurex_room3d_config');
+        if (local) {
+          renderBudget(JSON.parse(local));
+          return;
+        }
+      } catch (e) {}
+
+      renderBudget(DEFAULT_CONFIG);
+    }
+
+    window.addEventListener('DOMContentLoaded', loadDataFromServer);
+  </script>
+</body>
+</html>

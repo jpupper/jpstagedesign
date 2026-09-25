@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JPStageDesign - Output</title>
+  <link rel="stylesheet" href="/jpstagedesign/css/output.css">
+</head>
+<body class="output-body">
+  <div class="output-container" id="outputContainer">
+    <div class="empty-state" id="emptyState">
+      <div class="logo-output-container">
+        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign" class="logo-output-img">
+      </div>
+      <div class="empty-icon">📺</div>
+      <h2>OUTPUT</h2>
+      <p>Seleccioná una escena en el menú</p>
+    </div>
+    <div class="scene-container" id="sceneContainer" style="display: none;"></div>
+  </div>
+  <script src="/jpstagedesign/js/config.js"></script>
+  <script>
+    (function() {
+      // Cargar logo personalizado si existe
+      fetch('/jpstagedesign/api/logo')
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.logoUrl) {
+            var el = document.querySelector('.logo-output-img');
+            if (el) el.src = d.logoUrl;
+          }
+        }).catch(function(){});
+
+      var isNodeServer = (
+        location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1' ||
+        location.host.includes('localhost') ||
+        location.hostname === 'vps-4455523-x.dattaweb.com'
+      );
+      var socketIoSrc = isNodeServer ? '/jpstagedesign/socket.io/socket.io.js' : 'https://vps-4455523-x.dattaweb.com/jpstagedesign/socket.io/socket.io.js';
+      
+      var script = document.createElement('script');
+      script.src = socketIoSrc;
+      script.onload = function() {
+        var shadersScript = document.createElement('script');
+        shadersScript.src = '/jpstagedesign/js/shaders.js';
+        shadersScript.onload = function() {
+          var outputScript = document.createElement('script');
+          outputScript.src = '/jpstagedesign/js/output.js';
+          document.body.appendChild(outputScript);
+        };
+        document.body.appendChild(shadersScript);
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

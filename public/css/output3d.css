@@ -1,0 +1,142 @@
+/* ============================================================
+   FSC - Simulador 3D
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body.output3d-body {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Metropolis', 'Inter', sans-serif;
+}
+
+#canvas3d-container {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+/* Panel de información */
+.info-panel {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.2rem 1.5rem;
+  border: 1px solid #000;
+  border-radius: 0;
+  z-index: 100;
+  min-width: 220px;
+}
+
+.info-panel h3 {
+  font-family: 'Anglecia', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.room-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.dim-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.dim-label {
+  color: #999;
+  letter-spacing: 0.05em;
+}
+
+.dim-value {
+  color: #000;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.projection-info {
+  padding-top: 0.8rem;
+  border-top: 1px solid #eee;
+}
+
+.projection-info h4 {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #999;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.projection-info p {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #000;
+  letter-spacing: 0.05em;
+}
+
+/* Controles */
+.controls-panel {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.8rem;
+  z-index: 100;
+}
+
+.ctrl-btn {
+  font-family: 'Metropolis', sans-serif;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #000;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ctrl-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-panel {
+    top: 10px;
+    left: 10px;
+    padding: 0.8rem 1rem;
+    min-width: 180px;
+  }
+  
+  .controls-panel {
+    bottom: 10px;
+    gap: 0.5rem;
+  }
+  
+  .ctrl-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.65rem;
+  }
+}

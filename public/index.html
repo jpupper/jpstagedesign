@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JPStageDesign - FSC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/jpstagedesign/css/menu.css">
+</head>
+<body class="menu-body">
+  <!-- Canvas para el shader de fondo -->
+  <canvas id="bgShaderCanvas" class="bg-shader-canvas"></canvas>
+  
+  <!-- Botón de configuración (oculto por defecto, se muestra con tecla P) -->
+  <button class="btn-settings" id="btnSettings" title="Configuración (tecla P)" style="display:none;">
+    <span class="btn-settings-icon">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <circle cx="8" cy="6" r="2.5" fill="currentColor"></circle>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <circle cx="16" cy="12" r="2.5" fill="currentColor"></circle>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+        <circle cx="9" cy="18" r="2.5" fill="currentColor"></circle>
+      </svg>
+    </span>
+    <span class="btn-settings-label">Config</span>
+  </button>
+  
+  <!-- Selector de estilo visual (Claro / Oscuro / Matrix) -->
+  <div class="style-selector" id="styleSelector" title="Estilo visual de la interfaz">
+    <span class="style-selector-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
+      </svg>
+    </span>
+    <select id="styleSelect" class="style-select" aria-label="Estilo visual de la interfaz">
+      <option value="light">☀ Claro</option>
+      <option value="dark">☾ Oscuro</option>
+      <option value="matrix">▚ Matrix</option>
+    </select>
+  </div>
+  
+  <!-- Panel de configuración -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+      <h3>Configuración</h3>
+      <button class="btn-close" id="closeSettings">✕</button>
+    </div>
+    
+    <!-- Master Status -->
+    <div class="advanced-status">
+      <h4>Estado del Sistema</h4>
+      <div class="master-status-advanced">
+        <span class="status-dot-advanced" id="statusDotAdvanced"></span>
+        <span id="statusTextAdvanced">Conectando...</span>
+      </div>
+    </div>
+    
+    <div class="settings-body">
+      <!-- Switch de modo (Advanced <-> User) -->
+      <div class="setting-group">
+        <label>Modo</label>
+        <div class="mode-switch-inline" id="modeSwitchInline">
+          <button class="mode-inline-btn active" id="modeSwitchUser">👆 Modo User</button>
+          <button class="mode-inline-btn" id="modeSwitchAdvanced">⚙️ Modo Advanced</button>
+        </div>
+      </div>
+      <!-- Switch de Mapeo de Pantallas -->
+      <div class="setting-group">
+        <label>Mapeo de Pantallas</label>
+        <div class="mode-switch-inline" id="mappingSwitchInline">
+          <button class="mode-inline-btn active" id="mappingDuplicated" title="Cada pantalla, telé y proyector muestra el 100% del contenido">🪞 Espejo (duplicar)</button>
+          <button class="mode-inline-btn" id="mappingExtended" title="Cada pantalla muestra su slice 1-4 de la fuente panorámica 4x1">🧩 Reparto 4 pantallas</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label for="roomLength">Largo (cm)</label>
+        <input type="number" id="roomLength" value="4480" min="100" max="10000">
+      </div>
+      <div class="setting-group">
+        <label for="roomWidth">Ancho (cm)</label>
+        <input type="number" id="roomWidth" value="3015" min="100" max="10000">
+      </div>
+      <div class="setting-group">
+        <label for="roomHeight">Alto (cm)</label>
+        <input type="number" id="roomHeight" value="200" min="100" max="500">
+      </div>
+      <button class="btn-save" id="saveSettings">Guardar Dimensiones</button>
+      <div class="panel-links">
+        <button class="btn-panel-action" id="btnOpenOutput">
+          <span class="btn-panel-icon">📺</span>
+          Abrir Output Completo
+        </button>
+        <div class="screen-links-grid">
+          <button class="btn-screen-slice" data-screen="1" title="Salida 1 — Espejo: 100% del contenido · Reparto: 0-25%">P1 (0-25%)</button>
+          <button class="btn-screen-slice" data-screen="2" title="Salida 2 — Espejo: 100% del contenido · Reparto: 25-50%">P2 (25-50%)</button>
+          <button class="btn-screen-slice" data-screen="3" title="Salida 3 — Espejo: 100% del contenido · Reparto: 50-75%">P3 (50-75%)</button>
+          <button class="btn-screen-slice" data-screen="4" title="Salida 4 — Espejo: 100% del contenido · Reparto: 75-100%">P4 (75-100%)</button>
+        </div>
+        <button class="btn-panel-action" id="btnOpen3d">
+          <span class="btn-panel-icon">📐</span>
+          Ver Simulador 3D
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="menu-container">
+    <header class="menu-header">
+      <div class="logo-container">
+        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign" class="logo-img">
+        <div class="blackout-wrap">
+          <button id="btnBlackout" class="btn-blackout" title="Apagar todas las pantallas (Blackout)">
+            <span class="btn-blackout-indicator"></span>
+            <span class="btn-blackout-text">BLACKOUT</span>
+          </button>
+          <button id="btnOpen3dHeader" class="btn-blackout btn-open3d" title="Abrir el simulador / Output 3D en una pestaña nueva">
+            <span class="btn-open3d-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-blackout-text">OUTPUT 3D</span>
+          </button>
+        </div>
+      </div>
+    </header>
+    
+    <!-- ============ MODO USER: BOTONERA ============ -->
+    <main class="mode-view" id="mode-user">
+      <div class="user-buttons" id="userButtons"></div>
+    </main>
+    
+    <!-- ============ MODO ADVANCED: MATERIALES ============ -->
+    <main class="mode-view" id="mode-advanced" style="display:none;">
+      <section class="adv-section">
+        <h2 class="adv-title">INPUTS</h2>
+        <div class="material-list" id="materialList"></div>
+      </section>
+      
+      <section class="adv-section">
+        <h2 class="adv-title">Cargar material</h2>
+        <div class="adv-form">
+          <!-- Zona de Drag & Drop -->
+          <div class="dropzone" id="materialDropzone">
+            <div class="dropzone-icon">☁️</div>
+            <div class="dropzone-content">
+              <strong>Arrastrá y soltá acá tus imágenes, videos o shaders (.frag)</strong>
+              <span>o hacé clic para explorar archivos</span>
+            </div>
+            <input type="file" id="newMatFile" accept="image/*,video/*,.frag" style="display:none;" multiple>
+          </div>
+          
+          <div class="adv-row" style="margin-top: 0.5rem;">
+            <label for="newMatUrl">O agregar por URL (Web / Imagen / YouTube / Video)</label>
+            <div class="url-input-row">
+              <select id="newMatType" title="Tipo de input a crear" style="min-width: 160px;">
+                <option value="auto">🔎 Auto-detectar</option>
+                <option value="web">🌐 Página Web</option>
+                <option value="image">🖼️ Imagen</option>
+                <option value="video">🎥 Video (archivo)</option>
+                <option value="youtube">🎬 YouTube</option>
+              </select>
+              <input type="text" id="newMatUrl" placeholder="https://... imagen, video, YouTube o página web">
+              <input type="text" id="newMatName" placeholder="Nombre (opcional)">
+              <button class="btn-save" id="btnAddMaterial" style="margin:0; padding: 0.6rem 1.2rem; white-space:nowrap;">＋ Agregar</button>
+            </div>
+          </div>
+          <div class="status-msg" id="uploadStatus"></div>
+        </div>
+      </section>
+      
+      <!-- ============ SECCIÓN: LOGO DE LA APLICACIÓN ============ -->
+      <section class="adv-section">
+        <h2 class="adv-title">Logo de la Aplicación</h2>
+        <div class="adv-form" style="background: rgba(22, 24, 32, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(0,229,255,0.3); border-radius: 6px; padding: 8px 14px; min-width: 140px; text-align: center;">
+                <img id="logoPreviewAdvanced" src="/jpstagedesign/img/logo.svg" alt="Logo Actual" style="height: 38px; max-width: 160px; object-fit: contain; vertical-align: middle;">
+              </div>
+              <div>
+                <strong style="color: #fff; font-size: 13px; display: block;">Logo en Botonera de Tablet y Outputs</strong>
+                <span style="color: #888; font-size: 11px;">Formatos soportados: SVG, PNG, JPG, WebP</span>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label for="customLogoInput" class="btn-save" style="cursor: pointer; margin: 0; padding: 0.6rem 1.2rem; display: inline-flex; align-items: center; gap: 6px;">
+                <span>📁</span> Subir Nuevo Logo
+              </label>
+              <input type="file" id="customLogoInput" accept="image/*,.svg" style="display: none;">
+              
+              <button class="btn-save" id="btnResetLogo" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #ccc; margin: 0; padding: 0.6rem 1rem;">
+                ↺ Por Defecto
+              </button>
+            </div>
+          </div>
+          <div class="status-msg" id="logoUploadStatus" style="margin-top: 8px;"></div>
+        </div>
+      </section>
+
+      <section class="adv-section">
+        <h2 class="adv-title">Asignar botones (Modo User)</h2>
+        <div id="buttonAssignments" class="assign-list"></div>
+        <button class="btn-save" id="btnSaveButtons">💾 Guardar asignación en servidor</button>
+        <div class="status-msg" id="assignStatus"></div>
+      </section>
+    </main>
+  </div>
+  
+  <!-- Indicador de shader -->
+  <div class="shader-reload-indicator">R = Recargar Shader</div>
+  
+  <!-- Config -->
+  <script src="/jpstagedesign/js/config.js"></script>
+  <!-- Socket.IO desde CDN (carga garantizada ANTES de menu.js) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    window.VPS_ORIGIN = 'https://vps-4455523-x.dattaweb.com';
+    window.BACKEND_URL = (location.hostname === 'localhost') ? '' : window.VPS_ORIGIN;
+    window.IS_VPS_HOST = (location.hostname === 'localhost');
+    
+    // Cargar shaders.js y menu.js SOLO cuando socket.io esté listo
+    function loadAppScripts() {
+      if (typeof io === 'undefined') {
+        setTimeout(loadAppScripts, 50);
+        return;
+      }
+      var sh = document.createElement('script');
+      sh.src = '/jpstagedesign/js/shaders.js';
+      sh.onload = function() {
+        var m = document.createElement('script');
+        m.src = '/jpstagedesign/js/menu.js';
+        document.body.appendChild(m);
+      };
+      document.body.appendChild(sh);
+    }
+    loadAppScripts();
+  </script>
+</body>
+</html>
