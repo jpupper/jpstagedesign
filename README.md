@@ -112,6 +112,22 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
      * Botón `🛏️ Cama` para reinsertar el modelo por defecto. `API: POST/GET /api/models`.
      * Los objetos se guardan en la config (`furniture: [...]`) y se migran automáticamente desde el formato
        legacy (`bed`) de versiones anteriores.
+   * **🔒 LOCK SOURCE por elemento** (tab `🗂️ Jerarquía` → seleccionar → Inspector):
+     cada **pantalla / tele / proyector** puede quedar **fijo en un input**. Con el lock activo el
+     elemento **deja de responder a los sockets de la botonera** (sceneChanged, sceneCleared y
+     blackout) y reproduce **siempre** ese input, al 100%.
+     * En el Inspector aparece la sección **Lock Source**: un toggle **🔓 OFF / 🔒 ON** y un
+       **dropdown con todos los inputs** de la biblioteca, agrupados por tipo
+       (✨ Efectos/Shaders · 🖼️ Imágenes · 🎥 Videos · 🎬 YouTube · 🌐 Páginas Web).
+     * El dropdown se habilita al activar el lock; elegir otro input cambia el fijo. La fila de la
+       jerarquía muestra un **candadito 🔒** para saber de un vistazo qué está lockeado.
+     * Cada elemento lockeado tiene su **propio runtime** (canvas + textura) — imagen, video, shader
+       WebGL propio, YouTube o página web — así puede mostrar algo distinto al resto de la escena
+       **al mismo tiempo**. Los **haces de los proyectores** también proyectan la textura del lock.
+     * Se respeta en: `sceneCleared` y **blackout** (sólo apagan los elementos SIN lock), el motor de
+       mapeo (el lock va al 100%, sin slices) y la capa CSS3D de páginas web en vivo.
+     * Se persiste en la config de la sala (`screens[].lockSource` / `projectors[].lockSource`, con
+       el snapshot del input) → sobrevive recargas, templates y `roomConfig`.
    * **🌐 PÁGINAS WEB EN VIVO EN EL 3D (capa CSS3D)** — las páginas web ya **no** son un cartel simbólico:
      se monta un `<iframe>` **real** encima del canvas WebGL, en una capa CSS3D (`public/js/CSS3DRenderer.js`,
      copia local de three.js r128) que usa **la misma cámara** que la escena. La página se ve **en vivo y en
