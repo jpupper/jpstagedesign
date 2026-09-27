@@ -94,6 +94,19 @@ async function ev(ws, expr) {
       return JSON.stringify(out);
     })()`));
 
+    // (f) La MISMA llamada pero por CONFIG.API_URL — es la que usa la página realmente,
+    //     y la que prueba el CORS cuando el sitio se sirve desde fullscreencode.com (FTP).
+    R.f_apiConfig = JSON.parse(await ev(ws, `(async () => {
+      const out = { apiUrl: (window.CONFIG && CONFIG.API_URL) || null };
+      try {
+        const r = await fetch(out.apiUrl + '/auth/profile', { headers: { Authorization: 'Bearer abc.def.ghi' } });
+        out.status = r.status;
+        out.cors = 'ok';
+        out.body = (await r.text()).slice(0, 90);
+      } catch (e) { out.status = null; out.cors = 'BLOQUEADO: ' + e.message; }
+      return JSON.stringify(out);
+    })()`));
+
     // (e) render con sesión: se mockea SOLO la red (fetch del perfil) para verificar
     //     el render del registro unificado (nombre, rol, permisos, campos, índice).
     const MOCK = `(() => {
