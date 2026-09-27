@@ -510,6 +510,12 @@ usuario: lee el registro central de fscauth.
   ADMIN/SYSTEM, o el `permissions.*` de la app). Los links que no están publicados como carpeta en
   `fullscreencode.com` apuntan al VPS.
 - **Chip del ecosistema**: en la botonera, el chip `● usuario` es un enlace a este perfil.
+- **🔘 Botón FSC**: `public/index.html` carga `js/fsc-button.js` de fscauth (botón flotante con el logo
+  FSC → pasaporte). Sin sesión lleva al login central; con sesión, al perfil.
+- **🗂️ Índice universal de assets**: `GET /api/fsc/assets?username=<usuario>` expone los **escenarios
+  guardados** (`data/templates/*.json`, con el link público `output3d.html?preset=<slug>`) para que el
+  pasaporte de fscauth los muestre. Autorización: `x-fsc-internal` (clave interna del ecosistema, ya en
+  el `.env` del VPS) o un Bearer FSC válido del propio usuario. Sin credenciales → **401**.
 
 Verificación: `npm run test:profile` (`tests/cdp-profile.js`) — gate sin sesión, las 17 tarjetas con
 href, el chip como enlace, `401 JSON` sin token / con token inválido, y el render completo con sesión
