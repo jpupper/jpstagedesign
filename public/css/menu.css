@@ -2906,3 +2906,96 @@ body.menu-body.neon-mode .shader-reload-indicator {
   border-color: rgba(0, 240, 255, 0.4);
 }
 
+/* ============================================================
+   🔑 SESIÓN FSC (fscauth SSO) — widget de la cabecera
+   ============================================================ */
+.auth-widget {
+  position: absolute;
+  top: 0;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 20;
+}
+
+.auth-btn {
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #e8fbff;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.auth-btn:hover { background: rgba(0, 229, 255, 0.28); }
+.auth-btn:disabled { opacity: 0.55; cursor: default; }
+
+.auth-btn-reg {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cfd6e2;
+}
+.auth-btn-reg:hover { background: rgba(255, 255, 255, 0.14); }
+
+.auth-btn-out {
+  border-color: rgba(255, 60, 90, 0.5);
+  background: rgba(255, 60, 90, 0.12);
+  color: #ffd9e0;
+}
+.auth-btn-out:hover { background: rgba(255, 60, 90, 0.26); }
+
+.auth-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 255, 170, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #e8fbff;
+  font-size: 12px;
+  max-width: 220px;
+  /* Es un <a> al perfil del ecosistema (profile.html) */
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.auth-chip:hover { border-color: rgba(0, 255, 170, 0.75); background: rgba(0, 255, 170, 0.10); }
+
+.auth-chip .auth-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00ffaa;
+  box-shadow: 0 0 8px #00ffaa;
+  flex: none;
+}
+
+.auth-chip .auth-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-chip .auth-role {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #00ffaa;
+  border: 1px solid rgba(0, 255, 170, 0.4);
+  border-radius: 4px;
+  padding: 1px 4px;
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .auth-widget { position: static; justify-content: center; margin: 6px 0 0; }
+  .auth-btn-reg { display: none; }
+}
+

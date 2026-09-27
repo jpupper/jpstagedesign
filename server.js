@@ -957,15 +957,20 @@ const handleGetRoom3DConfig = (req, res) => {
   }
 };
 
+const writeRoom3DConfig = (config) => {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(ROOM3D_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+  console.log('[ROOM3D] Configuración guardada en ' + ROOM3D_CONFIG_FILE);
+  return config;
+};
+
 const handlePostRoom3DConfig = (req, res) => {
   try {
     const config = req.body;
     if (!config || typeof config !== 'object') {
       return res.status(400).json({ error: 'Configuración inválida' });
     }
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(ROOM3D_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
-    console.log('[ROOM3D] Configuración guardada en ' + ROOM3D_CONFIG_FILE);
+    writeRoom3DConfig(config);
     res.json({ ok: true, message: 'Configuración guardada exitosamente' });
   } catch (err) {
     console.error('[ROOM3D] Error guardando config:', err.message);
@@ -1066,6 +1071,147 @@ app.delete([BASE_PATH + '/api/templates/:slug', '/api/templates/:slug'], (req, r
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+// ============================================================
+// 🔑 FSC AUTH (SSO) — sesión central del ecosistema FullScreen Code
+// El login real lo hace fscauth (puerto 3027). Acá solo verificamos el token
+// contra su API, así no hace falta agregar jsonwebtoken ni copiar JWT_SECRET.
+// La botonera NO se bloquea: sin sesión se usa igual (los presets son públicos).
+// ============================================================
+const FSCAUTH_API = process.env.FSCAUTH_URL || 'https://vps-4455523-x.dattaweb.com/fscauth';
+
+app.get([BASE_PATH + '/api/auth/me', '/api/auth/me'], async (req, res) => {
+  try {
+    const auth = String(req.headers.authorization || '');
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : (req.query.token || '');
+    if (!token) return res.status(401).json({ ok: false, loggedIn: false, error: 'Sin token' });
+    const r = await fetch(FSCAUTH_API + '/api/auth/verify', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json().catch(() => ({}));
+    if (!d || d.loggedIn !== true) {
+      return res.status(401).json({ ok: false, loggedIn: false, error: 'Sesión inválida o expirada' });
+    }
+    return res.json({ ok: true, loggedIn: true, user: d.user || null });
+  } catch (err) {
+    console.error('[AUTH] verify error:', err.message);
+    return res.status(502).json({ ok: false, error: 'No se pudo contactar el sistema central de autenticación' });
+  }
+});
+
+// Perfil unificado (profile.html): proxy al perfil central de fscauth.
+// Requiere un Bearer válido. Si el fscauth desplegado todavía no expone
+// /api/auth/profile (deploy viejo), degrada a /api/auth/verify (identidad mínima).
+app.get([BASE_PATH + '/api/auth/profile', '/api/auth/profile'], async (req, res) => {
+  try {
+    const auth = String(req.headers.authorization || '');
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : (req.query.token || '');
+    if (!token) return res.status(401).json({ ok: false, loggedIn: false, error: 'Sin token' });
+    const r = await fetch(FSCAUTH_API + '/api/auth/profile', { headers: { Authorization: 'Bearer ' + token } });
+    if (r.ok) {
+      const d = await r.json().catch(() => ({}));
+      if (d && d.ok === true && d.user) {
+        return res.json({ ok: true, loggedIn: true, user: d.user, source: 'profile' });
+      }
+    }
+    const rv = await fetch(FSCAUTH_API + '/api/auth/verify', { headers: { Authorization: 'Bearer ' + token } });
+    const dv = await rv.json().catch(() => ({}));
+    if (!dv || dv.loggedIn !== true) {
+      return res.status(401).json({ ok: false, loggedIn: false, error: 'Sesión inválida o expirada' });
+    }
+    return res.json({ ok: true, loggedIn: true, user: dv.user || null, source: 'verify' });
+  } catch (err) {
+    console.error('[AUTH] profile error:', err.message);
+    return res.status(502).json({ ok: false, error: 'No se pudo contactar el sistema central de autenticación' });
+  }
+});
+
+app.post([BASE_PATH + '/api/auth/login', '/api/auth/login'], async (req, res) => {
+  try {
+    const { identifier, username, password } = req.body || {};
+    const loginId = identifier || username;
+    if (!loginId || !password) {
+      return res.status(400).json({ ok: false, error: 'Email/usuario y contraseña son obligatorios' });
+    }
+    const r = await fetch(FSCAUTH_API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: loginId, password })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(r.status).json({ ok: false, error: d.error || 'Login fallido' });
+    return res.json({ ok: true, token: d.token, user: d.user });
+  } catch (err) {
+    console.error('[AUTH] login error:', err.message);
+    return res.status(502).json({ ok: false, error: 'No se pudo contactar el sistema central de autenticación' });
+  }
+});
+
+app.post([BASE_PATH + '/api/auth/register', '/api/auth/register'], async (req, res) => {
+  try {
+    const { username, email, password } = req.body || {};
+    if (!username || !email || !password) {
+      return res.status(400).json({ ok: false, error: 'Todos los campos son obligatorios' });
+    }
+    const r = await fetch(FSCAUTH_API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, origin: 'jpstagedesign' })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(r.status).json({ ok: false, error: d.error || 'Registro fallido' });
+    return res.status(201).json({ ok: true, token: d.token, user: d.user });
+  } catch (err) {
+    console.error('[AUTH] register error:', err.message);
+    return res.status(502).json({ ok: false, error: 'No se pudo contactar el sistema central de autenticación' });
+  }
+});
+
+// ============================================================
+// SUBIDA DIRECTA DE ARCHIVOS (publicar en el servidor)
+// POST /api/uploads/:name  (body crudo) → guarda en public/uploads/ con ese nombre.
+// Lo usa el visor 3D cuando el diseño se hace en local y se publica al VPS:
+// manda las imágenes que referencia el preset para que el link del cliente las vea.
+// ============================================================
+app.post([BASE_PATH + '/api/uploads/:name', '/api/uploads/:name'],
+  express.raw({ type: () => true, limit: '150mb' }),
+  (req, res) => {
+    try {
+      const safe = path.basename(String(req.params.name || '')).replace(/[^a-zA-Z0-9._-]/g, '_');
+      if (!safe || safe === '.' || safe === '..') {
+        return res.status(400).json({ ok: false, error: 'Nombre de archivo inválido' });
+      }
+      const body = req.body;
+      if (!body || !body.length) {
+        return res.status(400).json({ ok: false, error: 'Body vacío' });
+      }
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      fs.writeFileSync(path.join(UPLOADS_DIR, safe), body);
+      console.log(`[UPLOADS] Publicado ${safe} (${body.length} bytes)`);
+      res.json({ ok: true, name: safe, bytes: body.length, url: BASE_PATH + '/uploads/' + encodeURIComponent(safe) });
+    } catch (err) {
+      console.error('[UPLOADS] Error publicando:', err.message);
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  });
+
+// ============================================================
+// API PARA AGENTES (/api/agent/*) — diseño automático de instalaciones
+// Ver agent_api.js + lib/installation.js
+// ============================================================
+require('./agent_api')({
+  app,
+  io,
+  BASE_PATH,
+  loadLibrary,
+  saveLibrary,
+  getLibrary: () => library,
+  setLibrary: (lib) => { library = lib; },
+  getRoom3DConfig,
+  writeRoom3DConfig,
+  TEMPLATES_DIR,
+  UPLOADS_DIR,
+  templateSlug,
+  listTemplates
 });
 
 // --- Manejo de errores de upload (multer) ---

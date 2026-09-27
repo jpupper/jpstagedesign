@@ -189,6 +189,11 @@ JPStageDesign opera mediante una arquitectura cliente-servidor basada en **Node.
 │   ├── js/                   # Controladores (menu.js, output.js, config.js, shaders.js)
 │   ├── img/                  # Logos (SVG oficiales JPStageDesign)
 │   └── shaders/              # Shaders GLSL procedurales en tiempo real
+├── /lib/
+│   └── installation.js       # MOTOR DE INSTALACIONES: layouts + generador de escenario (puro)
+├── /tests/                   # Verificación: engine, mcp, socket en vivo, gate de sintaxis
+├── agent_api.js              # API REST de alto nivel para agentes (/api/agent/*)
+├── mcp-server.js             # Servidor MCP (stdio, sin dependencias) para agentes LLM
 ├── server.js                 # Servidor HTTP + WebSocket Socket.IO (Port 6645)
 ├── run.bat                   # Lanzador en 1 clic para Windows (mata procesos y levanta servidor)
 └── install.bat               # Instalador de dependencias npm
@@ -215,3 +220,298 @@ El servidor iniciará en:
 * **Diseñador y Simulador 3D:** `http://localhost:6645/jpstagedesign/output3d.html`
 * **Output Pantalla Completa:** `http://localhost:6645/jpstagedesign/output/`
 * **Presupuesto Técnico:** `http://localhost:6645/jpstagedesign/presupuesto.html`
+
+---
+
+## 🤖 4. API PARA AGENTES + MCP (diseño automático de instalaciones)
+
+Permite que un **agente LLM** diseñe el escenario solo: le pasás **un link o una imagen** (y opcionalmente
+cuántas pantallas y de qué tipo) y el sistema **distribuye automáticamente** los destinos en el espacio —
+elige paredes, dimensiona las pantallas, las posiciona y orienta, genera los proyectores necesarios y
+asigna el contenido. Después lo **persiste** y lo **refresca EN VIVO** en todas las vistas abiertas
+(botonera, 3D y output limpio), sin recargar nada.
+
+Arquitectura: `lib/installation.js` (motor puro de layouts) → `agent_api.js` (REST, montada por `server.js`)
+→ `mcp-server.js` (MCP stdio, cero dependencias).
+
+### 4.1 Motor de layouts
+
+| `layout` | Qué arma |
+|---|---|
+| `auto` (default) | 1 → frontal · 2 → duo · 3 → u-stage · 4 → perímetro · +4 → perímetro |
+| `frontal` | fila de pantallas centrada en la pared frontal |
+| `duo` | 2 pantallas lado a lado al frente |
+| `u-stage` | frontal + pared izquierda + pared derecha |
+| `perimeter` | las 4 paredes |
+| `led-wall` | muro LED continuo de N paneles (sin separación) sobre el frente |
+| `grid` | grilla `count` × `cols` sobre el frente |
+
+Tipo de destino (`screenType`): `led` · `touch` · `projector` (este último **agrega un proyector que la apunta**) ·
+**`calco`** (🖼️ **imagen pegada al escenario** — vinilo/sticker/captura; ver 4.5).
+Modo de asignación (`assign`): `lock` (cada pantalla queda **fija** a un input, rotando la lista y sin depender de la botonera) ·
+`first` (todas al primero) · `buttons` (a los 6 botones) · `none`.
+
+**`clear` (importante):** por defecto `false` ⇒ la instalación **SE SUMA** a lo que ya hay en la escena
+(las pantallas y calcos previos se conservan tal cual, con sus locks e imágenes). Con `clear: true` se
+arma una **escena limpia** (borra pantallas, calcos y proyectores previos).
+
+**Input por pantalla:** cualquier entrada de `screens[]` acepta `input` (id, nombre o URL de la biblioteca)
+para fijar **esa** pantalla a **ese** input; manda sobre el `assign` global. Es la forma de hacer
+"3 teles, cada una con su propio contenido".
+
+### 4.2 API REST (`/api/agent/*`)
+
+Todos los endpoints existen con y sin el prefijo `/jpstagedesign`.
+
+| Método | Endpoint | Qué hace |
+|---|---|---|
+| GET | `/api/agent/catalog` | Tipos, layouts, modos, sala actual, inputs disponibles (con ID), templates. **Consultar antes de diseñar.** |
+| GET | `/api/agent/scene` | Escena actual (`?full=1` devuelve la config cruda). |
+| POST | `/api/agent/installation` | **DISEÑO AUTOMÁTICO.** Body: `{ spec, dryRun?, saveAsTemplate?, assignButtons? }`. |
+| POST | `/api/agent/inputs` | Agrega inputs a la biblioteca (`{inputs:[...]}` o `{url, name}`). |
+| POST | `/api/agent/play` | Dispara un input en vivo (`{id\|name\|url}`, `{blackout:true}` o `{scene}`). |
+| POST | `/api/agent/clear` | Vacía el escenario (`{target:"all"\|"screens"\|"projectors"}`). |
+| POST | `/api/agent/template/save` · `/template/apply` | Guarda / carga la escena como template. |
+
+**Ejemplo — "armá una instalación con este link en 3 pantallas LED":**
+
+```bash
+curl -X POST http://localhost:6645/jpstagedesign/api/agent/installation \
+  -H "Content-Type: application/json" \
+  -d '{
+        "spec": {
+          "name": "Stand Cliente X",
+          "url": "https://fullscreencode.com/jpupper/nftsapps/pamilo/",
+          "layout": "auto",
+          "count": 3,
+          "screenType": "led",
+          "assign": "lock"
+        }
+      }'
+```
+
+Sala, muro LED de 4 paneles y perímetro con proyectores:
+
+```json
+{ "spec": { "layout": "led-wall", "count": 4, "width": 3, "height": 1.7,
+            "content": [{"url": "https://.../video.mp4", "name": "clip"}],
+            "assign": "first", "mappingMode": "extended" } }
+```
+
+**Campos de `spec`:** `name`, `url` (atajo de un input), `content[]`, `layout`, `screenType`, `count`, `cols`,
+`width`, `height`, `depth`, `gap`, `yOffset`, `screens[]` (definición explícita, con `wall: front|back|left|right`
+o `position`/`rotation` absolutos), `assign`, `mappingMode` (`duplicated`=ESPEJO / `extended`=REPARTO),
+`projectors` (bool), `clear` (bool: arranca de escena vacía), `room: {length,width,height}` **en centímetros**.
+
+`dryRun: true` devuelve el diseño calculado sin escribir nada (útil para iterar antes de aplicar).
+
+### 4.3 Servidor MCP (`mcp-server.js`)
+
+Servidor MCP por **stdio**, sin dependencias (JSON-RPC 2.0 newline-delimited). Requiere el servidor de
+JPStageDesign corriendo (es el que persiste y refresca el 3D que el usuario ve).
+
+Herramientas expuestas: `jpstage_catalog`, `jpstage_get_scene`, `jpstage_design_installation`,
+`jpstage_add_input`, `jpstage_play`, `jpstage_clear_stage`, `jpstage_list_templates`,
+`jpstage_save_template`, `jpstage_apply_template`.
+
+Variables de entorno: `JPSTAGE_URL` (default `http://localhost:6645`), `JPSTAGE_BASE` (default `/jpstagedesign`).
+
+Registro en **Hermes Agent** (`~/.hermes/config.yaml`, clave `mcp_servers`):
+
+```yaml
+mcp_servers:
+  jpstagedesign:
+    command: node
+    args:
+      - D:/Programacion/sistemasfullscreen/jpstagedesign/mcp-server.js
+    env:
+      JPSTAGE_URL: http://localhost:6645
+      JPSTAGE_BASE: /jpstagedesign
+    timeout: 60
+    connect_timeout: 30
+```
+
+O por CLI (recomendado, valida la conexión y descubre las 9 herramientas):
+
+```bash
+hermes mcp add jpstagedesign --command node --connect-timeout 30 \
+  --env JPSTAGE_URL=http://localhost:6645 JPSTAGE_BASE=/jpstagedesign \
+  --args D:/Programacion/sistemasfullscreen/jpstagedesign/mcp-server.js
+```
+
+Las herramientas quedan disponibles como `mcp_jpstagedesign_jpstage_design_installation`, etc.
+(requiere reiniciar la sesión de Hermes). Cliente MCP genérico (Claude Desktop / Cursor): mismo bloque
+`command`/`args`/`env` en su propio formato de config.
+
+### 4.4 Verificación
+
+```bash
+npm run test:engine     # motor de layouts + calcos (no necesita servidor)
+npm run test:mcp        # protocolo MCP: initialize + tools/list + tools/call
+npm run test:socket     # E2E en vivo (guarda y RESTAURA el escenario del usuario)
+npm run test:syntax     # gate de sintaxis del <script> inline de output3d.html
+npm run test:cdp        # Chrome headless: la escena se actualiza EN VIVO sin recargar
+npm run test:cdp-net    # Chrome headless + CDP Network: qué imágenes pide la página
+npm run test:cdp-3d     # Chrome headless: cuenta la jerarquía y saca captura del 3D
+npm run test:preset     # Chrome headless: el link ?preset=<slug> carga y NO escribe el servidor
+npm run test:gizmo      # Chrome headless: la P abre el panel en el preset + el gizmo mueve el objeto 3D
+npm run test:tint       # Chrome headless: color plano/silueta del objeto 3D (se pinta y se guarda)
+npm run shoot           # capturas de otra app web (por defecto Sincretismo :6932)
+                        #   filtrable por id:  node tests/shoot_sincretismo.js <outdir> log cluster3d
+                        #   el id `log` emite un ciclo real por el bus antes de capturar
+```
+
+⚠️ `test:socket` escribe en el escenario real para probar el refresco en vivo; hace backup de la config
+al arrancar y la restaura al terminar (pase o falle).
+
+`test:cdp-net` es el que **prueba de verdad que un calco carga su imagen**: escucha el dominio `Network`
+de Chrome DevTools y lista todas las requests a `/uploads/`. Un calco cuya imagen no se use en ninguna
+pantalla tiene que aparecer ahí — si no aparece, el calco no está montando su textura
+(fue el bug real: un `return` de más en `rebuildScreens3D` salteaba la creación del mesh).
+
+### 4.5 🖼️ CALCOS — imágenes pegadas al escenario
+
+Un **calco** es una imagen estática pegada a una pared, al piso o flotando (vinilo, sticker, gráfica,
+captura de pantalla). Los PNG con alfa se recortan de verdad. **No es un destino de contenido**: no
+recibe nada de la botonera, no tiene canvas, no se reparte por slices y ningún proyector lo apunta.
+
+- **UI**: `＋ → 🖼️ Calco / Imagen`, o `＋ → Pantalla / Pared → 🖼️ Calco (imagen)`, o cambiar el
+  `Tipo` de un elemento a `Calco` (te pide la imagen enseguida). El selector de imagen acepta
+  **subir un archivo**, **pegar una URL** o **elegir una imagen de la biblioteca**.
+  En el Inspector (tab 🗂️ Jerarquía) tiene: *Imagen* (cambiar), *Tamaño*, *Opacidad*, posición, rotación y escala.
+  El tamaño se ajusta solo a la proporción real de la imagen (salvo que toques el ancho/alto a mano).
+- **API**:
+  ```json
+  { "spec": {
+      "calcos": [
+        { "image": "https://…/logo.png", "name": "Vinilo", "wall": "left", "width": 3.2, "height": 1.8, "opacity": 0.95 },
+        { "image": "Sincretismo · Cluster 3D", "width": 2.4, "height": 1.35,
+          "position": { "x": 2.4, "y": 0.015, "z": 4.0 }, "rotation": { "x": -90, "y": 0, "z": 0 } }
+      ] } }
+  ```
+  `image` acepta una **URL**, la **ruta de un archivo local** (`path`) o el **id/nombre de un input** de
+  la biblioteca. También se puede declarar un calco dentro de `screens[]` con `screenType: "calco"`.
+- **Registrar archivos locales** (capturas, renders):
+  ```bash
+  curl -X POST http://localhost:6645/jpstagedesign/api/agent/inputs \
+    -H "Content-Type: application/json" \
+    -d '{"inputs":[{"path":"C:/ruta/captura.png","name":"Captura 1","type":"image"}]}'
+  ```
+  El archivo se copia a `public/uploads/` y queda además en la biblioteca de inputs.
+  (En `calcos[]` / `screens[]` se puede pasar `path` directo y se importa solo.)
+
+
+### 4.6 🔗 PRESETS POR LINK — mandar UNA visualización al cliente
+
+Cada template guardado tiene su **link público propio**: abre esa composición exacta en el visor 3D.
+
+```
+https://vps-4455523-x.dattaweb.com/jpstagedesign/output3d.html?preset=sincretismo-de-silicio
+https://vps-4455523-x.dattaweb.com/jpstagedesign/output3d.html?preset=sincretismo-de-silicio&ui=0   ← sin paneles
+```
+
+- **MODO VISTA**: un link con `?preset=` **nunca escribe el servidor** (ni la escena viva ni el
+  `localStorage`). El cliente puede girar la cámara, entrar a los teles y tocar todo sin pisar el diseño.
+  El badge superior (nombre + `🔗 Copiar link` + `✏️ Editar`) lo deja claro; `✏️ Editar` recarga sin el
+  modo vista si querés seguir trabajando sobre ese preset.
+- **`&ui=0`** oculta panel admin, barra de usuario, toolbar y HUD → sólo el 3D para mostrar.
+- En la pestaña 💾 Guardar, cada template del listado tiene el botón **🔗** que copia su link al portapapeles.
+- **Publicación automática**: si estás trabajando en local (`localhost:6645`), al guardar se replica al
+  **VPS** (el template + las imágenes de `/uploads/` que falten), así el link del cliente funciona al toque.
+  El `💾 Guardar en Servidor` explícito también publica la escena viva.
+- El endpoint de subida es `POST /api/uploads/:name` (body crudo) y existe para esa publicación
+  local → VPS; el CORS ya acepta `http://localhost:6645`.
+- **Tecla P en modo vista**: abre el panel admin igual (y la 2ª P vuelve al modo limpio), así se puede
+  retocar un preset desde su propio link sin abandonar el modo vista.
+
+Verificación: `npm run test:preset` (con `JPSTAGE_3D_URL` apuntando al link del preset y `--click-save`
+comprueba que un click en Guardar **no** dispara ningún POST).
+
+
+### 4.7 🎨 COLOR PLANO / SILUETA de un objeto 3D
+
+Cualquier objeto 3D (`.obj` / `.glb`) se puede pintar de **un color plano**, ignorando sus texturas: sirve
+para armar una **silueta** (p. ej. una persona blanca) con cualquier modelo.
+
+- **UI**: seleccioná el objeto → panel derecho → sección **Objeto 3D** → fila **Color**:
+  - 🎨 selector de color (se aplica en vivo mientras lo movés),
+  - **🤍 Silueta** → lo pinta blanco puro de un click,
+  - **↺ Modelo** → vuelve a los materiales originales del archivo.
+- **Se guarda**: la config guarda `furniture[].color` (`'#rrggbb'` o `null`) — sobrevive al guardado,
+  al recargar y viaja dentro de los templates/presets.
+- El material del tinte es un `MeshStandardMaterial` (roughness 0.55, metalness 0), sin mapa de textura:
+  por eso el color sale parejo y no "sucio" por la textura del modelo.
+
+**Asset de referencia — `public/models/persona-blanca.glb`**: persona de 1.80 m en pose natural (brazos
+abajo), 28 k vértices, horneada desde el modelo riggeado `Xbot` de three.js aplicando su **animación
+`idle`** y congelándola a geometría estática (sin skin) con material blanco. Se usa en los presets
+"Sincretismo" (escala 0.95 → 1.71 m) parada sobre la marca de piso.
+
+- Herramienta de horneado: **`/jpstagedesign/models/_bake.html`** — carga un `.glb` con esqueleto, le
+  aplica la animación en un tiempo `t`, convierte la malla deformada en geometría estática (misma cuenta
+  de skinning que el shader de three) y la exporta como `.glb` blanco, subiéndola por
+  `POST /api/uploads/:name`. Se usa con query string, p. ej.
+  `?file=/jpstagedesign/models/xbot.glb&anim=idle&t=0&out=persona-blanca.glb`.
+  (Se renderiza sin WebGL: sólo importa la matemática del horneado. ⚠️ Hay que conservar los **índices**
+  de la geometría antes de `computeVertexNormals()`, si no el modelo queda con aspecto "astillado".)
+- Visor rápido de un modelo a escala real (para revisar un asset antes de meterlo en la escena):
+  **`/jpstagedesign/models/_one.html?file=/jpstagedesign/models/persona-blanca.glb`** (acepta varios
+  separados por coma).
+- Capturas headless de cualquier página: `node tests/_shot.js <url> <out.png> [waitMs] [WxH] [--ready=expr]`.
+
+Verificación: `npm run test:tint` (Chrome headless: cambia el color y comprueba que el objeto se pinta en
+el link de preset **sin escribir nada**, y que en la escena viva el color se guarda en el servidor y se
+recupera al recargar).
+
+
+### 4.8 🔑 LOGIN FSC (fscauth SSO)
+
+La botonera se puede usar **logueado con la cuenta del ecosistema FullScreen Code** (login central
+`fscauth`, el mismo que usan fullscreencode, MapAI, arte digital data, etc.). **No hay gating**: sin
+sesión la app funciona igual y los links de preset siguen siendo públicos (el cliente no necesita cuenta).
+
+- **UI**: arriba a la derecha de la cabecera (`#authWidget`), pintado por `public/js/auth.js`:
+  sin sesión → **🔑 Ingresar** + **Registrarme**; con sesión → chip `● usuario` (+ badge `ADMIN`) + **Salir**.
+- **Flujo** (idéntico al resto del ecosistema):
+  - Ingresar → primero consulta `{FSCAUTH}/api/auth/verify` (con cookies): si ya hay sesión central entra
+    directo por `sso-check`; si no, va a `{FSCAUTH}/login.html?redirect=<url>&origin=jpstagedesign`.
+  - fscauth vuelve con `?token=&username=&userId=`; `auth.js` lo guarda en `localStorage.fsc_token` /
+    `fsc_user`, limpia la URL y pinta el chip.
+  - Salir → `{FSCAUTH}/api/auth/logout?redirect=<url>`.
+- **Backend** (`server.js`): `GET /api/auth/me` (valida el Bearer contra `fscauth/api/auth/verify`),
+  `POST /api/auth/login` y `POST /api/auth/register` (proxy). **No agrega `jsonwebtoken` ni copia
+  `JWT_SECRET`**: delega la validación en fscauth (Node 22 tiene `fetch` global).
+- `CONFIG.FSCAUTH_URL` ya existe en `public/js/config.js` (apunta al VPS).
+- ⚠️ Los links de preset (`output3d.html?preset=…`) y la salida limpia (`output/`, `output.html`) **NO**
+  cargan `auth.js`: nunca deben pedir login.
+
+Verificación: `npm run test:auth` (`tests/cdp-auth-sso.js`) — sin sesión hay botón Ingresar; con el
+handoff `?token=` se guarda la sesión, se limpia la URL y aparece el chip con el rol; Salir la borra;
+Ingresar termina en `fscauth/login.html?...&origin=jpstagedesign`; y `/api/auth/me` da 401 sin token.
+
+### 4.9 👤 PERFIL UNIFICADO (`profile.html`)
+
+`/jpstagedesign/profile.html` muestra la **cuenta unificada del ecosistema** (la misma de cualquier
+otra app FSC) y el **índice de apps** con tu nivel de acceso en cada una. No guarda una copia del
+usuario: lee el registro central de fscauth.
+
+- **Endpoint central** (agregado a fscauth el 27-Sep-2026): `GET /fscauth/api/auth/profile` con
+  `Authorization: Bearer <JWT>` → `{ ok, user:{ id, username, email, displayName, avatar, bio, hexId,
+  socials, role, origin, permissions, meta{lastLogin,loginCount}, createdAt } }`. Nunca devuelve
+  `password` ni los campos de recuperación. Documentado en el MEGASKILL (§ 1.D).
+- **Proxy de la app**: `GET /jpstagedesign/api/auth/profile` (`server.js`) valida el Bearer contra
+  fscauth y, si el fscauth desplegado aún no expone el endpoint, degrada a `/api/auth/verify`.
+- **UI**: cabecera con accesos rápidos + widget de sesión; con sesión muestra avatar (o iniciales),
+  nombre/@usuario + `hexId`, badges de rol y permisos, bio, redes, email, miembro desde, último
+  ingreso e ingresos. Sin sesión, un gate con **🔑 Ingresar** / **Registrarme** (no redirige solo).
+- **Índice de apps** (17): jpshadereditor, artedigitaldata, pizzarraia, diploia, mapai, volumetric,
+  raicesinterface, imagecampus, botonera, jpstagedesign, pinkcarpet, shiny, rose, jpupper,
+  fullscreencode, jpnet y fscauth — cada una con el badge de tu nivel (`ADMIN GLOBAL` si el rol es
+  ADMIN/SYSTEM, o el `permissions.*` de la app). Los links que no están publicados como carpeta en
+  `fullscreencode.com` apuntan al VPS.
+- **Chip del ecosistema**: en la botonera, el chip `● usuario` es un enlace a este perfil.
+
+Verificación: `npm run test:profile` (`tests/cdp-profile.js`) — gate sin sesión, las 17 tarjetas con
+href, el chip como enlace, `401 JSON` sin token / con token inválido, y el render completo con sesión
+(mockeando sólo la red). En producción:
+`JPSTAGE_BASE=https://vps-4455523-x.dattaweb.com/jpstagedesign npm run test:profile`.
