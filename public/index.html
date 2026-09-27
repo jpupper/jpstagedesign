@@ -131,6 +131,9 @@
         </div>
       </div>
     </header>
+
+    <!-- 🔑 Sesión FSC (fscauth SSO) — se pinta desde js/auth.js -->
+    <div id="authWidget" class="auth-widget"></div>
     
     <!-- ============ MODO USER: BOTONERA ============ -->
     <main class="mode-view" id="mode-user">
@@ -220,6 +223,8 @@
   
   <!-- Config -->
   <script src="/jpstagedesign/js/config.js"></script>
+  <!-- 🔑 Auth FSC: SSO central contra fscauth (login/logout/sesión) -->
+  <script src="/jpstagedesign/js/auth.js"></script>
   <!-- Socket.IO desde CDN (carga garantizada ANTES de menu.js) -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
@@ -244,5 +249,7 @@
     }
     loadAppScripts();
   </script>
+  <!-- 🔘 Botón universal FSC: lleva al pasaporte de usuario (fscauth) -->
+  <script src="https://vps-4455523-x.dattaweb.com/fscauth/js/fsc-button.js"></script>
 </body>
 </html>

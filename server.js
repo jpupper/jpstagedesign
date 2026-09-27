@@ -1074,6 +1074,59 @@ app.delete([BASE_PATH + '/api/templates/:slug', '/api/templates/:slug'], (req, r
 });
 
 // ============================================================
+// 🗂️ FSC — índice universal de assets (lo llama el perfil de fscauth)
+// GET /jpstagedesign/api/fsc/assets?username=X
+// Los escenarios guardados SIGUEN viviendo acá (data/templates/*.json,
+// arquitectura bicompartida): fscauth solo los INDEXA para el pasaporte.
+// Los templates son del estudio (compartidos) y cada uno tiene su link público
+// de preset: output3d.html?preset=<slug>.
+// ============================================================
+async function fscAssetsAuthorized(req, username) {
+  const internal = process.env.FSC_INTERNAL_KEY || process.env.JWT_SECRET || '';
+  const key = req.headers['x-fsc-internal'];
+  if (internal && key && key === internal) return true;
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return false;
+  try {
+    const r = await fetch(FSCAUTH_API + '/api/auth/verify', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (!d || d.loggedIn !== true || !d.user) return false;
+    if (String(d.user.username || '').toLowerCase() === String(username || '').toLowerCase()) return true;
+    return d.user.role === 'ADMIN' || d.user.role === 'SYSTEM';
+  } catch (err) {
+    console.error('[FSC-ASSETS] no se pudo validar contra fscauth:', err.message);
+    return false;
+  }
+}
+
+app.get([BASE_PATH + '/api/fsc/assets', '/api/fsc/assets'], async (req, res) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ ok: false, error: 'username requerido' });
+  if (!(await fscAssetsAuthorized(req, username))) return res.status(401).json({ ok: false, error: 'No autorizado' });
+  try {
+    const templates = listTemplates();
+    const groups = [];
+    if (templates.length) {
+      groups.push({
+        type: 'escenario',
+        label: 'Escenarios guardados',
+        count: templates.length,
+        items: templates.slice(0, 100).map((t) => ({
+          id: t.slug,
+          title: t.name,
+          url: '/jpstagedesign/output3d.html?preset=' + encodeURIComponent(t.slug),
+          meta: { pantallas: t.screens, proyectores: t.projectors, objetos: t.furniture, guardado: t.savedAt }
+        }))
+      });
+    }
+    res.json({ ok: true, app: 'jpstagedesign', username, total: groups.reduce((n, g) => n + g.count, 0), groups });
+  } catch (err) {
+    console.error('[FSC-ASSETS] error:', err.message);
+    res.status(500).json({ ok: false, error: 'No se pudo indexar los assets' });
+  }
+});
+
+// ============================================================
 // 🔑 FSC AUTH (SSO) — sesión central del ecosistema FullScreen Code
 // El login real lo hace fscauth (puerto 3027). Acá solo verificamos el token
 // contra su API, así no hace falta agregar jsonwebtoken ni copiar JWT_SECRET.
