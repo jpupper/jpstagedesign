@@ -1471,6 +1471,55 @@
     }
     .furn-card-eye:hover { border-color: #00e5ff; color: #00e5ff; }
     .furn-card-del:hover { border-color: #ff3366; color: #ff3366; }
+    .tpl-btn.link { border-color: rgba(0,255,170,0.5); color: #00ffaa; }
+    .tpl-btn.link:hover { background: rgba(0,255,170,0.16); }
+
+    /* ============ Badge del PRESET COMPARTIDO (?preset=<slug>) ============ */
+    #presetBadge {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 9999;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(8,12,18,0.88);
+      border: 1px solid rgba(0,255,170,0.45);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+      font-family: inherit;
+      font-size: 10px;
+      color: #d8ffe9;
+    }
+
+    #presetBadge .pb-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ffaa; box-shadow: 0 0 8px #00ffaa; }
+    #presetBadge .pb-label { font-weight: 700; letter-spacing: 1px; color: #00ffaa; }
+    #presetBadge .pb-name { font-weight: 700; color: #ffffff; }
+    #presetBadge .pb-mode { color: #8b93a3; font-size: 9px; }
+
+    #presetBadge .pb-btn {
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(0,255,170,0.12);
+      border: 1px solid rgba(0,255,170,0.45);
+      color: #00ffaa;
+      white-space: nowrap;
+    }
+
+    #presetBadge .pb-btn:hover { background: rgba(0,255,170,0.25); }
+    #presetBadge #btnPresetEdit { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); color: #cfd6e2; }
+
+    /* ============ Vista LIMPIA para el cliente (?preset=<slug>&ui=0) ============ */
+    body.preset-clean-ui #userModeFloatingBar,
+    body.preset-clean-ui #control-panel,
+    body.preset-clean-ui #toolbar,
+    body.preset-clean-ui #info { display: none !important; }
 
     /* ============================================================
        TEMPLATES (tab Guardar)
@@ -1519,6 +1568,153 @@
     .tpl-btn.load { border-color: rgba(0,229,255,0.5); color: #00e5ff; }
     .tpl-btn.load:hover { background: rgba(0,229,255,0.16); }
     .tpl-btn.del:hover { border-color: #ff3366; color: #ff3366; }
+
+    /* ============================================================
+       BOTÓN GUARDAR EN HEADER DEL PANEL 3D
+       ============================================================ */
+    .btn-panel-save {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.22), rgba(0, 255, 170, 0.22));
+      border: 1px solid #00e5ff;
+      color: #00e5ff;
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 5px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .btn-panel-save:hover {
+      background: #00e5ff;
+      color: #000;
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-panel-save.saved {
+      background: #00ffaa !important;
+      border-color: #00ffaa !important;
+      color: #000 !important;
+      box-shadow: 0 0 16px rgba(0, 255, 170, 0.7) !important;
+    }
+
+    /* ============================================================
+       PATRONES DE PISO
+       ============================================================ */
+    .floor-patterns-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .floor-pattern-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      color: #cfd6e2;
+      font-family: inherit;
+    }
+    .floor-pattern-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(0, 229, 255, 0.4);
+      color: #fff;
+    }
+    .floor-pattern-btn.active {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: #00e5ff;
+      color: #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+    .floor-pattern-btn .fp-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+    .floor-pattern-btn .fp-name {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .floor-pattern-btn .fp-sub {
+      font-size: 8px;
+      color: #8b93a3;
+    }
+    .floor-color-preset {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .floor-color-preset:hover {
+      transform: scale(1.2);
+      border-color: #00e5ff;
+    }
+    .floor-section-card {
+      background: rgba(14, 16, 22, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 10px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s ease;
+    }
+    .floor-section-card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    .floor-section-card.active-accent {
+      border-color: rgba(0, 229, 255, 0.35);
+      background: rgba(0, 229, 255, 0.03);
+    }
+    .floor-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .floor-section-title {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #00e5ff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .floor-section-badge {
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(0, 229, 255, 0.14);
+      color: #00e5ff;
+    }
+    .floor-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .floor-toggle-row input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: #00e5ff;
+      cursor: pointer;
+    }
   </style>
   
   <!-- Three.js + Controles + TransformControls + GLTFLoader -->
@@ -1526,6 +1722,8 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="/jpstagedesign/js/TransformControls.js?v=20260925"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- SkeletonUtils: clonado correcto de modelos RIGGEADOS (persona/props con skin) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
   <!-- Capa CSS3D: permite mostrar PÁGINAS WEB EN VIVO sobre las pantallas del 3D -->
@@ -1622,8 +1820,20 @@
     <button class="tool-btn" id="tb-dims" title="Mostrar/Ocultar Cotas 3D">📐 Cotas</button>
     <button class="tool-btn" id="tb-wire">Wire</button>
     <button class="tool-btn" id="tb-panel">Panel</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" id="tb-save" title="Guardar composición permanentemente en servidor y local">💾 Guardar</button>
   </div>
   
+  <!-- Badge del PRESET COMPARTIDO (visible sólo con ?preset=<slug>) -->
+  <div id="presetBadge">
+    <span class="pb-dot"></span>
+    <span class="pb-label">PRESET</span>
+    <span class="pb-name" id="presetBadgeName">—</span>
+    <span class="pb-mode">MODO VISTA · no se guarda</span>
+    <button class="pb-btn" id="btnPresetCopyLink" title="Copiar el link de este preset">🔗 Copiar link</button>
+    <button class="pb-btn" id="btnPresetEdit" title="Abrir este preset en modo editable (sin modo vista)">✏️ Editar</button>
+  </div>
+
   <!-- Canvas Container -->
   <div id="canvas-container"></div>
   
@@ -1632,6 +1842,7 @@
     <div class="panel-header">
       <h3><span>🎛️</span> Panel de Control 3D <span class="panel-header-badge">ADMIN</span></h3>
       <div style="display:flex; align-items:center; gap:6px; position:relative;">
+        <button class="btn-panel-save" id="btnHeaderSave" title="Guardar composición permanentemente en el servidor">💾 Guardar Composición</button>
         <button class="btn-quick-add" id="btnQuickAdd" title="Agregar a la escena: pantalla, proyector u objeto 3D">＋</button>
         <button class="btn-close-panel" id="btnClosePanel" title="Volver a Modo User (Tecla P)">✕</button>
 
@@ -1640,7 +1851,11 @@
           <div class="quick-add-title">AGREGAR A LA ESCENA</div>
           <button class="quick-add-item" data-add="screen">
             <span class="qa-icon">🖥️</span>
-            <span><b>Pantalla / Pared</b><i>LED · Tele Touch · Con Proyector</i></span>
+            <span><b>Pantalla / Pared</b><i>LED · Tele Touch · Con Proyector · Calco</i></span>
+          </button>
+          <button class="quick-add-item" data-add="calco">
+            <span class="qa-icon">🖼️</span>
+            <span><b>Calco / Imagen</b><i>Pegar una imagen en el escenario (PNG con alfa)</i></span>
           </button>
           <button class="quick-add-item" data-add="projector">
             <span class="qa-icon">📽️</span>
@@ -1735,6 +1950,282 @@
       </div>
     </div>
 
+    <!-- 1.5. Piso y Texturas -->
+    <div class="accordion-item" data-tab="piso" data-tab-label="🪵 Piso">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span class="acc-title">🪵 Suelo y Superficies del Escenario</span>
+        <span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-content">
+        <div style="font-size: 9px; color: #888; margin-bottom: 10px;">
+          Configurá de forma independiente el suelo general de la sala, la plataforma circular de la obra y la marca perimetral de montaje.
+        </div>
+
+        <!-- ==========================================
+             1. PISO GENERAL DE LA SALA
+             ========================================== -->
+        <div class="floor-section-card" id="cardGenFloor">
+          <div class="floor-section-header">
+            <span class="floor-section-title">🏢 1. Piso General de la Sala</span>
+            <span class="floor-section-badge">Suelo Base</span>
+          </div>
+          <div style="font-size: 8.5px; color: #888; margin-bottom: 8px;">
+            Suelo completo de la sala/habitación sobre el que se apoya todo el montaje.
+          </div>
+
+          <!-- Selector de Modo de Piso General: Patrón vs Color Sólido -->
+          <div class="floor-mode-selector" style="display:flex; gap:6px; margin-bottom:8px;">
+            <button type="button" class="panel-btn active" id="btnGenFloorModePattern" style="flex:1;">🧩 Con Patrón</button>
+            <button type="button" class="panel-btn" id="btnGenFloorModeSolid" style="flex:1;">🎨 Color Sólido</button>
+          </div>
+
+          <!-- Grid de los 5 patrones Piso General -->
+          <div id="genFloorPatternsContainer">
+            <div style="font-size: 8.5px; color: #00e5ff; text-transform: uppercase; font-weight: 700; margin-bottom: 5px;">
+              Patrón del Suelo General:
+            </div>
+            <div class="floor-patterns-grid">
+              <button type="button" class="floor-pattern-btn gen-floor-pattern-btn" data-pattern="wood" title="Madera de escenario con tablones">
+                <span class="fp-icon">🪵</span>
+                <span class="fp-name">Madera Tablones</span>
+              </button>
+              <button type="button" class="floor-pattern-btn gen-floor-pattern-btn" data-pattern="tiles" title="Baldosas modernas con juntas">
+                <span class="fp-icon">🧱</span>
+                <span class="fp-name">Baldosas</span>
+              </button>
+              <button type="button" class="floor-pattern-btn gen-floor-pattern-btn active" data-pattern="concrete" title="Cemento alisado / Microcemento de galería">
+                <span class="fp-icon">🏛️</span>
+                <span class="fp-name">Cemento Galería</span>
+              </button>
+              <button type="button" class="floor-pattern-btn gen-floor-pattern-btn" data-pattern="marble" title="Mármol pulido oscuro">
+                <span class="fp-icon">✨</span>
+                <span class="fp-name">Mármol Oscuro</span>
+              </button>
+              <button type="button" class="floor-pattern-btn gen-floor-pattern-btn" data-pattern="techgrid" title="Rejilla técnica modular">
+                <span class="fp-icon">⚡</span>
+                <span class="fp-name">Rejilla Técnica</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color y Superficie Piso General -->
+          <div class="control-row">
+            <label>Color Base</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="color" id="genFloorColorPicker" value="#2c2e36">
+              <span id="genFloorColorHex" style="font-size:9.5px; color:#aaa; font-family:monospace;">#2c2e36</span>
+            </div>
+          </div>
+          <div class="floor-color-presets" style="display:flex; gap:4px; margin-bottom:6px; justify-content:flex-end;">
+            <button type="button" class="floor-color-preset gen-floor-color-preset" data-color="#2c2e36" style="background:#2c2e36;" title="Gris Galería"></button>
+            <button type="button" class="floor-color-preset gen-floor-color-preset" data-color="#14161c" style="background:#14161c;" title="Negro Estudio"></button>
+            <button type="button" class="floor-color-preset gen-floor-color-preset" data-color="#555861" style="background:#555861;" title="Hormigón Claro"></button>
+            <button type="button" class="floor-color-preset gen-floor-color-preset" data-color="#8B4513" style="background:#8B4513;" title="Madera"></button>
+            <button type="button" class="floor-color-preset gen-floor-color-preset" data-color="#0a0c10" style="background:#0a0c10;" title="Negro Carbón"></button>
+          </div>
+
+          <div class="control-row">
+            <label>Rugosidad (Brillo/Mate)</label>
+            <input type="range" id="genFloorRoughness" min="0" max="1" step="0.05" value="0.9">
+          </div>
+          <div class="control-row">
+            <label>Metálico / Reflejo</label>
+            <input type="range" id="genFloorMetalness" min="0" max="1" step="0.05" value="0.05">
+          </div>
+          <div class="control-row" id="rowGenFloorRepeat">
+            <label>Escala / Repetición</label>
+            <input type="range" id="genFloorRepeat" min="1" max="16" step="1" value="4">
+          </div>
+        </div>
+
+        <!-- ==========================================
+             2. PISO CIRCULAR DE LA OBRA (TARIMA)
+             ========================================== -->
+        <div class="floor-section-card active-accent" id="cardCircFloor">
+          <div class="floor-section-header">
+            <label class="floor-toggle-row">
+              <input type="checkbox" id="chkFloorCircleEnable" checked>
+              <span class="floor-section-title">⭕ 2. Piso Circular de la Obra</span>
+            </label>
+            <span class="floor-section-badge" id="badgeCircleStatus">Tarima Activa</span>
+          </div>
+          <div style="font-size: 8.5px; color: #888; margin-bottom: 8px;">
+            Plataforma o ploteo circular que delimita el sector artístico de las teles.
+          </div>
+
+          <div id="floorCircleContentWrap">
+            <!-- Diámetro y Presets -->
+            <div class="control-row">
+              <label>Diámetro Círculo (m)</label>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <input type="number" id="floorCircleDiameterNum" min="0.5" max="25" step="0.1" value="4.0" style="width:58px; text-align:right;" class="coord-num-input">
+                <span style="font-size:9px; color:#888;">m</span>
+              </div>
+            </div>
+            <div class="control-row">
+              <label>Ajuste Rápido Diámetro</label>
+              <input type="range" id="floorCircleDiameterRng" min="1" max="12" step="0.1" value="4.0">
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+              <button type="button" class="panel-btn" id="btnFloorCirclePreset4m" style="width:auto; padding:2px 8px; font-size:9px; background:rgba(0,229,255,0.2); border-color:#00e5ff; color:#00e5ff; font-weight:700;" title="Fijar en diámetro exacto de 4 metros">
+                Ø 4.00m (Medida Curador)
+              </button>
+            </div>
+
+            <!-- Espesor / Altura Tarima -->
+            <div class="control-row">
+              <label>Espesor Tarima (cm)</label>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <input type="number" id="floorCircleThicknessNum" min="0" max="50" step="1" value="4" style="width:58px; text-align:right;" class="coord-num-input">
+                <span style="font-size:9px; color:#888;">cm</span>
+              </div>
+            </div>
+            <div style="font-size:8px; color:#788294; margin:-3px 0 6px 0; text-align:right;">
+              (0 = ploteo/alfombra al ras · 1 a 50 cm = tarima 3D elevada)
+            </div>
+
+            <div class="control-row">
+              <label>Borde / Zócalo</label>
+              <select id="floorCircleRimSelect" style="width:130px;">
+                <option value="metal">⚙️ Metal Negro</option>
+                <option value="silver">🥈 Aluminio Plata</option>
+                <option value="gold">🥇 Bisel Dorado</option>
+                <option value="none">Sin borde</option>
+              </select>
+            </div>
+
+            <!-- Selector de Modo de Piso Circular: Patrón vs Color Sólido -->
+            <div class="floor-mode-selector" style="display:flex; gap:6px; margin:8px 0;">
+              <button type="button" class="panel-btn active" id="btnCircFloorModePattern" style="flex:1;">🧩 Con Patrón</button>
+              <button type="button" class="panel-btn" id="btnCircFloorModeSolid" style="flex:1;">🎨 Color Sólido</button>
+            </div>
+
+            <!-- Grid de los 5 patrones Piso Circular -->
+            <div id="circFloorPatternsContainer">
+              <div style="font-size: 8.5px; color: #00e5ff; text-transform: uppercase; font-weight: 700; margin-bottom: 5px;">
+                Patrón del Círculo:
+              </div>
+              <div class="floor-patterns-grid">
+                <button type="button" class="floor-pattern-btn circ-floor-pattern-btn active" data-pattern="wood" title="Madera de escenario con vetas">
+                  <span class="fp-icon">🪵</span>
+                  <span class="fp-name">Madera Tablones</span>
+                </button>
+                <button type="button" class="floor-pattern-btn circ-floor-pattern-btn" data-pattern="tiles" title="Baldosas modernas">
+                  <span class="fp-icon">🧱</span>
+                  <span class="fp-name">Baldosas</span>
+                </button>
+                <button type="button" class="floor-pattern-btn circ-floor-pattern-btn" data-pattern="concrete" title="Cemento alisado industrial">
+                  <span class="fp-icon">🏛️</span>
+                  <span class="fp-name">Cemento Alisado</span>
+                </button>
+                <button type="button" class="floor-pattern-btn circ-floor-pattern-btn" data-pattern="marble" title="Mármol pulido oscuro">
+                  <span class="fp-icon">✨</span>
+                  <span class="fp-name">Mármol Oscuro</span>
+                </button>
+                <button type="button" class="floor-pattern-btn circ-floor-pattern-btn" data-pattern="techgrid" title="Rejilla técnica modular">
+                  <span class="fp-icon">⚡</span>
+                  <span class="fp-name">Rejilla Técnica</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Color y Superficie Piso Circular -->
+            <div class="control-row">
+              <label>Color Círculo</label>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <input type="color" id="circFloorColorPicker" value="#8B4513">
+                <span id="circFloorColorHex" style="font-size:9.5px; color:#aaa; font-family:monospace;">#8B4513</span>
+              </div>
+            </div>
+            <div class="floor-color-presets" style="display:flex; gap:4px; margin-bottom:6px; justify-content:flex-end;">
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#8B4513" style="background:#8B4513;" title="Madera Roble"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#1e1e24" style="background:#1e1e24;" title="Negro Estudio"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#4a4d52" style="background:#4a4d52;" title="Gris Hormigón"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#d4d4d8" style="background:#d4d4d8;" title="Blanco Galería"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#121826" style="background:#121826;" title="Azul Profundo"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#2c1a11" style="background:#2c1a11;" title="Nogal Oscuro"></button>
+              <button type="button" class="floor-color-preset circ-floor-color-preset" data-color="#000000" style="background:#000000;" title="Negro Puro"></button>
+            </div>
+
+            <div class="control-row">
+              <label>Rugosidad (Brillo/Mate)</label>
+              <input type="range" id="circFloorRoughness" min="0" max="1" step="0.05" value="0.75">
+            </div>
+            <div class="control-row">
+              <label>Metálico / Reflejo</label>
+              <input type="range" id="circFloorMetalness" min="0" max="1" step="0.05" value="0.1">
+            </div>
+            <div class="control-row" id="rowCircFloorRepeat">
+              <label>Escala / Repetición</label>
+              <input type="range" id="circFloorRepeat" min="1" max="16" step="1" value="3">
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             3. MARCA CIRCULAR PERIMETRAL (LÍMITES Ø 4M)
+             ========================================== -->
+        <div class="floor-section-card" id="cardBoundFloor">
+          <div class="floor-section-header">
+            <label class="floor-toggle-row">
+              <input type="checkbox" id="chkFloorBoundaryEnable" checked>
+              <span class="floor-section-title" style="color:#ffbb00;">📍 3. Marca Circular Perimetral (Ø 4m)</span>
+            </label>
+            <span class="floor-section-badge" style="background:rgba(255,187,0,0.18); color:#ffbb00;" id="badgeBoundStatus">Visible</span>
+          </div>
+          <div style="font-size: 8.5px; color: #888; margin-bottom: 8px;">
+            Aro gráfico nítido en el suelo que delimita con precisión el perímetro físico de la obra solicitado por el curador.
+          </div>
+
+          <div id="floorBoundContentWrap">
+            <div class="control-row">
+              <label>Color del Aro</label>
+              <div style="display:flex; gap:4px;">
+                <button type="button" class="panel-btn active" id="btnBoundColYellow" style="padding:3px 7px; font-size:8.5px; color:#ffbb00; border-color:#ffbb00;">🟡 Amarillo</button>
+                <button type="button" class="panel-btn" id="btnBoundColCyan" style="padding:3px 7px; font-size:8.5px; color:#00e5ff; border-color:#00e5ff;">🔵 Cyan</button>
+                <button type="button" class="panel-btn" id="btnBoundColWhite" style="padding:3px 7px; font-size:8.5px; color:#ffffff; border-color:#ffffff;">⚪ Blanco</button>
+              </div>
+            </div>
+
+            <div class="control-row" style="margin-top:6px;">
+              <label class="floor-toggle-row" style="font-size:9px; font-weight:normal; color:#aaa;">
+                <input type="checkbox" id="chkFloorBoundAxes" checked>
+                <span>Mostrar ejes de cuadrante en cruz (guías ortogonales)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             4. MARCA DE PISO (POSICIÓN ESPECTADOR / PERSONA)
+             ========================================== -->
+        <div class="floor-section-card active-accent" id="cardPersonFloorMark">
+          <div class="floor-section-header">
+            <label class="floor-toggle-row">
+              <input type="checkbox" id="chkPersonFloorMark" checked>
+              <span class="floor-section-title" style="color:#ff8c00;">🧍 4. Marca de Posición de la Persona</span>
+            </label>
+            <span class="floor-section-badge" style="background:rgba(255,140,0,0.18); color:#ff8c00;" id="badgePersonMarkStatus">Sobre Tarima</span>
+          </div>
+          <div style="font-size: 8.5px; color: #888; margin-bottom: 8px;">
+            Marca visual en el suelo que señala dónde se para la persona frente a la obra. Se renderiza siempre por encima del piso circular.
+          </div>
+          <div id="personFloorMarkWrap" style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="panel-btn" id="btnFocusPersonMark" style="flex:1; padding:4px 8px; font-size:9px;" title="Alinear marca exactamente bajo los pies de la persona y elevarla sobre la tarima">
+              🎯 Alinear con Persona
+            </button>
+            <button type="button" class="panel-btn" id="btnSelectPersonMark" style="flex:1; padding:4px 8px; font-size:9px;" title="Seleccionar calco de piso para editar tamaño o propiedades">
+              ✏️ Seleccionar Calco
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="panel-btn" id="btnFloorReset" style="margin-top:4px; font-size:9.5px; opacity:0.85;">
+          ↺ Restablecer Pisos Predeterminados
+        </button>
+      </div>
+    </div>
+
     <!-- 2. Pantallas y Paredes (Stage Design) -->
     <div class="accordion-item active" id="accItemScreens" data-tab="pantallas" data-tab-label="🖥️ Pantallas">
       <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -1749,6 +2240,9 @@
 
         <!-- Presets de Escenario -->
         <div style="margin: 4px 0 6px 0; font-size: 9px; color: #888; text-transform: uppercase;">Presets de Escenario:</div>
+        <button class="panel-btn" id="btnPresetCuratorTriptych" style="font-size: 9.5px; padding: 6px 6px; background: linear-gradient(135deg, rgba(0,229,255,0.22), rgba(191,85,236,0.22)); border: 1px solid #00e5ff; color: #00e5ff; font-weight:700; width:100%; margin-bottom:6px;" title="Disposición Real de Obra: TV Central 46 pulgadas + 2 TVs Laterales 32 pulgadas en círculo Ø 4m">
+          🏛️ Tríptico Curador (46" + 32" + 32" · Círculo Ø 4m)
+        </button>
         <div class="btn-row" style="margin-bottom: 8px;">
           <button class="panel-btn" id="btnPreset4Walls" style="font-size: 9px; padding: 5px 3px;" title="4 Paredes Cúbicas (Habitación)">4 Paredes</button>
           <button class="panel-btn" id="btnPresetUStage" style="font-size: 9px; padding: 5px 3px;" title="Frontal + 2 Laterales (U-Stage)">U-Stage</button>
@@ -1782,6 +2276,7 @@
             <option value="led">🟩 Pantalla LED</option>
             <option value="touch">📱 Tele Touch</option>
             <option value="projector">🎦 Con Proyector</option>
+            <option value="calco">🖼️ Calco (imagen)</option>
           </select>
         </div>
 
@@ -1809,6 +2304,12 @@
             <input type="range" id="screenLargo" min="0.02" max="1.2" step="0.005" value="0.07" style="flex: 1;">
             <input type="number" id="screenLargoNum" min="0.02" max="3" step="0.005" value="0.07" class="coord-num-input" title="Profundidad / grosor del chasis en metros (para teles o gabinetes más gruesos)">
           </div>
+        </div>
+        <!-- Presets rápidos de tamaño TV -->
+        <div style="display: flex; gap: 4px; margin: 4px 0 6px 0;">
+          <button type="button" class="panel-btn" id="btnQuickSetTV32" style="font-size: 8.5px; padding: 4px; flex:1;" title="Medida real TV 32 pulgadas (73 x 42 cm)">📺 32" (73×42cm)</button>
+          <button type="button" class="panel-btn" id="btnQuickSetTV46" style="font-size: 8.5px; padding: 4px; flex:1;" title="Medida real TV 46 pulgadas (104 x 60 cm)">📺 46" (104×60cm)</button>
+          <button type="button" class="panel-btn" id="btnQuickSetTV55" style="font-size: 8.5px; padding: 4px; flex:1;" title="Medida real TV 55 pulgadas (123 x 71 cm)">📺 55" (123×71cm)</button>
         </div>
         <div style="margin: 2px 0 2px 0; color: #6c7686; font-size: 9px; line-height: 1.35;">
           <b>Largo</b> = profundidad del chasis (las teles LED/touch suelen ser más gruesas que una placa fina).
@@ -2183,6 +2684,10 @@
           </div>
           <div style="font-size:9px; color:#888; margin-bottom:8px; line-height:1.45;">
             Guardá el escenario actual con un nombre y reutilizalo cuando quieras.
+            Cada preset tiene su <b>link público</b> (botón 🔗): al abrirlo el cliente ve ESA
+            visualización sin poder tocar tu escenario. Agregá <b>&amp;ui=0</b> al link para
+            mostrarla sin paneles. Al guardar, el preset y sus imágenes se
+            <b>publican en el servidor</b> (VPS) automáticamente.
           </div>
 
           <div class="control-row" style="gap:6px;">
@@ -2518,7 +3023,30 @@
     let ROOM_WIDTH = 3015;
     let ROOM_HEIGHT = 200;
     const SCALE = 0.003;
-    
+
+    // ============================================================
+    // PRESETS POR LINK — ?preset=<slug>  (compartir UNA visualización)
+    // ============================================================
+    // Cada template guardado (POST /api/templates) tiene su propio link:
+    //     output3d.html?preset=sincretismo-de-silicio
+    // Ese link carga ESA composición encima de la escena, en MODO VISTA:
+    // nunca escribe la configuración viva del servidor (el cliente no puede
+    // pisar el diseño). Con &ui=0 se ocultan los paneles (vista limpia).
+    const PRESET_SLUG = (() => {
+      try {
+        const q = new URLSearchParams(location.search);
+        return String(q.get('preset') || q.get('template') || q.get('t') || '').trim();
+      } catch (e) { return ''; }
+    })();
+    const PRESET_VIEWER = !!PRESET_SLUG;
+    const PRESET_CLEAN_UI = (() => {
+      try {
+        const q = new URLSearchParams(location.search);
+        const v = String(q.get('ui') || '').toLowerCase();
+        return v === '0' || v === 'off' || v === 'clean';
+      } catch (e) { return false; }
+    })();
+
     // Configuración de Techo
     let ceilingVisible = true;
     let ceilingOpacity = 0.95;
@@ -2663,7 +3191,10 @@
 
           if (kind === 'screen') {
             activateTab('pantallas');
-            openScreenTypeChooser();          // elige LED / Tele Touch / Con Proyector
+            openScreenTypeChooser();          // elige LED / Tele Touch / Con Proyector / Calco
+          } else if (kind === 'calco') {
+            activateTab('pantallas');
+            openCalcoImagePicker({});         // 🖼️ elige la imagen y crea el calco
           } else if (kind === 'projector') {
             activateTab('proyectores');
             addNewProjector();
@@ -2781,6 +3312,28 @@
       h.visible = !item.muted;
     }
 
+    // 🎨 Tinte del objeto: pinta TODAS sus mallas con un color plano. Sirve para hacer una
+    // "silueta" (p. ej. una persona blanca) a partir de cualquier modelo, ignorando texturas.
+    // item.color = '#rrggbb'  |  null/ausente = materiales originales del modelo.
+    // ⚠️ Los materiales se guardan en propiedades propias (__baseMat/__tintMat) y NO en
+    // userData: Object3D.copy() hace JSON.parse(JSON.stringify(userData)) y los destruiría.
+    function applyFurnitureTint(item, holderNode) {
+      const h = holderNode || (furnitureGroup && furnitureGroup.getObjectByName('furn_' + item.id));
+      if (!h) return;
+      const color = item.color ? String(item.color) : null;
+      h.traverse(n => {
+        if (!n.isMesh && !n.isSkinnedMesh) return;
+        if (!n.__baseMat) n.__baseMat = n.material;
+        if (!color) {
+          if (n.__tintMat) { n.material = n.__baseMat; n.__tintMat.dispose(); n.__tintMat = null; }
+          return;
+        }
+        if (!n.__tintMat) n.__tintMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.55, metalness: 0.0 });
+        else n.__tintMat.color.set(color);
+        n.material = n.__tintMat;
+      });
+    }
+
     function rebuildFurniture3D() {
       if (!furnitureGroup) return;
       while (furnitureGroup.children.length > 0) {
@@ -2797,12 +3350,25 @@
           // El holder pudo haber sido reemplazado por un rebuild posterior
           const current = furnitureGroup.getObjectByName('furn_' + item.id);
           if (!current) return;
-          const inst = obj.clone(true);
+          // ⚠️ obj.clone(true) ROMPE los modelos con skin: el SkinnedMesh clonado pierde el
+          // binding del esqueleto y se deforma/desaparece (la persona no se veía). Con
+          // SkeletonUtils.clone el rig se clona bien; si no está disponible, usamos el original.
+          let tieneSkin = false;
+          obj.traverse(n => { if (n.isSkinnedMesh) tieneSkin = true; });
+          let inst;
+          if (tieneSkin && THREE.SkeletonUtils && typeof THREE.SkeletonUtils.clone === 'function') {
+            inst = THREE.SkeletonUtils.clone(obj);
+          } else if (tieneSkin) {
+            inst = obj;              // sin clonar: un solo uso por modelo
+          } else {
+            inst = obj.clone(true);
+          }
           inst.traverse(n => {
-            if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; }
+            if (n.isMesh || n.isSkinnedMesh) { n.castShadow = true; n.receiveShadow = true; }
           });
           current.add(inst);
           applyFurnitureTransform(item, current);
+          applyFurnitureTint(item, current);   // 🎨 silueta / color plano (si el item lo pide)
         });
       });
     }
@@ -3112,10 +3678,9 @@
       // Dropdown de inputs (agrupado por tipo)
       const sel = document.createElement('select');
       sel.dataset.insp = 'lockSource';
-      sel.disabled = !isLocked;
       const optNone = document.createElement('option');
       optNone.value = '';
-      optNone.textContent = inputsLibrary.length ? '— Elegí un input —' : 'Cargando inputs…';
+      optNone.textContent = inputsLibrary.length ? '— Sin lock (responde a botonera) —' : 'Cargando inputs…';
       sel.appendChild(optNone);
       LOCK_TYPE_GROUPS.forEach(g => {
         const mats = inputsLibrary.filter(m => g.types.includes(String(m.type)));
@@ -3130,7 +3695,16 @@
         });
         sel.appendChild(og);
       });
-      if (isLocked) sel.value = item.lockSource.id;
+      if (isLocked) {
+        sel.value = item.lockSource.id;
+        if (!sel.value && item.lockSource.id) {
+          const o = document.createElement('option');
+          o.value = item.lockSource.id;
+          o.textContent = (item.lockSource.name || item.lockSource.id) + ' (guardado)';
+          sel.appendChild(o);
+          sel.value = item.lockSource.id;
+        }
+      }
 
       // Toggle
       const btn = inspBtn(isLocked ? '🔒 ON' : '🔓 OFF', isLocked ? 'active' : '', () => {
@@ -3151,8 +3725,11 @@
 
       sel.addEventListener('change', () => {
         const m = inputsLibrary.find(x => x.id === sel.value);
-        if (!m) { if (item.lockSource) clearLockSource(item, kind); }
-        else setLockSource(item, kind, m);
+        if (!m) {
+          if (item.lockSource) clearLockSource(item, kind);
+        } else {
+          setLockSource(item, kind, m);
+        }
         if (rerender) rerender();
       });
 
@@ -3161,7 +3738,7 @@
       if (isLocked) {
         hint.innerHTML = `🔒 Fijo en <b>${escapeHtml(item.lockSource.name || item.lockSource.id)}</b> (${escapeHtml(lockTypeLabel(item.lockSource.type))}).<br>Este elemento <b>ignora la botonera</b> y reproduce siempre este input, al 100%.`;
       } else {
-        hint.innerHTML = '🔓 Sin lock: reproduce lo que llega de la botonera.<br>Activalo para dejarlo fijo en un input.';
+        hint.innerHTML = '🔓 Sin lock: reproduce lo que llega de la botonera.<br>Activalo con el botón o elegí un input directamente.';
       }
       frag.appendChild(hint);
 
@@ -3301,15 +3878,28 @@
         body.appendChild(inspRow('Tipo', inspSelect('screenType', normalizeScreenType(item.screenType), [
           { v: 'led', t: '🟩 Pantalla LED' },
           { v: 'touch', t: '📱 Tele Touch' },
-          { v: 'projector', t: '🎦 Con Proyector' }
+          { v: 'projector', t: '🎦 Con Proyector' },
+          { v: 'calco', t: '🖼️ Calco (imagen)' }
         ], (v) => {
           const prev = normalizeScreenType(item.screenType);
           item.screenType = normalizeScreenType(v);
+          if (item.screenType === 'calco') {
+            // 🖼️ Un calco es decoración: no lleva lock ni slices
+            item.lockSource = null;
+            item.sliceIndex = -1;
+          } else if (prev === 'calco') {
+            item.calcoUrl = null;
+            item.calcoName = null;
+          }
           rebuildScreens3D();
           if (selectedScreen) selectScreen(item.id);
           updateScreensSelectUI();
           if (item.screenType === 'projector' && prev !== 'projector') addProjectorForScreen(item);
           saveRoom3DConfigToServer();
+          // Sin imagen no hay calco: pedirla enseguida
+          if (item.screenType === 'calco' && prev !== 'calco' && !item.calcoUrl) {
+            openCalcoImagePicker({ existingId: item.id });
+          }
         })));
 
         const dimWrap = document.createElement('div');
@@ -3317,6 +3907,7 @@
         dimWrap.appendChild(inspNum('sizeW', Number(item.width || 4.5), 0.05, (v, commit) => {
           if (isNaN(v)) return;
           item.width = Math.max(0.2, v);
+          item._sizeTouched = true;
           rebuildScreens3D();
           if (selectedScreen) selectScreen(item.id);
           if (commit) saveRoom3DConfigToServer();
@@ -3324,6 +3915,7 @@
         dimWrap.appendChild(inspNum('sizeH', Number(item.height || 2.5), 0.05, (v, commit) => {
           if (isNaN(v)) return;
           item.height = Math.max(0.2, v);
+          item._sizeTouched = true;
           rebuildScreens3D();
           if (selectedScreen) selectScreen(item.id);
           if (commit) saveRoom3DConfigToServer();
@@ -3331,6 +3923,61 @@
         dimWrap.children[0].title = 'Ancho (m)';
         dimWrap.children[1].title = 'Alto (m)';
         body.appendChild(inspRow('Tamaño', dimWrap));
+
+        if (!isCalcoScreen(item)) {
+          const tvRow = document.createElement('div');
+          tvRow.style.cssText = 'display:flex; gap:4px; margin:2px 0 6px 0; justify-content:flex-end;';
+          const makeTvBtn = (lbl, w, h, d) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'panel-btn';
+            btn.style.cssText = 'font-size:8px; padding:2px 5px; margin:0; width:auto;';
+            btn.textContent = lbl;
+            btn.title = `Fijar tamaño real ${lbl}: ${w*100}x${h*100} cm`;
+            btn.addEventListener('click', () => {
+              item.width = w;
+              item.height = h;
+              item.depth = d;
+              item.screenType = 'touch';
+              item._sizeTouched = true;
+              rebuildScreens3D();
+              if (selectedScreen) selectScreen(item.id);
+              renderInspector();
+              saveRoom3DConfigToServer();
+            });
+            return btn;
+          };
+          tvRow.appendChild(makeTvBtn('📺 32" (73x42)', 0.73, 0.42, 0.07));
+          tvRow.appendChild(makeTvBtn('📺 46" (104x60)', 1.04, 0.60, 0.08));
+          tvRow.appendChild(makeTvBtn('📺 55" (123x71)', 1.23, 0.71, 0.08));
+          body.appendChild(tvRow);
+        }
+
+        // 🖼️ CALCO: imagen + opacidad (no tiene slice ni lock, no recibe contenido)
+        if (isCalcoScreen(item)) {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'insp-xyz';
+          const btnImg = document.createElement('button');
+          btnImg.className = 'insp-btn';
+          btnImg.textContent = item.calcoUrl ? '🖼️ Cambiar imagen' : '🖼️ Elegir imagen';
+          btnImg.title = item.calcoName || item.calcoUrl || 'sin imagen';
+          btnImg.addEventListener('click', () => openCalcoImagePicker({ existingId: item.id }));
+          imgWrap.appendChild(btnImg);
+          body.appendChild(inspRow('Imagen', imgWrap));
+
+          const nomEl = document.createElement('div');
+          nomEl.style.cssText = 'font-size:10px; color:#8b93a3; padding:2px 0 4px 0; word-break:break-all;';
+          nomEl.textContent = item.calcoUrl ? (item.calcoName || item.calcoUrl) : 'Sin imagen (se ve el marco de referencia)';
+          body.appendChild(nomEl);
+
+          body.appendChild(inspRow('Opacidad', inspNum('opacity', Number(item.opacity !== undefined ? item.opacity : 1), 0.05, (v, commit) => {
+            if (isNaN(v)) return;
+            item.opacity = Math.min(1, Math.max(0, v));
+            rebuildScreens3D();
+            if (selectedScreen) selectScreen(item.id);
+            if (commit) saveRoom3DConfigToServer();
+          })));
+        } else {
 
         body.appendChild(inspRow('Slice', inspSelect('slice', String(item.sliceIndex !== undefined ? item.sliceIndex : '-1'), [
           { v: '-1', t: 'Completo · 100% duplicado' },
@@ -3345,12 +3992,14 @@
           updateScreensSelectUI();
           saveRoom3DConfigToServer();
         })));
+
+        }
       }
 
       // ---- PROYECTOR ----
       if (sel.kind === 'projector') {
         body.appendChild(inspSep('Proyector'));
-        const wallOpts = stageScreens.map(s => ({ v: s.name, t: '🖥️ ' + s.name }));
+        const wallOpts = stageScreens.filter(s => !isCalcoScreen(s)).map(s => ({ v: s.name, t: '🖥️ ' + s.name }));
         wallOpts.push({ v: 'Techo', t: '☁️ Techo' });
         if (!wallOpts.some(o => o.v === item.targetWall)) wallOpts.unshift({ v: item.targetWall || 'Pared Frontal', t: item.targetWall || 'Pared Frontal' });
         body.appendChild(inspRow('Apunta a', inspSelect('targetWall', item.targetWall || 'Pared Frontal', wallOpts, (v) => {
@@ -3385,7 +4034,9 @@
       }
 
       // ---- 🔒 LOCK SOURCE (pantallas, teles y proyectores) ----
-      if (sel.kind === 'screen' || sel.kind === 'projector') {
+      // 🖼️ Los calcos NO tienen lock: muestran siempre su propia imagen.
+      const lockableSel = (sel.kind === 'screen' && !isCalcoScreen(item)) || sel.kind === 'projector';
+      if (lockableSel) {
         body.appendChild(inspSep('🔒 Lock Source'));
         body.appendChild(buildLockRows(item, sel.kind, () => {
           lastInspectorKey = null;
@@ -3410,6 +4061,30 @@
           d.textContent = (item.src || '').split('/').pop() || '—';
           d.title = item.src || '';
           return d;
+        })()));
+        // 🎨 Color plano / silueta del objeto (se guarda en la config)
+        body.appendChild(inspRow('Color', (() => {
+          const w = document.createElement('div');
+          w.style.cssText = 'display:flex; align-items:center; gap:6px;';
+          const inp = document.createElement('input');
+          inp.type = 'color';
+          inp.value = item.color || '#ffffff';
+          inp.title = 'Pinta todo el objeto con un color plano (silueta / maniquí)';
+          inp.style.cssText = 'width:34px; height:22px; padding:0; border:1px solid rgba(255,255,255,0.2); background:transparent; cursor:pointer;';
+          inp.addEventListener('input', (e) => { item.color = e.target.value; applyFurnitureTint(item); });
+          inp.addEventListener('change', () => { saveRoom3DConfigToServer(); showToast('🎨 Color del objeto: ' + item.color); });
+          const bOn = inspBtn('🤍 Silueta', item.color ? 'active' : '', () => {
+            item.color = '#ffffff'; applyFurnitureTint(item); lastInspectorKey = null; renderInspector(); saveRoom3DConfigToServer();
+            showToast('🤍 ' + (item.name || 'Objeto') + ' en blanco (silueta)');
+          });
+          bOn.dataset.inspbtn = 'tintOn';
+          const bOff = inspBtn('↺ Modelo', !item.color ? 'active' : '', () => {
+            item.color = null; applyFurnitureTint(item); lastInspectorKey = null; renderInspector(); saveRoom3DConfigToServer();
+            showToast('↺ Materiales originales de ' + (item.name || 'el objeto'));
+          });
+          bOff.dataset.inspbtn = 'tintOff';
+          w.appendChild(inp); w.appendChild(bOn); w.appendChild(bOff);
+          return w;
         })()));
       }
 
@@ -3660,10 +4335,12 @@
           </div>
           <div class="tpl-actions">
             <button class="tpl-btn load" data-slug="${t.slug}">Cargar</button>
+            <button class="tpl-btn link" data-slug="${t.slug}" title="Copiar el link público de este preset (visualización para el cliente)">🔗</button>
             <button class="tpl-btn del" data-slug="${t.slug}">🗑️</button>
           </div>
         `;
         card.querySelector('.tpl-btn.load').addEventListener('click', () => loadTemplate(t.slug, t.name));
+        card.querySelector('.tpl-btn.link').addEventListener('click', () => copyPresetLink(t.slug));
         card.querySelector('.tpl-btn.del').addEventListener('click', () => deleteTemplate(t.slug, t.name));
         listEl.appendChild(card);
       });
@@ -3689,6 +4366,17 @@
           if (input) input.value = '';
           renderTemplates(data.templates || []);
           showToast(`✅ Template "${name}" guardado`);
+          // ⬆️ Replicar al VPS (diseño en local → producción) y copiar el link público
+          const pub = await publishTemplateToProd(name, config);
+          const url = await copyPresetLink(data.slug, { silent: true });
+          if (pub && pub.pushed) {
+            const sent = (pub.uploads && pub.uploads.sent) || 0;
+            showToast(`✅ Guardado + publicado en el VPS${sent ? ' (+' + sent + ' imagen/es)' : ''} · 🔗 ${url}`);
+          } else if (pub && pub.local === undefined) {
+            showToast(`✅ Guardado en local · ⚠️ no se pudo publicar en el VPS · 🔗 ${url}`);
+          } else {
+            showToast(`✅ Guardado en el servidor · 🔗 ${url}`);
+          }
         } else {
           showToast('⚠️ ' + ((data && data.error) || 'Error guardando template'));
         }
@@ -3726,6 +4414,179 @@
         }
       } catch (err) {
         console.error('[TEMPLATES] Error eliminando:', err);
+      }
+    }
+
+    // ============================================================
+    // PRESETS POR LINK (?preset=<slug>) — modo vista para el cliente
+    // ============================================================
+    // El link de un preset es la URL del visor 3D + ?preset=<slug>. Abrirlo
+    // muestra ESA composición sin poder pisar el escenario del diseñador.
+    //   · ?preset=slug        -> composición + badge "MODO VISTA"
+    //   · ?preset=slug&ui=0   -> composición SIN paneles (para el cliente)
+    // ============================================================
+    // PUBLICAR EN EL SERVIDOR (VPS): guardar en local Y en producción
+    // ============================================================
+    // El diseñador trabaja contra localhost:6645, pero el cliente entra al VPS.
+    // Al guardar, se replica al VPS: el template/preset + las imágenes que
+    // referencia (para que el link público las muestre).
+    function prodOrigin() {
+      const o = window.VPS_ORIGIN || '';
+      if (!o) return '';
+      const h = location.hostname || '';
+      // Si ya estamos en el VPS o en el FTP, el backend es el mismo de siempre.
+      if (h.indexOf('dattaweb.com') !== -1 || h.indexOf('fullscreencode.com') !== -1) return '';
+      return o;
+    }
+
+    // Nombres de archivo referenciados en /uploads/ por la config.
+    function collectUploadNames(config) {
+      const set = new Set();
+      const push = (u) => {
+        if (typeof u !== 'string' || u.indexOf('/uploads/') === -1) return;
+        const name = u.split('/uploads/').pop().split('?')[0];
+        if (name && name.indexOf('/') === -1) set.add(name);
+      };
+      try {
+        JSON.stringify(config, (k, v) => { if (typeof v === 'string') push(v); return v; });
+      } catch (e) { /* noop */ }
+      return Array.from(set);
+    }
+
+    // Sube al VPS las imágenes que la config referencia y que allá faltan.
+    async function pushMissingUploadsToProd(config, prod) {
+      const names = collectUploadNames(config);
+      let sent = 0, skipped = 0, failed = 0;
+      for (const name of names) {
+        const rel = '/jpstagedesign/uploads/' + encodeURIComponent(name);
+        try {
+          const head = await fetch(prod + rel, { method: 'HEAD', cache: 'no-store' });
+          if (head.ok) { skipped++; continue; }
+          const src = await fetch(rel, { cache: 'no-store' });   // desde el server local
+          if (!src.ok) { console.warn('[PUBLISH] Falta la imagen en local:', name); failed++; continue; }
+          const blob = await src.blob();
+          const up = await fetch(prod + '/jpstagedesign/api/uploads/' + encodeURIComponent(name), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: blob
+          });
+          if (up.ok) sent++;
+          else { failed++; console.warn('[PUBLISH] No se pudo subir', name, up.status); }
+        } catch (e) {
+          failed++;
+          console.warn('[PUBLISH] Error con', name, e);
+        }
+      }
+      return { sent, skipped, failed, total: names.length };
+    }
+
+    async function publishTemplateToProd(name, config) {
+      const prod = prodOrigin();
+      if (!prod) return { local: true };
+      const out = { pushed: false, uploads: null };
+      try {
+        out.uploads = await pushMissingUploadsToProd(config, prod);
+        const res = await fetch(prod + '/jpstagedesign/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, config })
+        });
+        const data = await res.json();
+        out.pushed = !!(data && data.ok);
+        if (!out.pushed) console.warn('[PUBLISH] El VPS rechazó el template:', data);
+      } catch (e) {
+        console.warn('[PUBLISH] Error publicando el template en el VPS:', e);
+      }
+      return out;
+    }
+
+    async function publishSceneToProd(config) {
+      const prod = prodOrigin();
+      if (!prod) return { local: true };
+      const out = { pushed: false, uploads: null };
+      try {
+        out.uploads = await pushMissingUploadsToProd(config, prod);
+        const res = await fetch(prod + '/jpstagedesign/api/room3d-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+        const data = await res.json();
+        out.pushed = !!(data && data.ok);
+      } catch (e) {
+        console.warn('[PUBLISH] Error publicando la escena en el VPS:', e);
+      }
+      return out;
+    }
+
+    function presetUrl(slug) {
+      return location.origin + location.pathname + '?preset=' + encodeURIComponent(slug);
+    }
+
+    async function copyPresetLink(slug, opts) {
+      const silent = !!(opts && opts.silent);
+      const url = presetUrl(slug);
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url);
+          if (!silent) showToast('🔗 Link copiado: ' + url);
+        } else if (!silent) {
+          window.prompt('Copiá el link de este preset:', url);
+        }
+      } catch (e) {
+        if (!silent) window.prompt('Copiá el link de este preset:', url);
+      }
+      return url;
+    }
+
+    function renderPresetBadge(name) {
+      const badge = document.getElementById('presetBadge');
+      if (!badge) return;
+      const nameEl = document.getElementById('presetBadgeName');
+      if (nameEl) nameEl.textContent = name || PRESET_SLUG;
+      badge.style.display = 'flex';
+
+      const btnCopy = document.getElementById('btnPresetCopyLink');
+      if (btnCopy && !btnCopy.dataset.wired) {
+        btnCopy.dataset.wired = '1';
+        btnCopy.addEventListener('click', () => copyPresetLink(PRESET_SLUG));
+      }
+      const btnEdit = document.getElementById('btnPresetEdit');
+      if (btnEdit && !btnEdit.dataset.wired) {
+        btnEdit.dataset.wired = '1';
+        btnEdit.addEventListener('click', () => {
+          const q = new URLSearchParams(location.search);
+          q.delete('preset'); q.delete('template'); q.delete('t');
+          const qs = q.toString();
+          location.href = location.pathname + (qs ? '?' + qs : '');
+        });
+      }
+    }
+
+    function applyCleanUI() {
+      if (PRESET_CLEAN_UI) document.body.classList.add('preset-clean-ui');
+    }
+
+    // Aplica el preset del link ENCIMA de la escena cargada y sin escribir en el servidor.
+    async function loadPresetFromUrl() {
+      applyCleanUI();
+      if (!PRESET_SLUG) return;
+      try {
+        const res = await fetch((window.BACKEND_URL || '') + '/jpstagedesign/api/templates/' + encodeURIComponent(PRESET_SLUG));
+        const data = await res.json();
+        if (!data || !data.ok || !data.config) {
+          showToast('⚠️ Preset "' + PRESET_SLUG + '" no encontrado');
+          console.warn('[PRESET] No existe el preset:', PRESET_SLUG, data);
+          return;
+        }
+        applyFullConfiguration(data.config);
+        if (data.config.mappingMode) set3DMappingMode(data.config.mappingMode, true);
+        renderPresetBadge(data.name);
+        console.log('[PRESET] Aplicado en modo vista:', data.name, '/', PRESET_SLUG);
+        showToast('📌 Preset "' + (data.name || PRESET_SLUG) + '" · modo vista');
+      } catch (err) {
+        console.error('[PRESET] Error cargando preset:', err);
+        showToast('⚠️ Error cargando el preset');
       }
     }
 
@@ -3920,19 +4781,12 @@
           const ceilingMat = new THREE.MeshBasicMaterial({ visible: false });
           materials.push(ceilingMat);
         } else if (i === 3) {
-          // Piso con textura de madera (-Y)
-          const woodTexture = createWoodTexture();
-          materials.push(new THREE.MeshStandardMaterial({ 
-            map: woodTexture, 
-            side: THREE.BackSide,
-            transparent: true,
-            roughness: 0.8,
-            metalness: 0.1,
-            wireframe: isWireframe,
-            polygonOffset: true,
-            polygonOffsetFactor: -2,
-            polygonOffsetUnits: -4
-          }));
+          // Piso General de la Sala (-Y): base de la habitación, empujado al fondo
+          const genMat = createFloorMaterial(floorConfig.general, THREE.BackSide);
+          genMat.polygonOffset = true;
+          genMat.polygonOffsetFactor = 3;
+          genMat.polygonOffsetUnits = 6;
+          materials.push(genMat);
           textures.push(null);
         } else {
           // Las 4 paredes perimetrales de la caja se vuelven transparentes porque el escenario ahora utiliza pantallas y paredes dinámicas (stageScreens)
@@ -3973,6 +4827,8 @@
 
       // Recrear cotas técnicas 3D
       createDimensionLines();
+      updateCircularFloorMesh();
+      updateFloorBoundsMesh();
 
       // Inicializar o reconstruir las pantallas dinámicas del escenario
       // (si el usuario vació la escena a propósito, NO se recrean por defecto)
@@ -4210,31 +5066,45 @@
     }
 
     // ============================================================
-    // TIPOS DE PANTALLA: LED / TELE TOUCH / PROYECTOR
+    // TIPOS DE PANTALLA: LED / TELE TOUCH / PROYECTOR / CALCO
     // ============================================================
     const SCREEN_TYPE_LABELS = {
       led: 'Pantalla LED',
       touch: 'Tele Touch',
-      projector: 'Proyector'
+      projector: 'Proyector',
+      calco: 'Calco'
     };
     const SCREEN_TYPE_ICONS = {
       led: '🟩',
       touch: '📱',
-      projector: '🎦'
+      projector: '🎦',
+      calco: '🖼️'
     };
     const SCREEN_TYPE_COLORS = {
       led: '#2fd67a',
       touch: '#ffb02e',
-      projector: '#bf55ec'
+      projector: '#bf55ec',
+      calco: '#29c8ff'
     };
 
     function normalizeScreenType(t) {
-      return (t === 'led' || t === 'touch' || t === 'projector') ? t : 'projector';
+      return (t === 'led' || t === 'touch' || t === 'projector' || t === 'calco') ? t : 'projector';
+    }
+
+    /**
+     * 🖼️ CALCO = imagen estática pegada al escenario (vinilo / sticker / gráfica).
+     * NO es un destino de contenido: no recibe nada de la botonera, no tiene canvas
+     * ni textura de contenido, no se reparte por slices y no lo apunta ningún proyector.
+     * Muestra SIEMPRE su propia imagen (s.calcoUrl), con transparencia PNG real.
+     */
+    function isCalcoScreen(s) {
+      return !!s && normalizeScreenType(s.screenType) === 'calco';
     }
 
     /** Grosor (profundidad / "largo") por defecto del chasis según el tipo de pantalla. */
     function defaultScreenDepth(screenType) {
       const t = normalizeScreenType(screenType);
+      if (t === 'calco') return 0.01;
       return t === 'touch' ? 0.09 : (t === 'led' ? 0.07 : 0.04);
     }
 
@@ -4275,7 +5145,210 @@
       return _ledDotTexture;
     }
 
+    // ============================================================
+    // 🖼️ CALCOS — imágenes estáticas pegadas al escenario
+    // ============================================================
+    // Caché de texturas de calco (por URL). NO se disponen al reconstruir:
+    // el material sí, pero el mapa conviene reusarlo entre rebuilds.
+    const _calcoTextures = new Map();
+
+    function calcoTextureFor(url) {
+      if (!url) return null;
+      if (_calcoTextures.has(url)) return _calcoTextures.get(url);
+      const tex = new THREE.TextureLoader().load(url, () => {
+        tex.needsUpdate = true;
+        renderOnce();
+      }, undefined, () => {
+        console.warn('[CALCO] No se pudo cargar la imagen:', url);
+      });
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      _calcoTextures.set(url, tex);
+      return tex;
+    }
+
+    /**
+     * Calcula la altura Y de la superficie del piso en cualquier coordenada (X, Z).
+     * Toma en cuenta si la posición cae dentro del piso circular / tarima elevada.
+     */
+    function getFloorSurfaceYAt(x = 0, z = 0) {
+      if (typeof floorConfig === 'object' && floorConfig) {
+        const circle = floorConfig.circle;
+        if (circle && circle.enabled !== false) {
+          const diameter = Math.max(0.5, Number(circle.diameter) || 4.0);
+          const radius = diameter / 2;
+          const dist = Math.hypot(x, z);
+          if (dist <= radius) {
+            const thickness = (Number(circle.thickness) > 0.005) ? Number(circle.thickness) : 0;
+            return thickness > 0 ? (thickness + 0.002) : 0.006;
+          }
+        }
+      }
+      return 0.002;
+    }
+
+    /**
+     * Sincroniza la elevación de calcos y marcas de piso y personas apoyadas en la tarima circular
+     * para que nunca queden tapadas o sumergidas en el suelo.
+     */
+    function syncFloorObjectsElevation() {
+      // 1. Calcos de piso (ej. marca de piso de la persona, o cualquier calco horizontal)
+      if (Array.isArray(stageScreens)) {
+        stageScreens.forEach(s => {
+          if (!isCalcoScreen(s)) return;
+          const rotX = Math.abs(s.rotation?.x || 0);
+          const isFloorDecal = (Math.abs(rotX - 90) < 15) || 
+                               (s.id && s.id.includes('piso')) || 
+                               (s.name && s.name.toLowerCase().includes('piso'));
+          if (isFloorDecal) {
+            const surfaceY = getFloorSurfaceYAt(s.position?.x || 0, s.position?.z || 0);
+            if (!s.position) s.position = { x: 0, y: 0.046, z: -1.55 };
+            // Siempre por encima de la superficie del piso
+            s.position.y = surfaceY + 0.004;
+            const grp = (typeof screensGroup !== 'undefined' && screensGroup) ? screensGroup.getObjectByName('screen_' + s.id) : null;
+            if (grp) {
+              grp.position.y = s.position.y;
+              grp.renderOrder = 25;
+              grp.traverse(child => {
+                child.renderOrder = 25;
+                if (child.material) {
+                  if (Array.isArray(child.material)) {
+                    child.material.forEach(m => {
+                      m.depthTest = true;
+                      m.depthWrite = false;
+                      m.polygonOffset = true;
+                      m.polygonOffsetFactor = -4;
+                      m.polygonOffsetUnits = -4;
+                    });
+                  } else {
+                    child.material.depthTest = true;
+                    child.material.depthWrite = false;
+                    child.material.polygonOffset = true;
+                    child.material.polygonOffsetFactor = -4;
+                    child.material.polygonOffsetUnits = -4;
+                  }
+                }
+              });
+            }
+          }
+        });
+      }
+
+      // 2. Muebles / personas apoyadas en el piso
+      if (Array.isArray(furnitureItems)) {
+        furnitureItems.forEach(item => {
+          if (!item.position) item.position = { x: 0, y: 0, z: 0 };
+          // Si el objeto está al nivel del piso (y cercano a la base)
+          if (Math.abs(item.position.y || 0) < 0.2) {
+            const surfaceY = getFloorSurfaceYAt(item.position.x || 0, item.position.z || 0);
+            item.position.y = surfaceY;
+            applyFurnitureTransform(item);
+          }
+        });
+      }
+    }
+
+    /** Fuerza un render inmediato (por si el loop está pausado/limitado). */
+    function renderOnce() {
+      try { if (renderer && scene && camera) renderer.render(scene, camera); } catch (e) { /* noop */ }
+    }
+
+    function createCalcoMesh(s) {
+      const group = new THREE.Group();
+      group.name = 'screen_' + s.id;
+      group.userData = { isScreen: true, screenId: s.id, screenType: 'calco' };
+
+      const isSelected = selectedScreen && (selectedScreen.id === s.id);
+      const isMuted = (s.muted === true);
+      const w = Math.max(0.05, Number(s.width) || 1.0);
+      const h = Math.max(0.05, Number(s.height) || 1.0);
+      const opacity = (s.opacity !== undefined && s.opacity !== null && isFinite(Number(s.opacity))) ? Number(s.opacity) : 1;
+
+      const url = s.calcoUrl || null;
+
+      // Detectar si el calco es una marca de piso (horizontal al ras o con 'piso' en id/nombre)
+      const rotX = Math.abs(s.rotation?.x || 0);
+      const isFloorDecal = (Math.abs(rotX - 90) < 15) || 
+                           (s.id && s.id.includes('piso')) || 
+                           (s.name && s.name.toLowerCase().includes('piso'));
+
+      // Plano de la imagen (transparente: los PNG con alfa se recortan de verdad)
+      const planeMat = new THREE.MeshBasicMaterial({
+        map: calcoTextureFor(url),
+        transparent: true,
+        opacity: isMuted ? 0.25 : opacity,
+        side: THREE.DoubleSide,
+        depthTest: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4,
+        color: url ? 0xffffff : 0x1b2130,
+        wireframe: isWireframe
+      });
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), planeMat);
+      plane.name = 'calcoSurface';
+      plane.userData = { isScreen: true, screenId: s.id };
+      // RenderOrder 25 para verse SIEMPRE por encima de pisos generales y tarimas circulares (renderOrder 2)
+      plane.renderOrder = isFloorDecal ? 25 : 5;
+      group.renderOrder = isFloorDecal ? 25 : 5;
+      group.add(plane);
+
+      // Guía visual: si no hay imagen, un marco punteado para que se vea el calco vacío
+      const outlineGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(w, h));
+      const outlineMat = new THREE.LineBasicMaterial({
+        color: isSelected ? 0xbf55ec : (url ? 0x29c8ff : 0x555f73),
+        linewidth: isSelected ? 2 : 1
+      });
+      const outline = new THREE.LineSegments(outlineGeo, outlineMat);
+      outline.name = 'outline';
+      outline.position.z = 0.001;
+      outline.renderOrder = isFloorDecal ? 26 : 6;
+      group.add(outline);
+
+      if (!url) {
+        const hint = createScreenLabelSprite({ name: (s.name || 'Calco') + ' · sin imagen', width: w, height: h });
+        hint.name = 'noImageHint';
+        hint.position.set(0, 0, 0.002);
+        group.add(hint);
+      }
+
+      // Etiqueta con nombre y cotas (igual que las pantallas)
+      const labelSprite = createScreenLabelSprite(s);
+      labelSprite.name = 'label';
+      labelSprite.position.set(0, h / 2 + 0.22, 0);
+      labelSprite.visible = dimensionsVisible;
+      group.add(labelSprite);
+
+      let posY = s.position?.y ?? (h / 2);
+      if (isFloorDecal && typeof getFloorSurfaceYAt === 'function') {
+        const surfaceY = getFloorSurfaceYAt(s.position?.x || 0, s.position?.z || 0);
+        // Si la posición guardada está por debajo de la superficie del piso, elevarla para que se vea perfectamente por encima
+        if (posY < surfaceY + 0.002) {
+          posY = surfaceY + 0.004;
+          if (s.position) s.position.y = posY;
+        }
+      }
+
+      group.position.set(s.position?.x || 0, posY, s.position?.z || 0);
+      group.rotation.order = 'YXZ';
+      group.rotation.set(
+        (s.rotation?.x || 0) * Math.PI / 180,
+        (s.rotation?.y || 0) * Math.PI / 180,
+        (s.rotation?.z || 0) * Math.PI / 180
+      );
+      group.scale.set(s.scale?.x || 1, s.scale?.y || 1, s.scale?.z || 1);
+
+      if (isMuted) group.visible = false;
+
+      return group;
+    }
+
     function createScreen3DMesh(s) {
+      // 🖼️ Los calcos no son pantallas: no tienen chasis, canvas ni contenido.
+      if (isCalcoScreen(s)) return createCalcoMesh(s);
+
       const group = new THREE.Group();
       group.name = 'screen_' + s.id;
       group.userData = { isScreen: true, screenId: s.id };
@@ -4422,7 +5495,11 @@
       stageScreens.forEach(s => { s.screenType = normalizeScreenType(s.screenType); });
 
       stageScreens.forEach(s => {
-        if (!s.canvas) {
+        // 🖼️ Los calcos no tienen canvas/textura de contenido: su imagen va
+        // directo al material del mesh (calcoTextureFor). Sin canvas, el motor
+        // de contenido (updateWallTextures) los ignora solo.
+        // OJO: hay que saltear SÓLO el canvas — el mesh se crea igual más abajo.
+        if (!isCalcoScreen(s) && !s.canvas) {
           s.canvas = document.createElement('canvas');
           s.canvas.width = 1024;
           s.canvas.height = 512;
@@ -4516,19 +5593,31 @@
       const nextNum = stageScreens.length + 1;
       const newId = 'screen-' + Date.now();
       const screenType = normalizeScreenType(opts.screenType);
+      const isCalco = (screenType === 'calco');
+      const w = isCalco ? (opts.width || 1.6) : (opts.width || 4.5);
+      const h = isCalco ? (opts.height || 1.6) : (opts.height || 2.5);
       const newScreen = {
         id: newId,
-        name: opts.name || `Pantalla ${nextNum}`,
+        name: opts.name || (isCalco ? `Calco ${nextNum}` : `Pantalla ${nextNum}`),
         screenType: screenType,
-        width: opts.width || 4.5,
-        height: opts.height || 2.5,
+        width: w,
+        height: h,
         depth: (opts.depth !== undefined && opts.depth !== null) ? opts.depth : defaultScreenDepth(screenType),
-        position: opts.position || { x: 0, y: (opts.height || 2.5) / 2, z: (stageScreens.length * 0.4) },
+        position: opts.position || { x: 0, y: h / 2, z: (stageScreens.length * 0.4) },
         rotation: opts.rotation || { x: 0, y: 0, z: 0 },
         scale: opts.scale || { x: 1, y: 1, z: 1 },
         sliceIndex: opts.sliceIndex !== undefined ? opts.sliceIndex : -1,
         muted: false
       };
+
+      // 🖼️ Datos propios del calco (imagen fija + opacidad)
+      if (isCalco) {
+        newScreen.calcoUrl = opts.calcoUrl || null;
+        newScreen.calcoName = opts.calcoName || null;
+        newScreen.opacity = (opts.opacity !== undefined && opts.opacity !== null) ? opts.opacity : 1;
+        // El calco es decoración: no es un destino de la botonera.
+        newScreen.lockSource = null;
+      }
 
       stageScreens.push(newScreen);
       rebuildScreens3D();
@@ -4547,7 +5636,7 @@
       const typeLabel = SCREEN_TYPE_LABELS[screenType] || screenType;
       showToast(createdProj
         ? `✅ Pantalla "${newScreen.name}" (${typeLabel}) + proyector agregado`
-        : `✅ Pantalla "${newScreen.name}" agregada (${typeLabel})`);
+        : `✅ ${isCalco ? 'Calco' : 'Pantalla'} "${newScreen.name}" agregado (${typeLabel})`);
       return newScreen;
     }
 
@@ -4601,7 +5690,8 @@
       const options = [
         { type: 'led', title: 'Pantalla LED', desc: 'Panel de píxeles LED. No requiere proyector.', color: SCREEN_TYPE_COLORS.led, icon: SCREEN_TYPE_ICONS.led },
         { type: 'touch', title: 'Tele Touch', desc: 'Pantalla táctil / monitor. No requiere proyector.', color: SCREEN_TYPE_COLORS.touch, icon: SCREEN_TYPE_ICONS.touch },
-        { type: 'projector', title: 'Pantalla con Proyector', desc: 'Superficie de proyección. Agrega un proyector apuntándola.', color: SCREEN_TYPE_COLORS.projector, icon: SCREEN_TYPE_ICONS.projector }
+        { type: 'projector', title: 'Pantalla con Proyector', desc: 'Superficie de proyección. Agrega un proyector apuntándola.', color: SCREEN_TYPE_COLORS.projector, icon: SCREEN_TYPE_ICONS.projector },
+        { type: 'calco', title: '🖼️ Calco (imagen)', desc: 'Pegá una imagen en el escenario (vinilo / sticker). Los PNG con transparencia se recortan de verdad.', color: SCREEN_TYPE_COLORS.calco, icon: SCREEN_TYPE_ICONS.calco }
       ];
 
       options.forEach(op => {
@@ -4614,7 +5704,13 @@
         btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(255,255,255,0.04)'; });
         btn.addEventListener('click', () => {
           overlay.remove();
-          addNewScreen({ screenType: op.type });
+          if (op.type === 'calco') {
+            // 🖼️ El calco necesita una imagen: se elige (subir / URL / biblioteca)
+            // antes de crearlo.
+            openCalcoImagePicker({});
+          } else {
+            addNewScreen({ screenType: op.type });
+          }
         });
         box.appendChild(btn);
       });
@@ -4628,6 +5724,195 @@
       overlay.appendChild(box);
       overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
       document.body.appendChild(overlay);
+    }
+
+    // ============================================================
+    // 🖼️ CALCOS — selector de imagen (subir / URL / biblioteca)
+    // ============================================================
+    /**
+     * Abre el modal para elegir la imagen de un calco.
+     * opts.existingId  -> aplica la imagen a un calco existente (en vez de crear uno)
+     * opts.onPicked    -> callback ({url,name}) en lugar del comportamiento por defecto
+     */
+    function openCalcoImagePicker(opts = {}) {
+      const existing = document.getElementById('calcoImagePicker');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = 'calcoImagePicker';
+      overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px;';
+
+      const box = document.createElement('div');
+      box.style.cssText = 'background:#14161c; border:1px solid rgba(41,200,255,0.4); border-radius:12px; padding:20px; max-width:470px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.6); color:#e8ecf2; font-family:inherit;';
+      const titulo = opts.existingId ? '🖼️ IMAGEN DEL CALCO' : '🖼️ AGREGAR CALCO';
+      box.innerHTML = `<div style="font-size:14px; font-weight:700; letter-spacing:1px; color:#29c8ff; margin-bottom:4px;">${titulo}</div>
+        <div style="font-size:11px; color:#8b93a3; margin-bottom:14px;">Subí una imagen, pegá una URL o elegí una de la biblioteca. PNG con transparencia = calco recortado.</div>
+
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#8b93a3; margin-bottom:6px;">1 · Subir un archivo</div>
+        <input type="file" id="calcoFileInput" accept="image/*" style="display:none;">
+        <button id="calcoUploadBtn" style="width:100%; background:rgba(41,200,255,0.12); border:1px solid #29c8ff88; color:#29c8ff; border-radius:8px; padding:10px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600;">📤 Elegir imagen del disco…</button>
+        <div id="calcoUploadStatus" style="font-size:10.5px; color:#8b93a3; margin-top:5px; min-height:13px;"></div>
+
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#8b93a3; margin:14px 0 6px 0;">2 · Pegar una URL</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="calcoUrlInput" placeholder="https://…/imagen.png" style="flex:1; background:#0d0f14; border:1px solid rgba(255,255,255,0.14); color:#e8ecf2; border-radius:7px; padding:8px; font-family:inherit; font-size:11.5px;">
+          <button id="calcoUrlBtn" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.18); color:#e8ecf2; border-radius:7px; padding:8px 11px; cursor:pointer; font-family:inherit; font-size:11.5px;">Usar</button>
+        </div>
+
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#8b93a3; margin:14px 0 6px 0;">3 · Usar una imagen de la biblioteca</div>
+        <select id="calcoLibSelect" style="width:100%; background:#0d0f14; border:1px solid rgba(255,255,255,0.14); color:#e8ecf2; border-radius:7px; padding:8px; font-family:inherit; font-size:11.5px;">
+          <option value="">Cargando biblioteca…</option>
+        </select>
+
+        <button id="calcoCancelBtn" style="width:100%; background:transparent; border:1px solid rgba(255,255,255,0.18); color:#9aa3b2; border-radius:8px; padding:9px; cursor:pointer; font-family:inherit; font-size:12px; margin-top:16px;">Cancelar</button>`;
+
+      overlay.appendChild(box);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+
+      const cerrar = () => overlay.remove();
+
+      const aplicar = (url, name) => {
+        if (!url) return;
+        cerrar();
+        if (typeof opts.onPicked === 'function') { opts.onPicked({ url, name: name || url }); return; }
+        if (opts.existingId) {
+          const sc = stageScreens.find(x => x.id === opts.existingId);
+          if (sc) applyCalcoImage(sc, url, name);
+        } else {
+          createCalcoWithImage(url, name);
+        }
+      };
+
+      // --- 1. Subir archivo
+      const fileInput = box.querySelector('#calcoFileInput');
+      const uploadBtn = box.querySelector('#calcoUploadBtn');
+      const uploadStatus = box.querySelector('#calcoUploadStatus');
+      uploadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        uploadStatus.textContent = '⏳ Subiendo ' + file.name + '…';
+        try {
+          const mat = await uploadCalcoFile(file);
+          uploadStatus.textContent = '✅ Subida: ' + (mat.name || file.name);
+          aplicar(mat.src, mat.name || file.name);
+        } catch (err) {
+          uploadStatus.textContent = '❌ ' + err.message;
+        }
+      });
+
+      // --- 2. URL
+      const urlInput = box.querySelector('#calcoUrlInput');
+      box.querySelector('#calcoUrlBtn').addEventListener('click', () => {
+        const v = (urlInput.value || '').trim();
+        if (!v) { urlInput.focus(); return; }
+        aplicar(v, calcoNameFromUrl(v));
+      });
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') box.querySelector('#calcoUrlBtn').click();
+      });
+
+      // --- 3. Biblioteca de inputs
+      const sel = box.querySelector('#calcoLibSelect');
+      sel.addEventListener('change', () => {
+        if (!sel.value) return;
+        const mat = inputsLibrary.find(m => m.id === sel.value);
+        if (mat) aplicar(mat.src || mat.url, mat.name);
+      });
+
+      loadInputsLibrary(true).then(mats => {
+        const imgs = (mats || []).filter(m => ['image', 'web'].includes(String(m.type)));
+        sel.innerHTML = '';
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = imgs.length ? '— Elegí una imagen —' : 'La biblioteca no tiene imágenes';
+        sel.appendChild(none);
+        imgs.forEach(m => {
+          const o = document.createElement('option');
+          o.value = m.id;
+          o.textContent = (m.type === 'image' ? '🖼️ ' : '🌐 ') + (m.name || m.id);
+          sel.appendChild(o);
+        });
+      });
+
+      box.querySelector('#calcoCancelBtn').addEventListener('click', cerrar);
+    }
+
+    /** Nombre legible a partir de una URL de imagen. */
+    function calcoNameFromUrl(url) {
+      try {
+        const u = String(url).split('?')[0];
+        const base = u.substring(u.lastIndexOf('/') + 1);
+        return base || 'Calco';
+      } catch (e) {
+        return 'Calco';
+      }
+    }
+
+    /** Sube una imagen al servidor y devuelve el material creado (queda en la biblioteca). */
+    async function uploadCalcoFile(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const bases = [(window.BACKEND_URL || '') + '/jpstagedesign/api/materials/upload', (window.BACKEND_URL || '') + '/api/materials/upload'];
+      let lastErr = 'no se pudo subir';
+      for (const url of bases) {
+        try {
+          const res = await fetch(url, { method: 'POST', body: fd });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data && (data.material || data.ok)) {
+            inputsLibraryAt = 0;   // invalidar caché de la biblioteca
+            return data.material || data;
+          }
+          lastErr = (data && data.error) || ('HTTP ' + res.status);
+        } catch (e) {
+          lastErr = e.message;
+        }
+      }
+      throw new Error(lastErr);
+    }
+
+    /** Ajusta el tamaño del calco a la proporción real de la imagen. */
+    function calcoSizeForImage(url, cb) {
+      const img = new Image();
+      img.onload = () => {
+        const ar = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 1;
+        cb(Number((1.8 * ar).toFixed(3)), 1.8);
+      };
+      img.onerror = () => cb(1.6, 1.6);
+      img.src = url;
+    }
+
+    /** Crea un calco nuevo con la imagen elegida (tamaño respetando la proporción). */
+    function createCalcoWithImage(url, name) {
+      const label = name || calcoNameFromUrl(url);
+      calcoSizeForImage(url, (w, h) => {
+        addNewScreen({
+          screenType: 'calco',
+          name: label,
+          calcoUrl: url,
+          calcoName: label,
+          width: w,
+          height: h
+        });
+      });
+    }
+
+    /** Asigna/cambia la imagen de un calco ya existente. */
+    function applyCalcoImage(screen, url, name) {
+      if (!screen) return;
+      screen.calcoUrl = url;
+      screen.calcoName = name || calcoNameFromUrl(url);
+      if (!screen.name || /^Calco \d+$/.test(screen.name)) screen.name = screen.calcoName;
+      // Ajustar proporción sólo si el usuario no tocó el tamaño a mano
+      calcoSizeForImage(url, (w, h) => {
+        if (!screen._sizeTouched) { screen.width = w; screen.height = h; }
+        rebuildScreens3D();
+        updateScreensSelectUI();
+        renderInspector();
+        saveRoom3DConfigToServer();
+        showToast('🖼️ Calco actualizado: ' + screen.calcoName);
+      });
     }
 
     function duplicateScreen(id) {
@@ -4801,7 +6086,10 @@
         card.className = 'screen-card' + (isSelected ? ' active' : '') + (isMuted ? ' is-muted' : '');
         card.dataset.id = s.id;
 
-        let sliceLabel = mappingLabelFor(s);
+        // 🖼️ Un calco no se mapea: en vez del badge de slice mostramos su imagen.
+        let sliceLabel = isCalcoScreen(s)
+          ? ('🖼️ ' + escapeHtml(s.calcoName || 'sin imagen'))
+          : mappingLabelFor(s);
 
         const sType = normalizeScreenType(s.screenType);
         const typeBadge = `<span class="screen-badge-type" style="background:${SCREEN_TYPE_COLORS[sType]}22; color:${SCREEN_TYPE_COLORS[sType]}; border:1px solid ${SCREEN_TYPE_COLORS[sType]}55;">${SCREEN_TYPE_LABELS[sType]}</span>`;
@@ -4965,6 +6253,7 @@
       select.innerHTML = '';
 
       stageScreens.forEach(s => {
+        if (isCalcoScreen(s)) return;   // 🖼️ un calco no es destino de proyector
         const opt = document.createElement('option');
         opt.value = s.name;
         opt.textContent = `🖥️ ${s.name}`;
@@ -5488,9 +6777,22 @@
           transformControls.detach();
           return;
         }
+        let newY = parseFloat(obj.position.y.toFixed(2));
+        const isFloorDecal = isCalcoScreen(selectedScreen) && (
+          Math.abs(Math.abs(selectedScreen.rotation?.x || 0) - 90) < 15 || 
+          (selectedScreen.id && selectedScreen.id.includes('piso')) || 
+          (selectedScreen.name && selectedScreen.name.toLowerCase().includes('piso'))
+        );
+        if (isFloorDecal && typeof getFloorSurfaceYAt === 'function') {
+          const minSurface = getFloorSurfaceYAt(obj.position.x, obj.position.z) + 0.003;
+          if (newY < minSurface) {
+            newY = parseFloat(minSurface.toFixed(3));
+            obj.position.y = newY;
+          }
+        }
         selectedScreen.position = {
           x: parseFloat(obj.position.x.toFixed(2)),
-          y: parseFloat(obj.position.y.toFixed(2)),
+          y: newY,
           z: parseFloat(obj.position.z.toFixed(2))
         };
         obj.rotation.order = 'YXZ';
@@ -5564,6 +6866,12 @@
       if (event.button !== 0) return;
       // No interferir mientras se arrastra el gizmo
       if (transformControls && transformControls.dragging) return;
+      // …ni cuando el click cae SOBRE el gizmo (las flechitas). TransformControls marca
+      // `axis` al pasar el mouse por encima del gizmo. Antes, al clickear una flecha, ESTE
+      // handler corría primero (está registrado antes que el de TransformControls), el raycast
+      // no encontraba nada de la escena y hacía detach() → el gizmo desaparecía y parecía que
+      // el objeto se "deseleccionaba" (bug reportado: no se podía mover el objeto 3D).
+      if (transformControls && transformControls.axis) return;
 
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -6055,6 +7363,45 @@
           size: gridSize,
           divisions: gridDivisions
         },
+        floor: {
+          general: {
+            mode: floorConfig.general?.mode || 'pattern',
+            pattern: floorConfig.general?.pattern || 'concrete',
+            color: floorConfig.general?.color || '#2c2e36',
+            roughness: floorConfig.general?.roughness !== undefined ? Number(floorConfig.general.roughness) : 0.9,
+            metalness: floorConfig.general?.metalness !== undefined ? Number(floorConfig.general.metalness) : 0.05,
+            repeat: Number(floorConfig.general?.repeat) || 4
+          },
+          circle: {
+            enabled: floorConfig.circle?.enabled !== false,
+            diameter: Number(floorConfig.circle?.diameter) || 4.0,
+            thickness: floorConfig.circle?.thickness !== undefined ? Number(floorConfig.circle.thickness) : 0.04,
+            rimStyle: floorConfig.circle?.rimStyle || 'metal',
+            mode: floorConfig.circle?.mode || 'pattern',
+            pattern: floorConfig.circle?.pattern || 'wood',
+            color: floorConfig.circle?.color || '#8B4513',
+            roughness: floorConfig.circle?.roughness !== undefined ? Number(floorConfig.circle.roughness) : 0.75,
+            metalness: floorConfig.circle?.metalness !== undefined ? Number(floorConfig.circle.metalness) : 0.1,
+            repeat: Number(floorConfig.circle?.repeat) || 3
+          },
+          boundary: {
+            enabled: floorConfig.boundary?.enabled !== false,
+            diameter: Number(floorConfig.boundary?.diameter || floorConfig.circle?.diameter) || 4.0,
+            color: floorConfig.boundary?.color || '#ffbb00',
+            showAxes: floorConfig.boundary?.showAxes !== false
+          },
+          shape: floorConfig.circle?.enabled ? 'circular' : 'rectangular',
+          diameter: Number(floorConfig.circle?.diameter) || 4.0,
+          thickness: floorConfig.circle?.thickness !== undefined ? Number(floorConfig.circle.thickness) : 0.04,
+          rimStyle: floorConfig.circle?.rimStyle || 'metal',
+          mode: floorConfig.circle?.mode || 'pattern',
+          pattern: floorConfig.circle?.pattern || 'wood',
+          color: floorConfig.circle?.color || '#8B4513',
+          roughness: floorConfig.circle?.roughness !== undefined ? Number(floorConfig.circle.roughness) : 0.75,
+          metalness: floorConfig.circle?.metalness !== undefined ? Number(floorConfig.circle.metalness) : 0.1,
+          repeat: Number(floorConfig.circle?.repeat) || 3,
+          boundaryMode: floorConfig.boundary?.enabled ? 'circle4m' : 'none'
+        },
         screens: stageScreens.map(s => ({
           id: s.id,
           name: s.name || 'Pantalla',
@@ -6081,7 +7428,11 @@
           screenType: s.screenType || 'projector',
           muted: s.muted === true,
           // 🔒 Lock Source: input fijo de esta pantalla (null = responde a la botonera)
-          lockSource: s.lockSource || null
+          lockSource: s.lockSource || null,
+          // 🖼️ Calco: imagen fija + opacidad (sólo tiene sentido si screenType === 'calco')
+          calcoUrl: s.calcoUrl || null,
+          calcoName: s.calcoName || null,
+          opacity: (s.opacity !== undefined && s.opacity !== null) ? Number(s.opacity) : 1
         })),
         bed: savedBedConfig,
         furniture: furnitureItems.map(f => ({
@@ -6100,6 +7451,7 @@
             y: Number((f.position?.y || 0).toFixed(3)),
             z: Number((f.position?.z || 0).toFixed(3))
           },
+          color: f.color || null,     // 🎨 color plano / silueta (null = materiales del modelo)
           muted: f.muted === true
         })),
         camera: {
@@ -6154,6 +7506,12 @@
         console.warn('[3D PERSISTENCIA] Configuración aún no cargada, guardado omitido.');
         return;
       }
+      // 📌 MODO VISTA (link con ?preset=...): jamás se escribe la escena viva del
+      // servidor ni el respaldo local — el cliente sólo está mirando una prueba.
+      if (PRESET_VIEWER) {
+        console.log('[PRESET] Modo vista: guardado omitido (no se toca la escena del servidor).');
+        return;
+      }
       const config = buildFullConfiguration();
       console.log('[3D PERSISTENCIA] Guardando configuración en servidor y local:', config);
 
@@ -6183,6 +7541,16 @@
         console.warn('[3D PERSISTENCIA] Error al conectar con servidor, usando localStorage:', err);
         if (showToastOnSuccess) {
           showToast('💾 Guardado en almacenamiento local');
+        }
+      }
+
+      // ⬆️ Guardado EXPLÍCITO (💾 Guardar en Servidor): replicar también al VPS,
+      // así lo que armás en local queda vivo en producción para el cliente.
+      if (showToastOnSuccess) {
+        const pub = await publishSceneToProd(config);
+        if (pub && pub.pushed) {
+          const sent = (pub.uploads && pub.uploads.sent) || 0;
+          showToast(`✅ Guardado en local + publicado en el servidor${sent ? ' (+' + sent + ' imagen/es)' : ''}`);
         }
       }
     }
@@ -6224,6 +7592,10 @@
         createRoom();
       }
       isConfigLoaded = true;
+
+      // 📌 Si el link trae ?preset=<slug>, se aplica ENCIMA y en modo vista
+      // (después de la config del servidor, para que el preset gane).
+      loadPresetFromUrl();
     }
 
     function applyFullConfiguration(config) {
@@ -6250,22 +7622,35 @@
       // 1.5. Pantallas y Paredes de Escenario (stageScreens)
       if (Array.isArray(config.screens)) {
         screensInitialized = true;
-        stageScreens = config.screens.map((s, i) => ({
-          id: s.id || ('screen-' + (i + 1)),
-          name: s.name || ('Pantalla ' + (i + 1)),
-          screenType: s.screenType || 'projector',
-          width: Number(s.width) || 4.5,
-          height: Number(s.height) || 2.5,
-          // Compat: configs viejas sin "largo" → undefined y manda el default del tipo
-          depth: (s.depth !== undefined && s.depth !== null && isFinite(Number(s.depth))) ? Number(s.depth) : undefined,
-          position: s.position || { x: 0, y: 1.25, z: 0 },
-          rotation: s.rotation || { x: 0, y: 0, z: 0 },
-          scale: s.scale || { x: 1, y: 1, z: 1 },
-          sliceIndex: s.sliceIndex !== undefined ? s.sliceIndex : -1,
-          muted: s.muted === true,
-          // 🔒 Lock Source (compat: configs viejas no lo tienen)
-          lockSource: (s.lockSource && s.lockSource.id) ? s.lockSource : null
-        }));
+        stageScreens = config.screens.map((s, i) => {
+          const st = normalizeScreenType(s.screenType || 'projector');
+          const calco = (st === 'calco');
+          const item = {
+            id: s.id || ('screen-' + (i + 1)),
+            name: s.name || (calco ? ('Calco ' + (i + 1)) : ('Pantalla ' + (i + 1))),
+            screenType: st,
+            width: Number(s.width) || (calco ? 1.6 : 4.5),
+            height: Number(s.height) || (calco ? 1.6 : 2.5),
+            // Compat: configs viejas sin "largo" → undefined y manda el default del tipo
+            depth: (s.depth !== undefined && s.depth !== null && isFinite(Number(s.depth))) ? Number(s.depth) : undefined,
+            position: s.position || { x: 0, y: 1.25, z: 0 },
+            rotation: s.rotation || { x: 0, y: 0, z: 0 },
+            scale: s.scale || { x: 1, y: 1, z: 1 },
+            sliceIndex: s.sliceIndex !== undefined ? s.sliceIndex : -1,
+            muted: s.muted === true,
+            // 🔒 Lock Source (compat: configs viejas no lo tienen)
+            // 🖼️ Un calco NUNCA tiene lock: muestra su propia imagen.
+            lockSource: (!calco && s.lockSource && s.lockSource.id) ? s.lockSource : null,
+            // 🖼️ Calco: imagen fija + opacidad (compat: configs viejas no lo tienen)
+            calcoUrl: calco ? (s.calcoUrl || null) : null,
+            calcoName: calco ? (s.calcoName || null) : null,
+            opacity: (s.opacity !== undefined && s.opacity !== null && isFinite(Number(s.opacity))) ? Number(s.opacity) : 1
+          };
+          if (item.lockSource && item.lockSource.type === 'web') {
+            lockWebUrls.set(lockKeyFor(item, 'screen'), item.lockSource.src || item.lockSource.url || '');
+          }
+          return item;
+        });
         rebuildScreens3D();
         updateScreensSelectUI();
         if (stageScreens.length > 0) selectScreen(stageScreens[0].id);
@@ -6309,6 +7694,70 @@
         const divG = document.getElementById('rngGridDivs');
         if (divG) divG.value = gridDivisions;
         updateFloorGrid();
+      }
+
+      // 4.5. Pisos: General, Circular y Marca Perimetral
+      if (config.floor) {
+        const cf = config.floor;
+        // 1. Piso General
+        if (cf.general) {
+          floorConfig.general.mode = cf.general.mode || 'pattern';
+          floorConfig.general.pattern = cf.general.pattern || 'concrete';
+          floorConfig.general.color = cf.general.color || '#2c2e36';
+          floorConfig.general.roughness = cf.general.roughness !== undefined ? Number(cf.general.roughness) : 0.9;
+          floorConfig.general.metalness = cf.general.metalness !== undefined ? Number(cf.general.metalness) : 0.05;
+          floorConfig.general.repeat = Number(cf.general.repeat) || 4;
+        } else {
+          floorConfig.general.mode = 'pattern';
+          floorConfig.general.pattern = 'concrete';
+          floorConfig.general.color = '#2c2e36';
+          floorConfig.general.roughness = 0.9;
+          floorConfig.general.metalness = 0.05;
+          floorConfig.general.repeat = 4;
+        }
+
+        // 2. Piso Circular
+        if (cf.circle) {
+          floorConfig.circle.enabled = cf.circle.enabled !== false;
+          floorConfig.circle.diameter = cf.circle.diameter !== undefined ? Number(cf.circle.diameter) : 4.0;
+          floorConfig.circle.thickness = cf.circle.thickness !== undefined ? Number(cf.circle.thickness) : 0.04;
+          floorConfig.circle.rimStyle = cf.circle.rimStyle || 'metal';
+          floorConfig.circle.mode = cf.circle.mode || 'pattern';
+          floorConfig.circle.pattern = cf.circle.pattern || 'wood';
+          floorConfig.circle.color = cf.circle.color || '#8B4513';
+          floorConfig.circle.roughness = cf.circle.roughness !== undefined ? Number(cf.circle.roughness) : 0.75;
+          floorConfig.circle.metalness = cf.circle.metalness !== undefined ? Number(cf.circle.metalness) : 0.1;
+          floorConfig.circle.repeat = Number(cf.circle.repeat) || 3;
+        } else {
+          floorConfig.circle.enabled = cf.shape !== 'rectangular';
+          floorConfig.circle.diameter = cf.diameter !== undefined ? Number(cf.diameter) : 4.0;
+          floorConfig.circle.thickness = cf.thickness !== undefined ? Number(cf.thickness) : 0.04;
+          floorConfig.circle.rimStyle = cf.rimStyle || 'metal';
+          floorConfig.circle.mode = cf.mode || 'pattern';
+          floorConfig.circle.pattern = cf.pattern || 'wood';
+          floorConfig.circle.color = cf.color || '#8B4513';
+          floorConfig.circle.roughness = cf.roughness !== undefined ? Number(cf.roughness) : 0.75;
+          floorConfig.circle.metalness = cf.metalness !== undefined ? Number(cf.metalness) : 0.1;
+          floorConfig.circle.repeat = Number(cf.repeat) || 3;
+        }
+
+        // 3. Marca Perimetral
+        if (cf.boundary) {
+          floorConfig.boundary.enabled = cf.boundary.enabled !== false;
+          floorConfig.boundary.diameter = cf.boundary.diameter !== undefined ? Number(cf.boundary.diameter) : 4.0;
+          floorConfig.boundary.color = cf.boundary.color || '#ffbb00';
+          floorConfig.boundary.showAxes = cf.boundary.showAxes !== false;
+        } else {
+          floorConfig.boundary.enabled = cf.boundaryMode !== 'none';
+          floorConfig.boundary.diameter = Number(cf.diameter) || 4.0;
+          floorConfig.boundary.color = '#ffbb00';
+          floorConfig.boundary.showAxes = true;
+        }
+
+        updateGeneralFloorMaterial();
+        updateCircularFloorMesh();
+        updateFloorBoundsMesh();
+        syncFloorUIFromConfig();
       }
 
       // 5. Mapeo
@@ -6377,6 +7826,7 @@
           scale: f.scale !== undefined ? Number(f.scale) : 1,
           rotation: f.rotation || { x: 0, y: 0, z: 0 },
           position: f.position || { x: 0, y: 0, z: 0 },
+          color: f.color || null,     // 🎨 color plano / silueta
           muted: f.muted === true
         }));
         selectedFurnitureId = furnitureItems.length ? furnitureItems[0].id : null;
@@ -6475,48 +7925,1333 @@
     }
 
     // ============================================================
-    // TEXTURA DE MADERA PISO
+    // SISTEMA DE PISO: 5 PATRONES + PISO CIRCULAR + LÍMITES 4M
     // ============================================================
     
-    function createWoodTexture() {
+    let floorConfig = {
+      // 1. Piso General de la Sala (Suelo Base)
+      general: {
+        mode: 'pattern',
+        pattern: 'concrete',
+        color: '#2c2e36',
+        roughness: 0.9,
+        metalness: 0.05,
+        repeat: 4
+      },
+      // 2. Piso Circular de la Obra (Tarima / Plataforma)
+      circle: {
+        enabled: true,
+        diameter: 4.0,
+        thickness: 0.04,
+        rimStyle: 'metal',
+        mode: 'pattern',
+        pattern: 'wood',
+        color: '#8B4513',
+        roughness: 0.75,
+        metalness: 0.1,
+        repeat: 3
+      },
+      // 3. Marca Circular Perimetral (Límites Ø 4m)
+      boundary: {
+        enabled: true,
+        diameter: 4.0,
+        color: '#ffbb00',
+        showAxes: true
+      }
+    };
+
+    let floorBoundsMesh = null;
+    let circularFloorMesh = null;
+
+    function hexToRgb(hex) {
+      if (!hex) return null;
+      let c = hex.replace('#', '').trim();
+      if (c.length === 3) {
+        c = c.split('').map(x => x + x).join('');
+      }
+      const num = parseInt(c, 16);
+      if (isNaN(num)) return null;
+      return {
+        r: (num >> 16) & 255,
+        g: (num >> 8) & 255,
+        b: num & 255
+      };
+    }
+
+    // 1. Patrón de Madera (Tablones con veta orgánica)
+    function createWoodTexture(tint = '#8B4513', repeat = 4) {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 512;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#8B4513';
+      const rgb = hexToRgb(tint) || { r: 139, g: 69, b: 19 };
+
+      ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
       ctx.fillRect(0, 0, 512, 512);
-      
+
       const boardWidth = 64;
       for (let x = 0; x < 512; x += boardWidth) {
-        const baseR = 110 + Math.random() * 30;
-        const baseG = 55 + Math.random() * 20;
-        const baseB = 25 + Math.random() * 15;
-        ctx.fillStyle = `rgb(${baseR}, ${baseG}, ${baseB})`;
+        const shift = (Math.random() - 0.5) * 26;
+        const br = Math.min(255, Math.max(0, Math.floor(rgb.r + shift)));
+        const bg = Math.min(255, Math.max(0, Math.floor(rgb.g + shift * 0.7)));
+        const bb = Math.min(255, Math.max(0, Math.floor(rgb.b + shift * 0.5)));
+        ctx.fillStyle = `rgb(${br}, ${bg}, ${bb})`;
         ctx.fillRect(x, 0, boardWidth, 512);
-        
-        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+
+        // Vetas finas
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.14)';
         ctx.lineWidth = 1;
         for (let y = 0; y < 512; y += 4) {
-          if (Math.random() > 0.3) {
+          if (Math.random() > 0.28) {
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x + boardWidth, y + (Math.random() - 0.5) * 4);
             ctx.stroke();
           }
         }
-        ctx.strokeStyle = '#3d1f05';
+
+        // Poro suave / destello
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+        for (let y = 2; y < 512; y += 8) {
+          if (Math.random() > 0.45) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + boardWidth, y + (Math.random() - 0.5) * 3);
+            ctx.stroke();
+          }
+        }
+
+        // Junta longitudinal de tablón
+        ctx.strokeStyle = 'rgba(12, 6, 2, 0.85)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, 512);
         ctx.stroke();
+
+        // Juntas transversales aleatorias
+        ctx.strokeStyle = 'rgba(12, 6, 2, 0.75)';
+        ctx.lineWidth = 2;
+        const yj1 = (Math.random() * 180) + 40;
+        const yj2 = (Math.random() * 180) + 260;
+        ctx.beginPath(); ctx.moveTo(x, yj1); ctx.lineTo(x + boardWidth, yj1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, yj2); ctx.lineTo(x + boardWidth, yj2); ctx.stroke();
       }
-      
+
       const texture = new THREE.CanvasTexture(canvas);
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(4, 4);
+      const rep = Math.max(1, Number(repeat) || 4);
+      texture.repeat.set(rep, rep);
       return texture;
+    }
+
+    // 2. Patrón de Baldosas / Cerámico Cuadrado con Bisel
+    function createTilesTexture(tint = '#4a4d52', repeat = 4) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const rgb = hexToRgb(tint) || { r: 74, g: 77, b: 82 };
+
+      // Base oscura para las pastinas/juntas
+      ctx.fillStyle = '#0f1115';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const tileSize = 128; // Matriz 4x4
+      const grout = 3;
+
+      for (let y = 0; y < 512; y += tileSize) {
+        for (let x = 0; x < 512; x += tileSize) {
+          const shift = (Math.random() - 0.5) * 16;
+          const tr = Math.min(255, Math.max(0, Math.floor(rgb.r + shift)));
+          const tg = Math.min(255, Math.max(0, Math.floor(rgb.g + shift)));
+          const tb = Math.min(255, Math.max(0, Math.floor(rgb.b + shift)));
+
+          const rx = x + grout;
+          const ry = y + grout;
+          const rw = tileSize - grout * 2;
+          const rh = tileSize - grout * 2;
+
+          ctx.fillStyle = `rgb(${tr}, ${tg}, ${tb})`;
+          ctx.fillRect(rx, ry, rw, rh);
+
+          // Punteado sutil superficial
+          for (let n = 0; n < 45; n++) {
+            const nx = rx + Math.random() * rw;
+            const ny = ry + Math.random() * rh;
+            const op = Math.random() * 0.14;
+            ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
+            ctx.fillRect(nx, ny, 2, 2);
+          }
+
+          // Bisel superior/izquierdo (luz)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+          ctx.fillRect(rx, ry, rw, 2);
+          ctx.fillRect(rx, ry, 2, rh);
+
+          // Bisel inferior/derecho (sombra)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.fillRect(rx, ry + rh - 2, rw, 2);
+          ctx.fillRect(rx + rw - 2, ry, 2, rh);
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      const rep = Math.max(1, Number(repeat) || 4);
+      texture.repeat.set(rep, rep);
+      return texture;
+    }
+
+    // 3. Patrón de Cemento Alisado / Microcemento Industrial
+    function createConcreteTexture(tint = '#757a84', repeat = 4) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const rgb = hexToRgb(tint) || { r: 117, g: 122, b: 132 };
+
+      ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Manchas y grano de pulido
+      for (let i = 0; i < 350; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const rad = 3 + Math.random() * 20;
+        const dark = Math.random() > 0.5;
+        const op = 0.02 + Math.random() * 0.07;
+        ctx.fillStyle = dark ? `rgba(0,0,0,${op})` : `rgba(255,255,255,${op})`;
+        ctx.beginPath();
+        ctx.arc(x, y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Micro grano
+      for (let s = 0; s < 900; s++) {
+        const sx = Math.random() * 512;
+        const sy = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.12)';
+        ctx.fillRect(sx, sy, 1.5, 1.5);
+      }
+
+      // Juntas de dilatación (bloques 256x256)
+      ctx.strokeStyle = 'rgba(22, 25, 30, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+      ctx.moveTo(0, 256); ctx.lineTo(512, 256);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(257, 0); ctx.lineTo(257, 512);
+      ctx.moveTo(0, 257); ctx.lineTo(512, 257);
+      ctx.stroke();
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      const rep = Math.max(1, Number(repeat) || 4);
+      texture.repeat.set(rep, rep);
+      return texture;
+    }
+
+    // 4. Patrón de Mármol Oscuro Pulido con Veteado Orgánico
+    function createMarbleTexture(tint = '#1a1d24', repeat = 3) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const rgb = hexToRgb(tint) || { r: 26, g: 29, b: 36 };
+
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+      grad.addColorStop(0.5, `rgb(${Math.max(0, rgb.r - 8)}, ${Math.max(0, rgb.g - 8)}, ${Math.max(0, rgb.b - 8)})`);
+      grad.addColorStop(1, `rgb(${Math.min(255, rgb.r + 12)}, ${Math.min(255, rgb.g + 12)}, ${Math.min(255, rgb.b + 12)})`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Nubosidad orgánica
+      for (let c = 0; c < 12; c++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const rad = 70 + Math.random() * 120;
+        const cgrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, rad);
+        cgrad.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+        cgrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = cgrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawVein(startX, startY, endX, endY, color, width) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        const cp1x = startX + (endX - startX) * 0.35 + (Math.random() - 0.5) * 150;
+        const cp1y = startY + (endY - startY) * 0.35 + (Math.random() - 0.5) * 150;
+        const cp2x = startX + (endX - startX) * 0.7 + (Math.random() - 0.5) * 150;
+        const cp2y = startY + (endY - startY) * 0.7 + (Math.random() - 0.5) * 150;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+        ctx.stroke();
+
+        if (Math.random() > 0.4) {
+          ctx.lineWidth = Math.max(0.6, width * 0.45);
+          ctx.beginPath();
+          ctx.moveTo(cp1x, cp1y);
+          ctx.quadraticCurveTo(
+            cp1x + (Math.random() - 0.5) * 80,
+            cp1y + (Math.random() - 0.5) * 80,
+            cp1x + (Math.random() - 0.5) * 130,
+            cp1y + (Math.random() - 0.5) * 130
+          );
+          ctx.stroke();
+        }
+      }
+
+      for (let v = 0; v < 6; v++) {
+        const sx = Math.random() * 512;
+        const ex = Math.random() * 512;
+        drawVein(sx, 0, ex, 512, 'rgba(255, 255, 255, 0.22)', 2.2);
+        drawVein(sx + 3, 0, ex + 3, 512, 'rgba(0, 229, 255, 0.09)', 1.2);
+      }
+
+      for (let h = 0; h < 8; h++) {
+        const sy = Math.random() * 512;
+        const ey = Math.random() * 512;
+        drawVein(0, sy, 512, ey, 'rgba(255, 255, 255, 0.11)', 1.0);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      const rep = Math.max(1, Number(repeat) || 3);
+      texture.repeat.set(rep, rep);
+      return texture;
+    }
+
+    // 5. Patrón de Rejilla Técnica / Stage Modular
+    function createTechGridTexture(tint = '#20242e', repeat = 4) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const rgb = hexToRgb(tint) || { r: 32, g: 36, b: 46 };
+
+      ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      ctx.fillRect(0, 0, 512, 512);
+
+      const panelSize = 256;
+      for (let py = 0; py < 512; py += panelSize) {
+        for (let px = 0; px < 512; px += panelSize) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(px + 4, py + 4, panelSize - 8, panelSize - 8);
+
+          // Rayado cruzado / textura diamante
+          ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+          ctx.lineWidth = 1;
+          const step = 16;
+          for (let d = 12; d < panelSize - 12; d += step) {
+            ctx.beginPath();
+            ctx.moveTo(px + d, py + 12);
+            ctx.lineTo(px + panelSize - 12, py + panelSize - d);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(px + 12, py + d);
+            ctx.lineTo(px + panelSize - d, py + panelSize - 12);
+            ctx.stroke();
+          }
+
+          // Marco perimetral
+          ctx.strokeStyle = '#0a0d12';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(px, py, panelSize, panelSize);
+
+          // Bulones / remaches esquineros
+          const bolts = [
+            [px + 12, py + 12],
+            [px + panelSize - 12, py + 12],
+            [px + 12, py + panelSize - 12],
+            [px + panelSize - 12, py + panelSize - 12]
+          ];
+          bolts.forEach(([bx, by]) => {
+            ctx.fillStyle = '#0a0d12';
+            ctx.beginPath(); ctx.arc(bx + 1, by + 1, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#717b8f';
+            ctx.beginPath(); ctx.arc(bx, by, 3.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#1e222b';
+            ctx.beginPath(); ctx.arc(bx, by, 1.5, 0, Math.PI * 2); ctx.fill();
+          });
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      const rep = Math.max(1, Number(repeat) || 4);
+      texture.repeat.set(rep, rep);
+      return texture;
+    }
+
+    // Material de Piso para Three.js (Piso General o Piso Circular)
+    function createFloorMaterial(cfg = null, side = THREE.FrontSide) {
+      const c = cfg || floorConfig.general || {};
+      const roughness = c.roughness !== undefined ? Number(c.roughness) : 0.8;
+      const metalness = c.metalness !== undefined ? Number(c.metalness) : 0.1;
+      const color = c.color || '#2c2e36';
+      const repeat = Math.max(1, Number(c.repeat) || 4);
+      const mode = c.mode || 'pattern';
+      const pattern = c.pattern || 'concrete';
+
+      const mat = new THREE.MeshStandardMaterial({
+        side: side,
+        transparent: false,
+        roughness: roughness,
+        metalness: metalness,
+        wireframe: isWireframe,
+        color: new THREE.Color(color)
+      });
+
+      if (mode === 'pattern') {
+        let tex = null;
+        if (pattern === 'wood') tex = createWoodTexture(color, repeat);
+        else if (pattern === 'tiles') tex = createTilesTexture(color, repeat);
+        else if (pattern === 'concrete') tex = createConcreteTexture(color, repeat);
+        else if (pattern === 'marble') tex = createMarbleTexture(color, repeat);
+        else if (pattern === 'techgrid') tex = createTechGridTexture(color, repeat);
+        else tex = createWoodTexture(color, repeat);
+        mat.map = tex;
+      }
+      return mat;
+    }
+
+    // Actualizar el material del Piso General de la Sala (roomMesh.material[3])
+    function updateGeneralFloorMaterial() {
+      if (!roomMesh || !roomMesh.material || !roomMesh.material[3]) return;
+      const oldMat = roomMesh.material[3];
+      const newMat = createFloorMaterial(floorConfig.general, THREE.BackSide);
+      newMat.polygonOffset = true;
+      newMat.polygonOffsetFactor = 3;
+      newMat.polygonOffsetUnits = 6;
+      roomMesh.material[3] = newMat;
+      if (oldMat) {
+        if (oldMat.map) oldMat.map.dispose();
+        oldMat.dispose();
+      }
+    }
+
+    // Plataforma o Tarima Circular en Three.js
+    function updateCircularFloorMesh() {
+      if (circularFloorMesh) {
+        scene.remove(circularFloorMesh);
+        circularFloorMesh.traverse(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+            else child.material.dispose();
+          }
+        });
+        circularFloorMesh = null;
+      }
+
+      if (!floorConfig.circle || floorConfig.circle.enabled === false) {
+        if (typeof syncFloorObjectsElevation === 'function') syncFloorObjectsElevation();
+        return;
+      }
+
+      const diameter = Math.max(0.5, Number(floorConfig.circle.diameter) || 4.0);
+      const radius = diameter / 2; // EN METROS REALES
+      const thickness = Math.max(0, Number(floorConfig.circle.thickness) !== undefined ? Number(floorConfig.circle.thickness) : 0.04);
+
+      const topMat = createFloorMaterial(floorConfig.circle, THREE.FrontSide);
+      topMat.side = THREE.FrontSide;
+      topMat.transparent = false;
+      topMat.depthWrite = true;
+      topMat.polygonOffset = true;
+      topMat.polygonOffsetFactor = -1;
+      topMat.polygonOffsetUnits = -2;
+
+      let mesh;
+      if (thickness > 0.005) {
+        const rimColors = {
+          metal: { color: 0x161820, roughness: 0.45, metalness: 0.85 },
+          silver: { color: 0xd0d4dc, roughness: 0.25, metalness: 0.92 },
+          gold: { color: 0xc89632, roughness: 0.35, metalness: 0.85 },
+          none: { color: 0x111111, roughness: 0.95, metalness: 0.05 }
+        };
+        const rimProps = rimColors[floorConfig.circle.rimStyle] || rimColors.metal;
+        const rimMat = new THREE.MeshStandardMaterial({
+          color: rimProps.color,
+          roughness: rimProps.roughness,
+          metalness: rimProps.metalness,
+          side: THREE.FrontSide
+        });
+        const bottomMat = new THREE.MeshBasicMaterial({ color: 0x050608 });
+
+        // CylinderGeometry: 0 = rim (side), 1 = top cap, 2 = bottom cap
+        const geo = new THREE.CylinderGeometry(radius, radius, thickness, 96, 1);
+        mesh = new THREE.Mesh(geo, [rimMat, topMat, bottomMat]);
+        // Apoyada directamente en Y = 0.002 sobre el piso general de la sala
+        mesh.position.set(0, thickness / 2 + 0.002, 0);
+      } else {
+        // Ploteo plano / alfombra al ras del suelo
+        const geo = new THREE.CircleGeometry(radius, 96);
+        mesh = new THREE.Mesh(geo, topMat);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.set(0, 0.006, 0);
+      }
+
+      mesh.receiveShadow = true;
+      mesh.renderOrder = 2;
+      mesh.name = 'circularFloorMesh';
+      circularFloorMesh = mesh;
+      scene.add(circularFloorMesh);
+
+      // Sincronizar inmediatamente la elevación de marcas de piso y personas sobre la tarima
+      if (typeof syncFloorObjectsElevation === 'function') {
+        syncFloorObjectsElevation();
+      }
+    }
+
+    // Etiqueta flotante con el diámetro para la marca de piso
+    function createFloorDiameterLabelSprite(diameter, colorHex = '#ffbb00') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 512, 128);
+
+      ctx.fillStyle = 'rgba(8, 10, 16, 0.85)';
+      ctx.strokeStyle = colorHex;
+      ctx.lineWidth = 4;
+      const x = 30, y = 20, w = 452, h = 88, r = 24;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = colorHex;
+      ctx.font = 'bold 36px Metropolis, Inter, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`⭕ Ø ${Number(diameter).toFixed(2)}m · ÁREA DE OBRA`, 256, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(1.4, 0.35, 1);
+      return sprite;
+    }
+
+    // Límites de Obra / Ploteo en Suelo (Marca Circular Perimetral de 4m)
+    function updateFloorBoundsMesh() {
+      if (floorBoundsMesh) {
+        scene.remove(floorBoundsMesh);
+        floorBoundsMesh.traverse(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+            else child.material.dispose();
+          }
+        });
+        floorBoundsMesh = null;
+      }
+
+      if (!floorConfig.boundary || floorConfig.boundary.enabled === false) return;
+
+      const diameter = Math.max(0.5, Number(floorConfig.boundary.diameter || floorConfig.circle?.diameter) || 4.0);
+      const radius = diameter / 2; // EN METROS EXACTOS (escala real 1:1)
+      const group = new THREE.Group();
+      group.name = 'floorBoundsGroup';
+
+      // Si hay tarima circular con espesor, colocar la marca arriba de la tarima
+      const isTarima = floorConfig.circle && floorConfig.circle.enabled && (Number(floorConfig.circle.thickness) || 0) > 0.005;
+      const tarimaH = isTarima ? (Number(floorConfig.circle.thickness) || 0.04) : 0;
+      const elevation = tarimaH + 0.008;
+      group.position.y = elevation;
+
+      const colorHex = floorConfig.boundary.color || '#ffbb00';
+      const colorObj = new THREE.Color(colorHex);
+
+      // 1. Aro perimetral nítido (RingGeometry)
+      const ringWidth = 0.035; // 3.5 cm de grosor de línea visual
+      const ringGeo = new THREE.RingGeometry(radius - ringWidth / 2, radius + ringWidth / 2, 128);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: colorObj,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: true,
+        depthWrite: false
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.renderOrder = 20;
+      group.add(ring);
+
+      // 2. Línea circular de borde exterior brillante
+      const lineGeo = new THREE.BufferGeometry();
+      const linePts = [];
+      const segments = 128;
+      for (let i = 0; i <= segments; i++) {
+        const theta = (i / segments) * Math.PI * 2;
+        linePts.push(new THREE.Vector3(Math.cos(theta) * radius, 0.001, Math.sin(theta) * radius));
+      }
+      lineGeo.setFromPoints(linePts);
+      const lineMat = new THREE.LineBasicMaterial({ color: colorObj, depthTest: true, depthWrite: false });
+      const circleLine = new THREE.Line(lineGeo, lineMat);
+      circleLine.renderOrder = 21;
+      group.add(circleLine);
+
+      // 3. Guías ortogonales (ejes X y Z punteados)
+      if (floorConfig.boundary.showAxes !== false) {
+        const dashMat = new THREE.LineDashedMaterial({
+          color: colorObj,
+          dashSize: 0.2,
+          gapSize: 0.1,
+          transparent: true,
+          opacity: 0.65,
+          depthTest: true,
+          depthWrite: false
+        });
+        const ptsX = [new THREE.Vector3(-radius, 0.002, 0), new THREE.Vector3(radius, 0.002, 0)];
+        const geoX = new THREE.BufferGeometry().setFromPoints(ptsX);
+        const lineX = new THREE.Line(geoX, dashMat);
+        lineX.computeLineDistances();
+        lineX.renderOrder = 20;
+        group.add(lineX);
+
+        const ptsZ = [new THREE.Vector3(0, 0.002, -radius), new THREE.Vector3(0, 0.002, radius)];
+        const geoZ = new THREE.BufferGeometry().setFromPoints(ptsZ);
+        const lineZ = new THREE.Line(geoZ, dashMat);
+        lineZ.computeLineDistances();
+        lineZ.renderOrder = 20;
+        group.add(lineZ);
+      }
+
+      // 4. Etiqueta frontal "⭕ Ø 4.00m · ÁREA DE OBRA"
+      const labelSprite = createFloorDiameterLabelSprite(diameter, colorHex);
+      if (labelSprite) {
+        labelSprite.position.set(0, 0.04, -radius - 0.22);
+        group.add(labelSprite);
+      }
+
+      floorBoundsMesh = group;
+      scene.add(floorBoundsMesh);
+    }
+
+    // Sincronizar UI con el estado actual de floorConfig
+    function syncFloorUIFromConfig() {
+      // 1. Piso General
+      const g = floorConfig.general || {};
+      const btnGenModePat = document.getElementById('btnGenFloorModePattern');
+      const btnGenModeSol = document.getElementById('btnGenFloorModeSolid');
+      const genPatWrap = document.getElementById('genFloorPatternsContainer');
+      const rowGenRep = document.getElementById('rowGenFloorRepeat');
+      if (btnGenModePat && btnGenModeSol) {
+        btnGenModePat.classList.toggle('active', g.mode === 'pattern');
+        btnGenModeSol.classList.toggle('active', g.mode === 'solid');
+      }
+      if (genPatWrap) genPatWrap.style.display = (g.mode === 'pattern') ? 'block' : 'none';
+      if (rowGenRep) rowGenRep.style.display = (g.mode === 'pattern') ? 'flex' : 'none';
+
+      document.querySelectorAll('.gen-floor-pattern-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.pattern === g.pattern);
+      });
+
+      const genPicker = document.getElementById('genFloorColorPicker');
+      const genHexSpan = document.getElementById('genFloorColorHex');
+      if (genPicker) genPicker.value = g.color || '#2c2e36';
+      if (genHexSpan) genHexSpan.textContent = g.color || '#2c2e36';
+
+      const genRough = document.getElementById('genFloorRoughness');
+      if (genRough) genRough.value = g.roughness !== undefined ? g.roughness : 0.9;
+      const genMetal = document.getElementById('genFloorMetalness');
+      if (genMetal) genMetal.value = g.metalness !== undefined ? g.metalness : 0.05;
+      const genRep = document.getElementById('genFloorRepeat');
+      if (genRep) genRep.value = g.repeat !== undefined ? g.repeat : 4;
+
+      // 2. Piso Circular
+      const c = floorConfig.circle || {};
+      const chkCirc = document.getElementById('chkFloorCircleEnable');
+      const circWrap = document.getElementById('floorCircleContentWrap');
+      const badgeCirc = document.getElementById('badgeCircleStatus');
+      const cardCirc = document.getElementById('cardCircFloor');
+      if (chkCirc) chkCirc.checked = c.enabled !== false;
+      if (circWrap) circWrap.style.display = (c.enabled !== false) ? 'block' : 'none';
+      if (badgeCirc) {
+        badgeCirc.textContent = (c.enabled !== false) ? 'Tarima Activa' : 'Desactivada';
+        badgeCirc.style.background = (c.enabled !== false) ? 'rgba(0, 229, 255, 0.14)' : 'rgba(255, 255, 255, 0.08)';
+        badgeCirc.style.color = (c.enabled !== false) ? '#00e5ff' : '#888';
+      }
+      if (cardCirc) cardCirc.classList.toggle('active-accent', c.enabled !== false);
+
+      const dNum = document.getElementById('floorCircleDiameterNum');
+      const dRng = document.getElementById('floorCircleDiameterRng');
+      if (dNum) dNum.value = c.diameter || 4.0;
+      if (dRng) dRng.value = c.diameter || 4.0;
+
+      const tNum = document.getElementById('floorCircleThicknessNum');
+      if (tNum) tNum.value = Math.round((c.thickness !== undefined ? c.thickness : 0.04) * 100);
+
+      const rimSel = document.getElementById('floorCircleRimSelect');
+      if (rimSel) rimSel.value = c.rimStyle || 'metal';
+
+      const btnCircModePat = document.getElementById('btnCircFloorModePattern');
+      const btnCircModeSol = document.getElementById('btnCircFloorModeSolid');
+      const circPatWrap = document.getElementById('circFloorPatternsContainer');
+      const rowCircRep = document.getElementById('rowCircFloorRepeat');
+      if (btnCircModePat && btnCircModeSol) {
+        btnCircModePat.classList.toggle('active', c.mode === 'pattern');
+        btnCircModeSol.classList.toggle('active', c.mode === 'solid');
+      }
+      if (circPatWrap) circPatWrap.style.display = (c.mode === 'pattern') ? 'block' : 'none';
+      if (rowCircRep) rowCircRep.style.display = (c.mode === 'pattern') ? 'flex' : 'none';
+
+      document.querySelectorAll('.circ-floor-pattern-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.pattern === c.pattern);
+      });
+
+      const circPicker = document.getElementById('circFloorColorPicker');
+      const circHexSpan = document.getElementById('circFloorColorHex');
+      if (circPicker) circPicker.value = c.color || '#8B4513';
+      if (circHexSpan) circHexSpan.textContent = c.color || '#8B4513';
+
+      const circRough = document.getElementById('circFloorRoughness');
+      if (circRough) circRough.value = c.roughness !== undefined ? c.roughness : 0.75;
+      const circMetal = document.getElementById('circFloorMetalness');
+      if (circMetal) circMetal.value = c.metalness !== undefined ? c.metalness : 0.1;
+      const circRep = document.getElementById('circFloorRepeat');
+      if (circRep) circRep.value = c.repeat !== undefined ? c.repeat : 3;
+
+      // 3. Marca Perimetral
+      const b = floorConfig.boundary || {};
+      const chkBound = document.getElementById('chkFloorBoundaryEnable');
+      const boundWrap = document.getElementById('floorBoundContentWrap');
+      const badgeBound = document.getElementById('badgeBoundStatus');
+      const cardBound = document.getElementById('cardBoundFloor');
+      if (chkBound) chkBound.checked = b.enabled !== false;
+      if (boundWrap) boundWrap.style.display = (b.enabled !== false) ? 'block' : 'none';
+      if (badgeBound) {
+        badgeBound.textContent = (b.enabled !== false) ? 'Visible' : 'Oculta';
+        badgeBound.style.background = (b.enabled !== false) ? 'rgba(255, 187, 0, 0.18)' : 'rgba(255, 255, 255, 0.08)';
+        badgeBound.style.color = (b.enabled !== false) ? '#ffbb00' : '#888';
+      }
+      if (cardBound) cardBound.classList.toggle('active-accent', b.enabled !== false);
+
+      const chkAxes = document.getElementById('chkFloorBoundAxes');
+      if (chkAxes) chkAxes.checked = b.showAxes !== false;
+
+      const btnYel = document.getElementById('btnBoundColYellow');
+      const btnCyan = document.getElementById('btnBoundColCyan');
+      const btnWhi = document.getElementById('btnBoundColWhite');
+      if (btnYel && btnCyan && btnWhi) {
+        btnYel.classList.toggle('active', (b.color || '#ffbb00') === '#ffbb00');
+        btnCyan.classList.toggle('active', b.color === '#00e5ff');
+        btnWhi.classList.toggle('active', b.color === '#ffffff');
+      }
+
+      // 4. Marca de Posición de la Persona
+      const calcoPiso = stageScreens.find(s => s.id === 'calco-marca-piso' || (s.name && s.name.toLowerCase().includes('marca de piso')));
+      const chkPersonMark = document.getElementById('chkPersonFloorMark');
+      const badgePersonMark = document.getElementById('badgePersonMarkStatus');
+      const cardPersonMark = document.getElementById('cardPersonFloorMark');
+      const isMarkActive = calcoPiso ? !calcoPiso.muted : true;
+      if (chkPersonMark) {
+        chkPersonMark.checked = isMarkActive;
+      }
+      if (badgePersonMark) {
+        badgePersonMark.textContent = isMarkActive ? 'Sobre Tarima' : 'Oculta';
+        badgePersonMark.style.background = isMarkActive ? 'rgba(255, 140, 0, 0.18)' : 'rgba(255, 255, 255, 0.08)';
+        badgePersonMark.style.color = isMarkActive ? '#ff8c00' : '#888';
+      }
+      if (cardPersonMark) {
+        cardPersonMark.classList.toggle('active-accent', isMarkActive);
+      }
+    }
+
+    // Inicializar listeners del tab Piso (3 subsecciones)
+    function setupFloorUI() {
+      // ---- 1. PISO GENERAL ----
+      const btnGenPat = document.getElementById('btnGenFloorModePattern');
+      const btnGenSol = document.getElementById('btnGenFloorModeSolid');
+      if (btnGenPat) {
+        btnGenPat.addEventListener('click', () => {
+          floorConfig.general.mode = 'pattern';
+          syncFloorUIFromConfig();
+          updateGeneralFloorMaterial();
+          saveRoom3DConfigToServer();
+        });
+      }
+      if (btnGenSol) {
+        btnGenSol.addEventListener('click', () => {
+          floorConfig.general.mode = 'solid';
+          syncFloorUIFromConfig();
+          updateGeneralFloorMaterial();
+          saveRoom3DConfigToServer();
+        });
+      }
+
+      document.querySelectorAll('.gen-floor-pattern-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          floorConfig.general.mode = 'pattern';
+          floorConfig.general.pattern = btn.dataset.pattern;
+          const defaults = {
+            concrete: '#2c2e36',
+            wood: '#8B4513',
+            tiles: '#4a4d52',
+            marble: '#14161c',
+            techgrid: '#20242e'
+          };
+          if (defaults[btn.dataset.pattern]) {
+            floorConfig.general.color = defaults[btn.dataset.pattern];
+          }
+          syncFloorUIFromConfig();
+          updateGeneralFloorMaterial();
+          saveRoom3DConfigToServer();
+        });
+      });
+
+      const genPicker = document.getElementById('genFloorColorPicker');
+      if (genPicker) {
+        genPicker.addEventListener('input', (e) => {
+          floorConfig.general.color = e.target.value;
+          const hexSpan = document.getElementById('genFloorColorHex');
+          if (hexSpan) hexSpan.textContent = e.target.value;
+          updateGeneralFloorMaterial();
+        });
+        genPicker.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      document.querySelectorAll('.gen-floor-color-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          floorConfig.general.color = btn.dataset.color;
+          syncFloorUIFromConfig();
+          updateGeneralFloorMaterial();
+          saveRoom3DConfigToServer();
+        });
+      });
+
+      const genRough = document.getElementById('genFloorRoughness');
+      if (genRough) {
+        genRough.addEventListener('input', (e) => {
+          floorConfig.general.roughness = parseFloat(e.target.value) || 0.9;
+          updateGeneralFloorMaterial();
+        });
+        genRough.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+      const genMetal = document.getElementById('genFloorMetalness');
+      if (genMetal) {
+        genMetal.addEventListener('input', (e) => {
+          floorConfig.general.metalness = parseFloat(e.target.value) || 0.05;
+          updateGeneralFloorMaterial();
+        });
+        genMetal.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+      const genRep = document.getElementById('genFloorRepeat');
+      if (genRep) {
+        genRep.addEventListener('input', (e) => {
+          floorConfig.general.repeat = parseInt(e.target.value) || 4;
+          updateGeneralFloorMaterial();
+        });
+        genRep.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      // ---- 2. PISO CIRCULAR ----
+      const chkCirc = document.getElementById('chkFloorCircleEnable');
+      if (chkCirc) {
+        chkCirc.addEventListener('change', (e) => {
+          floorConfig.circle.enabled = e.target.checked;
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+          showToast(e.target.checked ? '⭕ Tarima circular activada' : 'Tarima circular desactivada');
+        });
+      }
+
+      const circlePreset4m = document.getElementById('btnFloorCirclePreset4m');
+      if (circlePreset4m) {
+        circlePreset4m.addEventListener('click', () => {
+          floorConfig.circle.enabled = true;
+          floorConfig.circle.diameter = 4.0;
+          floorConfig.boundary.enabled = true;
+          floorConfig.boundary.diameter = 4.0;
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+          showToast('⭕ Tarima y perímetro fijados en Ø 4.00m (Curador)');
+        });
+      }
+
+      const dNum = document.getElementById('floorCircleDiameterNum');
+      const dRng = document.getElementById('floorCircleDiameterRng');
+      if (dNum && dRng) {
+        const updateDiam = (val) => {
+          const d = Math.max(0.5, parseFloat(val) || 4.0);
+          floorConfig.circle.diameter = d;
+          floorConfig.boundary.diameter = d;
+          dNum.value = d;
+          dRng.value = d;
+          updateCircularFloorMesh();
+          updateFloorBoundsMesh();
+        };
+        dNum.addEventListener('input', (e) => updateDiam(e.target.value));
+        dNum.addEventListener('change', () => saveRoom3DConfigToServer());
+        dRng.addEventListener('input', (e) => updateDiam(e.target.value));
+        dRng.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      const tNum = document.getElementById('floorCircleThicknessNum');
+      if (tNum) {
+        tNum.addEventListener('input', (e) => {
+          floorConfig.circle.thickness = Math.max(0, (parseFloat(e.target.value) || 0) / 100);
+          updateCircularFloorMesh();
+          updateFloorBoundsMesh();
+        });
+        tNum.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      const rimSel = document.getElementById('floorCircleRimSelect');
+      if (rimSel) {
+        rimSel.addEventListener('change', (e) => {
+          floorConfig.circle.rimStyle = e.target.value;
+          updateCircularFloorMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+
+      const btnCircPat = document.getElementById('btnCircFloorModePattern');
+      const btnCircSol = document.getElementById('btnCircFloorModeSolid');
+      if (btnCircPat) {
+        btnCircPat.addEventListener('click', () => {
+          floorConfig.circle.mode = 'pattern';
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+      if (btnCircSol) {
+        btnCircSol.addEventListener('click', () => {
+          floorConfig.circle.mode = 'solid';
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+
+      document.querySelectorAll('.circ-floor-pattern-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          floorConfig.circle.mode = 'pattern';
+          floorConfig.circle.pattern = btn.dataset.pattern;
+          const defaults = {
+            wood: '#8B4513',
+            tiles: '#4a4d52',
+            concrete: '#757a84',
+            marble: '#1a1d24',
+            techgrid: '#20242e'
+          };
+          if (defaults[btn.dataset.pattern]) {
+            floorConfig.circle.color = defaults[btn.dataset.pattern];
+          }
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          saveRoom3DConfigToServer();
+        });
+      });
+
+      const circPicker = document.getElementById('circFloorColorPicker');
+      if (circPicker) {
+        circPicker.addEventListener('input', (e) => {
+          floorConfig.circle.color = e.target.value;
+          const hexSpan = document.getElementById('circFloorColorHex');
+          if (hexSpan) hexSpan.textContent = e.target.value;
+          updateCircularFloorMesh();
+        });
+        circPicker.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      document.querySelectorAll('.circ-floor-color-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          floorConfig.circle.color = btn.dataset.color;
+          syncFloorUIFromConfig();
+          updateCircularFloorMesh();
+          saveRoom3DConfigToServer();
+        });
+      });
+
+      const circRough = document.getElementById('circFloorRoughness');
+      if (circRough) {
+        circRough.addEventListener('input', (e) => {
+          floorConfig.circle.roughness = parseFloat(e.target.value) || 0.75;
+          updateCircularFloorMesh();
+        });
+        circRough.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+      const circMetal = document.getElementById('circFloorMetalness');
+      if (circMetal) {
+        circMetal.addEventListener('input', (e) => {
+          floorConfig.circle.metalness = parseFloat(e.target.value) || 0.1;
+          updateCircularFloorMesh();
+        });
+        circMetal.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+      const circRep = document.getElementById('circFloorRepeat');
+      if (circRep) {
+        circRep.addEventListener('input', (e) => {
+          floorConfig.circle.repeat = parseInt(e.target.value) || 3;
+          updateCircularFloorMesh();
+        });
+        circRep.addEventListener('change', () => saveRoom3DConfigToServer());
+      }
+
+      // ---- 3. MARCA CIRCULAR PERIMETRAL ----
+      const chkBound = document.getElementById('chkFloorBoundaryEnable');
+      if (chkBound) {
+        chkBound.addEventListener('change', (e) => {
+          floorConfig.boundary.enabled = e.target.checked;
+          syncFloorUIFromConfig();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+          showToast(e.target.checked ? '📍 Marca perimetral visible' : 'Marca perimetral oculta');
+        });
+      }
+
+      const btnYel = document.getElementById('btnBoundColYellow');
+      const btnCyan = document.getElementById('btnBoundColCyan');
+      const btnWhi = document.getElementById('btnBoundColWhite');
+      if (btnYel) {
+        btnYel.addEventListener('click', () => {
+          floorConfig.boundary.color = '#ffbb00';
+          syncFloorUIFromConfig();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+      if (btnCyan) {
+        btnCyan.addEventListener('click', () => {
+          floorConfig.boundary.color = '#00e5ff';
+          syncFloorUIFromConfig();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+      if (btnWhi) {
+        btnWhi.addEventListener('click', () => {
+          floorConfig.boundary.color = '#ffffff';
+          syncFloorUIFromConfig();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+
+      const chkAxes = document.getElementById('chkFloorBoundAxes');
+      if (chkAxes) {
+        chkAxes.addEventListener('change', (e) => {
+          floorConfig.boundary.showAxes = e.target.checked;
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+        });
+      }
+
+      // ---- 4. MARCA DE PISO (POSICIÓN PERSONA) ----
+      const chkPersonMark = document.getElementById('chkPersonFloorMark');
+      if (chkPersonMark) {
+        chkPersonMark.addEventListener('change', (e) => {
+          let calco = stageScreens.find(s => s.id === 'calco-marca-piso' || (s.name && s.name.toLowerCase().includes('marca de piso')));
+          if (!calco) {
+            calco = {
+              id: 'calco-marca-piso',
+              name: 'Marca de Piso · persona',
+              width: 1.5,
+              height: 1.5,
+              depth: 0.01,
+              position: { x: 0, y: 0.046, z: -1.55 },
+              rotation: { x: -90, y: 0, z: 0 },
+              scale: { x: 1, y: 1, z: 1 },
+              sliceIndex: '-1',
+              screenType: 'calco',
+              muted: false,
+              lockSource: null,
+              calcoUrl: '/jpstagedesign/uploads/marca-piso-naranja.png',
+              calcoName: null,
+              opacity: 0.95
+            };
+            stageScreens.push(calco);
+          }
+          calco.muted = !e.target.checked;
+          syncFloorObjectsElevation();
+          rebuildScreens3D();
+          updateScreensSelectUI();
+          syncFloorUIFromConfig();
+          saveRoom3DConfigToServer();
+          showToast(calco.muted ? 'Marca de piso oculta' : '🧍 Marca de piso visible sobre la tarima');
+        });
+      }
+
+      const btnFocusMark = document.getElementById('btnFocusPersonMark');
+      if (btnFocusMark) {
+        btnFocusMark.addEventListener('click', () => {
+          let calco = stageScreens.find(s => s.id === 'calco-marca-piso' || (s.name && s.name.toLowerCase().includes('marca de piso')));
+          const pers = furnitureItems.find(f => f.id === 'furn-persona');
+          const posX = pers?.position?.x || 0.0;
+          const posZ = pers?.position?.z || -1.55;
+          const posY = getFloorSurfaceYAt(posX, posZ) + 0.004;
+          if (calco) {
+            calco.position = { x: posX, y: posY, z: posZ };
+            calco.rotation = { x: -90, y: 0, z: 0 };
+            calco.muted = false;
+          } else {
+            calco = {
+              id: 'calco-marca-piso',
+              name: 'Marca de Piso · persona',
+              width: 1.5,
+              height: 1.5,
+              depth: 0.01,
+              position: { x: posX, y: posY, z: posZ },
+              rotation: { x: -90, y: 0, z: 0 },
+              scale: { x: 1, y: 1, z: 1 },
+              sliceIndex: '-1',
+              screenType: 'calco',
+              muted: false,
+              lockSource: null,
+              calcoUrl: '/jpstagedesign/uploads/marca-piso-naranja.png',
+              calcoName: null,
+              opacity: 0.95
+            };
+            stageScreens.push(calco);
+          }
+          syncFloorObjectsElevation();
+          rebuildScreens3D();
+          updateScreensSelectUI();
+          syncFloorUIFromConfig();
+          selectScreen(calco.id);
+          saveRoom3DConfigToServer();
+          showToast('🎯 Marca de piso alineada exactamente bajo la persona');
+        });
+      }
+
+      const btnSelMark = document.getElementById('btnSelectPersonMark');
+      if (btnSelMark) {
+        btnSelMark.addEventListener('click', () => {
+          const calco = stageScreens.find(s => s.id === 'calco-marca-piso' || (s.name && s.name.toLowerCase().includes('marca de piso')));
+          if (calco) {
+            selectScreen(calco.id);
+            const accScreens = document.getElementById('accItemScreens');
+            if (accScreens && !accScreens.classList.contains('active')) {
+              accScreens.classList.add('active');
+            }
+          }
+        });
+      }
+
+      // Reset
+      const btnReset = document.getElementById('btnFloorReset');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => {
+          floorConfig.general = {
+            mode: 'pattern',
+            pattern: 'concrete',
+            color: '#2c2e36',
+            roughness: 0.9,
+            metalness: 0.05,
+            repeat: 4
+          };
+          floorConfig.circle = {
+            enabled: true,
+            diameter: 4.0,
+            thickness: 0.04,
+            rimStyle: 'metal',
+            mode: 'pattern',
+            pattern: 'wood',
+            color: '#8B4513',
+            roughness: 0.75,
+            metalness: 0.1,
+            repeat: 3
+          };
+          floorConfig.boundary = {
+            enabled: true,
+            diameter: 4.0,
+            color: '#ffbb00',
+            showAxes: true
+          };
+          syncFloorUIFromConfig();
+          updateGeneralFloorMaterial();
+          updateCircularFloorMesh();
+          updateFloorBoundsMesh();
+          saveRoom3DConfigToServer();
+          showToast('🪵 Pisos restablecidos: Galería + Tarima de madera Ø 4m + Aro perimetral');
+        });
+      }
+
+      syncFloorUIFromConfig();
+    }
+
+    // Preset Especial Curador: TV Central 46" + 2x 32" en Círculo Ø 4.00m
+    function applyCuratorTriptychPreset() {
+      // 1. Configurar pisos
+      floorConfig.general.mode = 'pattern';
+      floorConfig.general.pattern = 'concrete';
+      floorConfig.general.color = '#2c2e36';
+
+      floorConfig.circle.enabled = true;
+      floorConfig.circle.diameter = 4.0;
+      floorConfig.circle.thickness = 0.04;
+      floorConfig.circle.pattern = 'wood';
+      floorConfig.circle.color = '#8B4513';
+      floorConfig.circle.rimStyle = 'metal';
+
+      floorConfig.boundary.enabled = true;
+      floorConfig.boundary.diameter = 4.0;
+      floorConfig.boundary.color = '#ffbb00';
+
+      syncFloorUIFromConfig();
+      updateGeneralFloorMaterial();
+      updateCircularFloorMesh();
+      updateFloorBoundsMesh();
+
+      // 2. Modificar o crear las 3 pantallas con medidas reales
+      let tvCentral = stageScreens.find(s => s.id === 'screen-1790000000001-p8k7d') || stageScreens[1] || stageScreens[0];
+      let tvLat1 = stageScreens.find(s => s.id === 'screen-1790000000000-88lzq') || stageScreens[0];
+      let tvLat2 = stageScreens.find(s => s.id === 'screen-1790000000002-e3a2o') || stageScreens[2];
+
+      if (!tvCentral) {
+        tvCentral = { id: 'screen-tv-central', name: 'TV Central 46"', sliceIndex: 0 };
+        stageScreens.push(tvCentral);
+      }
+      if (!tvLat1) {
+        tvLat1 = { id: 'screen-tv-lateral-1', name: 'TV Lateral 1 (32")', sliceIndex: 1 };
+        stageScreens.push(tvLat1);
+      }
+      if (!tvLat2) {
+        tvLat2 = { id: 'screen-tv-lateral-2', name: 'TV Lateral 2 (32")', sliceIndex: 2 };
+        stageScreens.push(tvLat2);
+      }
+
+      // TV Central 46" (1.04m ancho x 0.60m alto x 0.08m prof)
+      tvCentral.name = 'TV Central 46"';
+      tvCentral.screenType = 'touch';
+      tvCentral.width = 1.04;
+      tvCentral.height = 0.60;
+      tvCentral.depth = 0.08;
+      tvCentral.position = { x: 0.0, y: 1.45, z: 0.0 };
+      tvCentral.rotation = { x: 0, y: 180.0, z: 0 };
+      tvCentral.scale = { x: 1, y: 1, z: 1 };
+
+      // TV Lateral 1 32" (0.73m ancho x 0.42m alto x 0.07m prof)
+      tvLat1.name = 'TV Lateral 1 (32")';
+      tvLat1.screenType = 'touch';
+      tvLat1.width = 0.73;
+      tvLat1.height = 0.42;
+      tvLat1.depth = 0.07;
+      tvLat1.position = { x: -0.92, y: 1.45, z: 0.16 };
+      tvLat1.rotation = { x: 0, y: 160.0, z: 0 };
+      tvLat1.scale = { x: 1, y: 1, z: 1 };
+
+      // TV Lateral 2 32" (0.73m ancho x 0.42m alto x 0.07m prof)
+      tvLat2.name = 'TV Lateral 2 (32")';
+      tvLat2.screenType = 'touch';
+      tvLat2.width = 0.73;
+      tvLat2.height = 0.42;
+      tvLat2.depth = 0.07;
+      tvLat2.position = { x: 0.92, y: 1.45, z: 0.16 };
+      tvLat2.rotation = { x: 0, y: -160.0, z: 0 };
+      tvLat2.scale = { x: 1, y: 1, z: 1 };
+
+      // Persona de escala humana dentro del círculo de 4m (apoyada en la tarima)
+      const pers = furnitureItems.find(f => f.id === 'furn-persona');
+      if (pers) {
+        pers.position = { x: 0.0, y: 0.042, z: -1.55 };
+        pers.rotation = { x: 0, y: 0, z: 0 };
+        applyFurnitureTransform(pers);
+      }
+
+      // Marca de piso (sobre la tarima circular, donde se para la persona)
+      let calcoPiso = stageScreens.find(s => s.id === 'calco-marca-piso' || (s.name && s.name.toLowerCase().includes('marca de piso')));
+      if (!calcoPiso) {
+        calcoPiso = {
+          id: 'calco-marca-piso',
+          name: 'Marca de Piso · persona',
+          width: 1.5,
+          height: 1.5,
+          depth: 0.01,
+          position: { x: 0.0, y: 0.046, z: -1.55 },
+          rotation: { x: -90, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 },
+          sliceIndex: '-1',
+          screenType: 'calco',
+          muted: false,
+          lockSource: null,
+          calcoUrl: '/jpstagedesign/uploads/marca-piso-naranja.png',
+          calcoName: null,
+          opacity: 0.95
+        };
+        stageScreens.push(calcoPiso);
+      } else {
+        calcoPiso.position = { x: 0.0, y: 0.046, z: -1.55 };
+        calcoPiso.rotation = { x: -90, y: 0, z: 0 };
+        calcoPiso.muted = false;
+        if (!calcoPiso.calcoUrl) calcoPiso.calcoUrl = '/jpstagedesign/uploads/marca-piso-naranja.png';
+      }
+
+      // Cámara encuadrando el tríptico
+      camera.position.set(0.0, 2.1, -4.2);
+      controls.target.set(0.0, 1.35, 0.0);
+      controls.update();
+
+      rebuildScreens3D();
+      updateScreensSelectUI();
+      selectScreen(tvCentral.id);
+      saveRoom3DConfigToServer();
+      showToast('🏛️ Medidas reales aplicadas: TV Central 46" + 2x 32" en Círculo Ø 4.00m');
+    }
+
+    // Guardado permanente de la composición
+    async function saveCompositionPermanent(btnEl = null) {
+      const origText = btnEl ? btnEl.innerHTML : '';
+      if (btnEl) {
+        btnEl.innerHTML = '⏳ Guardando...';
+        btnEl.disabled = true;
+      }
+      try {
+        await saveRoom3DConfigToServer(true);
+        if (btnEl) {
+          btnEl.classList.add('saved');
+          btnEl.innerHTML = '✅ ¡Guardado!';
+          setTimeout(() => {
+            btnEl.classList.remove('saved');
+            btnEl.innerHTML = origText;
+            btnEl.disabled = false;
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('[GUARDAR COMPOSICION ERROR]', err);
+        if (btnEl) {
+          btnEl.innerHTML = '⚠️ Error';
+          setTimeout(() => {
+            btnEl.innerHTML = origText;
+            btnEl.disabled = false;
+          }, 2000);
+        }
+      }
     }
     
     // ============================================================
@@ -6694,14 +9429,16 @@
      *   'split'  → Slice 1..4 en orden a las pantallas + modo REPARTO
      */
     function applyMappingPreset(preset) {
+      // 🖼️ Los calcos no participan del mapeo (muestran siempre su imagen completa)
+      const mappable = () => stageScreens.filter(s => !isCalcoScreen(s));
       if (preset === 'mirror') {
-        stageScreens.forEach(s => { s.sliceIndex = -1; });
+        mappable().forEach(s => { s.sliceIndex = -1; });
         set3DMappingMode('duplicated');
-        showToast('🪞 ESPEJO aplicado: ' + stageScreens.length + ' pantalla(s) al 100%');
+        showToast('🪞 ESPEJO aplicado: ' + mappable().length + ' pantalla(s) al 100%');
       } else {
-        stageScreens.forEach((s, i) => { s.sliceIndex = i % 4; });
+        mappable().forEach((s, i) => { s.sliceIndex = i % 4; });
         set3DMappingMode('extended');
-        showToast('🧩 REPARTO aplicado: ' + stageScreens.length + ' pantalla(s) repartidas en 4 slices');
+        showToast('🧩 REPARTO aplicado: ' + mappable().length + ' pantalla(s) repartidas en 4 slices');
       }
       updateScreensSelectUI();
       updateScreenUIControls();
@@ -6845,6 +9582,7 @@
 
       stageScreens.forEach((s, idx) => {
         if (s.muted) return;
+        if (isCalcoScreen(s)) return;   // 🖼️ el calco nunca lleva capa web (su imagen es fija)
         const group = screensGroup.getObjectByName('screen_' + s.id);
         if (!group || group.visible === false) return;
 
@@ -6940,8 +9678,12 @@
     async function loadInputsLibrary(force) {
       if (!force && inputsLibrary.length && (Date.now() - inputsLibraryAt) < 30000) return inputsLibrary;
       try {
-        const base = (window.BACKEND_URL || '') + '/jpstagedesign/api/materials';
-        const res = await fetch(base);
+        let base = (window.BACKEND_URL || '') + '/jpstagedesign/api/materials';
+        let res = await fetch(base);
+        if (!res.ok) {
+          base = (window.BACKEND_URL || '') + '/api/materials';
+          res = await fetch(base);
+        }
         const data = await res.json();
         if (data && Array.isArray(data.materials)) {
           inputsLibrary = data.materials;
@@ -6956,7 +9698,7 @@
     function disposeLockRuntime(key) {
       const rt = lockRuntimes.get(key);
       if (!rt) return;
-      try { if (rt.video) { rt.video.pause(); rt.video.src = ''; } } catch (e) { /* noop */ }
+      try { if (rt.video) { rt.video.pause(); rt.video.src = ''; rt.video.load(); } } catch (e) { /* noop */ }
       try { if (rt.shaderCtx && typeof Shaders !== 'undefined') Shaders.stop(rt.shaderCtx); } catch (e) { /* noop */ }
       try { if (rt.texture) rt.texture.dispose(); } catch (e) { /* noop */ }
       lockRuntimes.delete(key);
@@ -6968,6 +9710,7 @@
 
     /** Dibuja el cartel de referencia de una página web lockeada (la página real va en la capa CSS3D). */
     function drawLockWebPlaceholder(rt) {
+      if (!rt.ctx) return;
       const c = rt.ctx, W = rt.canvas.width, H = rt.canvas.height;
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#0d1117'); g.addColorStop(1, '#05070a');
@@ -7000,19 +9743,42 @@
           rt.error = 'Shaders no disponible';
           return;
         }
-        const name = String(src.effect || src.shader || src.id || 'space').replace(/^(effect|shader)-/, '').toLowerCase();
+        const name = String(src.effect || src.shader || src.name || src.id || 'space').replace(/^(effect|shader)-/, '').toLowerCase();
         let code = null;
-        try { if (Shaders.getShader) code = await Shaders.getShader(name); } catch (e) { /* noop */ }
-        if (!code) code = Shaders[name] || Shaders.space;
-        if (!code) { rt.error = 'shader no encontrado'; return; }
+        try {
+          if (Shaders.getShader) {
+            code = await Shaders.getShader(src.src || name);
+          }
+        } catch (e) {
+          console.warn('[LOCK] Error en getShader por src:', e);
+        }
+        if (!code) {
+          try {
+            code = await Shaders.getShader(name);
+          } catch(e) {}
+        }
+        if (!code) {
+          rt.error = 'shader no encontrado: ' + name;
+          console.error('[LOCK]', rt.error);
+          return;
+        }
+
+        // Si el runtime fue descartado mientras se cargaba el shader, abortar
+        if (!lockRuntimes.has(rt.key)) return;
+
         rt.shaderCtx = Shaders.initShader(rt.canvas, code, { uniforms: src.uniforms });
         if (rt.shaderCtx) {
           rt.uniforms = src.uniforms || null;
           rt.ready = true;
+          // Iniciar render loop continuo del shader sobre su propio canvas WebGL
           Shaders.render(rt.shaderCtx, rt.canvas);
           rt.texture.needsUpdate = true;
+          refreshWallTextures();
+          updateAllProjectorBeamsTextures();
+          console.log(`[LOCK] Shader activo para ${rt.key}: ${name}`);
         } else {
           rt.error = 'no se pudo compilar el shader';
+          console.error('[LOCK] Error compilando shader:', name);
         }
         return;
       }
@@ -7025,11 +9791,43 @@
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          rt.ctx.drawImage(img, 0, 0, rt.canvas.width, rt.canvas.height);
+          if (!lockRuntimes.has(rt.key)) return;
+          if (rt.ctx) {
+            rt.ctx.drawImage(img, 0, 0, rt.canvas.width, rt.canvas.height);
+          }
           rt.texture.needsUpdate = true;
           rt.ready = true;
+          refreshWallTextures();
+          updateAllProjectorBeamsTextures();
+          console.log(`[LOCK] Imagen aplicada para ${rt.key}: ${url}`);
         };
-        img.onerror = () => { rt.error = 'no se pudo cargar la imagen'; };
+        img.onerror = () => {
+          // Si falló con CORS, reintentar sin CORS
+          if (img.crossOrigin) {
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => {
+              if (!lockRuntimes.has(rt.key)) return;
+              if (rt.ctx) {
+                try {
+                  rt.ctx.drawImage(fallbackImg, 0, 0, rt.canvas.width, rt.canvas.height);
+                  rt.texture.needsUpdate = true;
+                  rt.ready = true;
+                  refreshWallTextures();
+                  updateAllProjectorBeamsTextures();
+                } catch(e) {}
+              }
+            };
+            fallbackImg.onerror = () => {
+              rt.error = 'no se pudo cargar la imagen';
+              console.error('[LOCK] Error cargando imagen:', url);
+            };
+            fallbackImg.src = url;
+            rt.img = fallbackImg;
+            return;
+          }
+          rt.error = 'no se pudo cargar la imagen';
+          console.error('[LOCK] Error cargando imagen:', url);
+        };
         img.src = url;
         rt.img = img;
         return;
@@ -7040,13 +9838,36 @@
         if (!url) { rt.error = 'video sin URL'; return; }
         const v = document.createElement('video');
         v.crossOrigin = 'anonymous';
-        v.src = url;
-        v.loop = true; v.muted = true; v.playsInline = true; v.autoplay = true;
-        v.oncanplay = () => {
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.autoplay = true;
+
+        const onVideoReady = () => {
+          if (!lockRuntimes.has(rt.key)) return;
           rt.ready = true;
-          v.play().catch(() => { /* noop */ });
+          v.play().catch(e => console.warn('[LOCK] Error autoplay video:', e));
+          if (rt.ctx) {
+            rt.ctx.drawImage(v, 0, 0, rt.canvas.width, rt.canvas.height);
+          }
+          rt.texture.needsUpdate = true;
+          refreshWallTextures();
+          updateAllProjectorBeamsTextures();
+          console.log(`[LOCK] Video listo para ${rt.key}: ${url}`);
         };
-        v.onerror = () => { rt.error = 'no se pudo cargar el video'; };
+
+        v.oncanplay = onVideoReady;
+        v.onloadeddata = onVideoReady;
+        v.onerror = (e) => {
+          rt.error = 'no se pudo cargar el video';
+          console.error('[LOCK] Error cargando video:', url, e);
+        };
+
+        v.src = url;
+        v.load();
+        if (v.readyState >= 2) {
+          onVideoReady();
+        }
         rt.video = v;
         return;
       }
@@ -7055,6 +9876,8 @@
         drawLockWebPlaceholder(rt);
         rt.ready = true;
         rt.texture.needsUpdate = true;
+        refreshWallTextures();
+        updateAllProjectorBeamsTextures();
         return;
       }
 
@@ -7073,11 +9896,20 @@
       if (rt && rt.sourceId === src.id) return rt;
       if (rt) disposeLockRuntime(key);
 
+      const type = String(src.type || '').toLowerCase() === 'effect' ? 'shader' : String(src.type || '').toLowerCase();
       const cv = document.createElement('canvas');
       cv.width = LOCK_W; cv.height = LOCK_H;
-      const ctx = cv.getContext('2d');
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, LOCK_W, LOCK_H);
+
+      let ctx = null;
+      if (type !== 'shader') {
+        // Para imágenes, videos y web usamos un canvas 2D
+        ctx = cv.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, LOCK_W, LOCK_H);
+      }
+      // NOTA: Si type === 'shader', NO se debe llamar a cv.getContext('2d'),
+      // ya que bloquearía la inicialización del contexto WebGL en Shaders.initShader().
+
       const texture = new THREE.CanvasTexture(cv);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
@@ -7085,7 +9917,7 @@
       rt = {
         key, item, kind, sourceId: src.id, source: src,
         canvas: cv, ctx, texture,
-        type: String(src.type || '').toLowerCase() === 'effect' ? 'shader' : String(src.type || '').toLowerCase(),
+        type,
         ready: false, error: null,
         img: null, video: null, shaderCtx: null, uniforms: null
       };
@@ -7111,12 +9943,12 @@
       if (!lockRuntimes.size) return;
       lockRuntimes.forEach(rt => {
         if (rt.type === 'shader') {
-          if (rt.shaderCtx && typeof Shaders !== 'undefined') {
-            Shaders.render(rt.shaderCtx, rt.canvas);
+          // El loop de requestAnimationFrame de Shaders.render actualiza rt.canvas continuamente
+          if (rt.ready) {
             rt.texture.needsUpdate = true;
           }
         } else if (rt.type === 'video') {
-          if (rt.video && rt.video.readyState >= 2) {
+          if (rt.video && rt.video.readyState >= 2 && rt.ctx) {
             rt.ctx.drawImage(rt.video, 0, 0, rt.canvas.width, rt.canvas.height);
             rt.texture.needsUpdate = true;
             rt.ready = true;
@@ -7145,7 +9977,7 @@
       refreshWallTextures();
       updateAllProjectorBeamsTextures();
       renderHierarchy();
-      saveRoom3DConfigToServer();
+      saveRoom3DConfigToServer(false);
       const kindLabel = kind === 'projector' ? 'Proyector' : 'Pantalla';
       showToast(`🔒 ${kindLabel} fijado a "${item.lockSource.name}"`);
       return item.lockSource;
@@ -7160,7 +9992,7 @@
       refreshWallTextures();
       updateAllProjectorBeamsTextures();
       renderHierarchy();
-      saveRoom3DConfigToServer();
+      saveRoom3DConfigToServer(false);
       showToast('🔓 Lock quitado: vuelve a responder a la botonera');
     }
 
@@ -7180,13 +10012,19 @@
       syncLockRuntimes();
       const lockActivo = lockRuntimes.size > 0;
 
+      // Determinar la fuente de video/imagen/shader global de la botonera
+      let globalSrc = null;
       if (currentContent.type === 'shader' && webglShaderCtx && offscreenShaderCanvas) {
-        updateWallTextures(offscreenShaderCanvas);
+        globalSrc = offscreenShaderCanvas;
       } else if (currentContent.type === 'video' && videoElement && videoElement.readyState >= 2) {
-        updateWallTextures(videoElement);
-      } else if (lockActivo) {
-        // Sin contenido global: igual hay que refrescar los elementos lockeados
-        updateWallTextures(null);
+        globalSrc = videoElement;
+      } else if (currentContent.type === 'image' && currentLoadedImage) {
+        globalSrc = currentLoadedImage;
+      }
+
+      // Si hay contenido global activo O hay elementos lockeados que refrescar
+      if (globalSrc || lockActivo) {
+        updateWallTextures(globalSrc);
       }
 
       // 1. Escalar cotas técnicas 3D dinámicamente según la distancia de la cámara (Requisito 5)
@@ -7504,6 +10342,15 @@
         document.getElementById('control-panel').classList.add('panel-hidden');
       });
 
+      const tbSave = document.getElementById('tb-save');
+      if (tbSave) {
+        tbSave.addEventListener('click', () => saveCompositionPermanent(tbSave));
+      }
+      const btnHdrSave = document.getElementById('btnHeaderSave');
+      if (btnHdrSave) {
+        btnHdrSave.addEventListener('click', () => saveCompositionPermanent(btnHdrSave));
+      }
+
       // Mapeo
       document.getElementById('btnMapDuplicated').addEventListener('click', () => set3DMappingMode('duplicated'));
       document.getElementById('btnMapExtended').addEventListener('click', () => set3DMappingMode('extended'));
@@ -7603,6 +10450,14 @@
           const newType = normalizeScreenType(e.target.value);
           const prevType = normalizeScreenType(selectedScreen.screenType);
           selectedScreen.screenType = newType;
+          if (newType === 'calco') {
+            // 🖼️ Un calco no lleva lock ni slices
+            selectedScreen.lockSource = null;
+            selectedScreen.sliceIndex = -1;
+          } else if (prevType === 'calco') {
+            selectedScreen.calcoUrl = null;
+            selectedScreen.calcoName = null;
+          }
           rebuildScreens3D();
           updateScreensSelectUI();
           if (selectedScreen) selectScreen(selectedScreen.id);
@@ -7610,6 +10465,9 @@
           if (newType === 'projector' && prevType !== 'projector') {
             addProjectorForScreen(selectedScreen);
             showToast(`Tipo cambiado a "${SCREEN_TYPE_LABELS[newType]}" + proyector agregado`);
+          } else if (newType === 'calco' && prevType !== 'calco' && !selectedScreen.calcoUrl) {
+            showToast(`Tipo cambiado a "${SCREEN_TYPE_LABELS[newType]}" — elegí la imagen`);
+            openCalcoImagePicker({ existingId: selectedScreen.id });
           } else {
             showToast(`Tipo de pantalla: ${SCREEN_TYPE_LABELS[newType]}`);
           }
@@ -7617,6 +10475,13 @@
       }
 
       // Presets de Escenario
+      const btnPreCur = document.getElementById('btnPresetCuratorTriptych');
+      if (btnPreCur) {
+        btnPreCur.addEventListener('click', () => {
+          applyCuratorTriptychPreset();
+        });
+      }
+
       const btnPre4W = document.getElementById('btnPreset4Walls');
       if (btnPre4W) {
         btnPre4W.addEventListener('click', () => {
@@ -7821,6 +10686,33 @@
       bindScreenDim('screenAncho', 'screenAnchoNum', 'width');
       bindScreenDim('screenAlto', 'screenAltoNum', 'height');
       bindScreenDim('screenLargo', 'screenLargoNum', 'depth');
+
+      // Botones rápidos de tamaño TV real (32", 46", 55")
+      const applyQuickTvSize = (w, h, d, label) => {
+        if (!selectedScreen) {
+          showToast('Seleccioná una pantalla primero para cambiar su tamaño');
+          return;
+        }
+        selectedScreen.width = w;
+        selectedScreen.height = h;
+        selectedScreen.depth = d;
+        selectedScreen.screenType = 'touch';
+        selectedScreen._sizeTouched = true;
+        rebuildScreens3D();
+        if (selectedScreen) selectScreen(selectedScreen.id);
+        updateScreenUIControls();
+        renderHierarchy();
+        renderInspector();
+        saveRoom3DConfigToServer();
+        showToast(`Tamaño fijado a ${label} (${Math.round(w * 100)}×${Math.round(h * 100)} cm)`);
+      };
+
+      const q32 = document.getElementById('btnQuickSetTV32');
+      if (q32) q32.addEventListener('click', () => applyQuickTvSize(0.73, 0.42, 0.07, 'TV 32"'));
+      const q46 = document.getElementById('btnQuickSetTV46');
+      if (q46) q46.addEventListener('click', () => applyQuickTvSize(1.04, 0.60, 0.08, 'TV 46"'));
+      const q55 = document.getElementById('btnQuickSetTV55');
+      if (q55) q55.addEventListener('click', () => applyQuickTvSize(1.23, 0.71, 0.08, 'TV 55"'));
 
       // Posición y Rotación de Pantalla (Sliders + Inputs numéricos)
       function updateSelectedScreenTransforms(fromNumInputs = false, shouldSave = false) {
@@ -8379,6 +11271,7 @@
         termsInp.addEventListener('change', saveRoom3DConfigToServer);
       }
 
+      setupFloorUI();
       updateUserDockUI();
 
       // Inicializar UI de presupuesto y arrancar por defecto en Modo User
@@ -8430,7 +11323,12 @@
       isAdminMode = !!enable;
       const panel = document.getElementById('control-panel');
       const toolbar = document.getElementById('toolbar');
-      
+
+      // Modo vista (link de preset con &ui=0): la clase `preset-clean-ui` fuerza
+      // display:none !important sobre el panel y la toolbar, así que la tecla P no lograba
+      // abrir nada (bug reportado). Al entrar en Admin la sacamos; al salir la devolvemos.
+      if (PRESET_CLEAN_UI) document.body.classList.toggle('preset-clean-ui', !isAdminMode);
+
       if (panel) panel.classList.toggle('panel-hidden', !isAdminMode);
       if (toolbar) toolbar.classList.toggle('toolbar-hidden', !isAdminMode);
       
@@ -8763,6 +11661,25 @@
           if (data.width) ROOM_WIDTH = data.width;
           if (data.height) ROOM_HEIGHT = data.height;
           createRoom();
+        }
+      });
+
+      // 🧠 AGENTE / API — una instalación completa se aplicó en el servidor.
+      // Llega la config entera (pantallas, proyectores, sala, contactos de input)
+      // y se aplica EN VIVO sin recargar la página.
+      socket.on('stageConfig', (payload) => {
+        const config = (payload && payload.config) ? payload.config : payload;
+        if (!config || typeof config !== 'object') return;
+        console.log('[3D] Instalación aplicada por agente/API, refrescando escena…', payload && payload.source);
+        try {
+          applyFullConfiguration(config);
+          if (config.mappingMode) set3DMappingMode(config.mappingMode, true);
+          createRoom();
+          renderHierarchy && renderHierarchy();
+          renderInspector && renderInspector();
+          showToast('🧠 Instalación aplicada (' + ((config.screens || []).length) + ' pantallas)');
+        } catch (e) {
+          console.warn('[3D] Error aplicando stageConfig:', e);
         }
       });
 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bake de pose (animación → geometría estática) + silueta blanca</title>
+<style>
+  html,body{margin:0;height:100%;background:#0f1117;color:#cfd6e2;font-family:monospace;overflow:hidden}
+  #st{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px}
+  #st b{font-size:34px}
+  #st span{font-size:16px;color:#8b93a3;max-width:900px;white-space:pre-line}
+</style>
+</head>
+<body>
+<div id="st"><b id="big">…</b><span id="msg">cargando</span></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+<script>
+const Q = new URLSearchParams(location.search);
+const FILE = Q.get('file') || 'cand_xbot.glb';
+const ANIM = Q.get('anim') || '';
+const T    = Number(Q.get('t') || 0);
+const OUT  = Q.get('out') || 'persona-blanca.glb';
+const WHITE = Q.get('white') !== '0';
+const big = document.getElementById('big'), msg = document.getElementById('msg');
+const say = (b, m) => { big.textContent = b; msg.textContent = m; window.__bake = { status: b, msg: m }; };
+window.addEventListener('error', e => say('❌ ERROR JS', String(e.message)));
+
+// Geometría "skinned" → estática (misma cuenta que el shader de three)
+function bakeSkinnedMesh(sm) {
+  const g = sm.geometry, pos = g.attributes.position, nor = g.attributes.normal;
+  const si = g.attributes.skinIndex, sw = g.attributes.skinWeight;
+  const pts = pos.count;
+  const outPos = new Float32Array(pts * 3);
+  const outNor = nor ? new Float32Array(pts * 3) : null;
+  const bm = sm.bindMatrix, bmi = sm.bindMatrixInverse, mats = sm.skeleton.boneMatrices;
+  const siArr = si.array, swArr = sw.array, siStep = si.itemSize || 4, siOff = si.offset || 0;
+  const v = new THREE.Vector3(), n = new THREE.Vector3(), acc = new THREE.Matrix4();
+  const tmp = new THREE.Matrix4();
+  for (let i = 0; i < pts; i++) {
+    v.fromBufferAttribute(pos, i).applyMatrix4(bm);
+    if (outNor) n.fromBufferAttribute(nor, i);
+    acc.elements.fill(0);
+    for (let k = 0; k < 4; k++) {
+      const bi = siArr[siOff + i * siStep + k], w = swArr[siOff + i * siStep + k];
+      if (!w) continue;
+      const e = tmp.fromArray(mats, bi * 16).elements, a = acc.elements;
+      for (let j = 0; j < 16; j++) a[j] += w * e[j];
+    }
+    v.applyMatrix4(acc).applyMatrix4(bmi);
+    if (outNor) { n.applyMatrix4(acc).normalize(); }
+    outPos[i*3] = v.x; outPos[i*3+1] = v.y; outPos[i*3+2] = v.z;
+    if (outNor) { outNor[i*3] = n.x; outNor[i*3+1] = n.y; outNor[i*3+2] = n.z; }
+  }
+  const ng = new THREE.BufferGeometry();
+  ng.setAttribute('position', new THREE.BufferAttribute(outPos, 3));
+  // ⚠️ Conservar los índices: sin ellos computeVertexNormals() da normales por cara (aspecto
+  // "astillado"). Con los índices las normales salen suaves y la silueta se ve limpia.
+  if (g.index) ng.setIndex(g.index.clone());
+  ng.computeVertexNormals();
+  ng.computeBoundingBox(); ng.computeBoundingSphere();
+  return ng;
+}
+
+say('…', 'Cargando ' + FILE);
+new THREE.GLTFLoader().load(FILE, (gltf) => {
+  try {
+    const src = gltf.scene;
+    src.updateMatrixWorld(true);
+    // 1) aplicar la animación en el tiempo t
+    if (ANIM && gltf.animations && gltf.animations.length) {
+      const clip = gltf.animations.find(c => c.name === ANIM) || gltf.animations[0];
+      const mixer = new THREE.AnimationMixer(src);
+      const act = mixer.clipAction(clip); act.play();
+      mixer.setTime(T);
+      src.updateMatrixWorld(true);
+      say('…', 'Pose "' + clip.name + '" t=' + T + 's aplicada');
+    }
+    // 2) recolectar meshes (bakeando los skinned)
+    const out = new THREE.Group();
+    let baked = 0, verts = 0, tris = 0;
+    src.traverse((node) => {
+      if (!node.isMesh && !node.isSkinnedMesh) return;
+      let geom;
+      if (node.isSkinnedMesh) {
+        node.skeleton.update();
+        geom = bakeSkinnedMesh(node);
+        // a espacio mundo
+        geom.applyMatrix4(node.matrixWorld);
+        baked++;
+      } else {
+        geom = node.geometry.clone();
+        geom.applyMatrix4(node.matrixWorld);
+      }
+      verts += geom.attributes.position.count;
+      tris += (geom.index ? geom.index.count : geom.attributes.position.count) / 3;
+      const matName = Array.isArray(node.material) ? (node.material[0] || {}).name : node.material.name;
+      const mat = WHITE
+        ? new THREE.MeshStandardMaterial({ name: matName || 'blanco', color: 0xffffff, roughness: 0.55, metalness: 0.0 })
+        : node.material;
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.name = (node.name || 'mesh') + '_baked';
+      out.add(mesh);
+    });
+    // 3) normalizar: 1.80 m de alto, pies en y=0, centro en x/z = 0
+    out.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(out);
+    const size = new THREE.Vector3(); box.getSize(size);
+    if (size.z > size.y * 1.4) { out.rotation.x = -Math.PI / 2; out.updateMatrixWorld(true); box.setFromObject(out); box.getSize(size); }
+    const k = size.y > 0.001 ? 1.80 / size.y : 1;
+    out.scale.setScalar(k);
+    out.updateMatrixWorld(true);
+    const box2 = new THREE.Box3().setFromObject(out);
+    const c = new THREE.Vector3(); box2.getCenter(c);
+    out.position.set(-c.x, -box2.min.y, -c.z);
+    say('…', 'Baked: ' + baked + ' skinned · ' + Math.round(verts) + ' verts · ' + Math.round(tris) + ' tris · alto ' + size.y.toFixed(2) + ' → k ' + k.toFixed(3));
+
+    // 4) exportar GLB y subirlo   (⚠️ r128: parse(input, onDone, options) — el onError NO existe)
+    new THREE.GLTFExporter().parse(out, (buf) => {
+      const isBin = (typeof ArrayBuffer !== 'undefined') && (buf instanceof ArrayBuffer);
+      const bytes = isBin ? buf.byteLength : (buf && buf.byteLength) || 0;
+      const body = isBin ? buf : new Blob([JSON.stringify(buf)], { type: 'application/json' });
+      fetch(location.origin + '/jpstagedesign/api/uploads/' + OUT, {
+        method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: body
+      }).then(r => r.json()).then(j => {
+        say(j && j.ok ? '✅ SUBIDO' : '❌ SUBIDA FALLÓ',
+          OUT + ' · ' + Math.round(bytes / 1024) + ' KB\nbinario: ' + isBin + '\nserver: ' + JSON.stringify(j) + '\n' + msg.textContent);
+      }).catch(e => say('❌ POST ERROR', String(e)));
+    }, { binary: true });
+  } catch (e) {
+    say('❌ EXCEPCIÓN', String((e && e.stack) || e));
+  }
+}, undefined, (e) => say('❌ LOAD ERROR', String(e && (e.message || e.type) || e)));
+</script>
+</body>
+</html>
