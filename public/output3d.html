@@ -3204,7 +3204,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · web-oclusion';
+    const BUILD_3D = '2026-10-21 · gizmo+raycast';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -7330,6 +7330,28 @@
     }
 
     // ------------------------------------------------------------ eventos
+
+    /**
+     * ¿El click cae sobre las FLECHITAS del gizmo del objeto seleccionado?
+     * TransformControls sólo actualiza `axis` en cada pointermove SOBRE EL CANVAS:
+     * si el mouse viene del panel, del toolbar o de otra ventana, `axis` queda
+     * viejo o en null y el press se tomaba como toque a la pantalla (el shader
+     * reaccionaba y, en modo web, el click entraba a la página) mientras el gizmo
+     * también arrancaba. Acá se fuerza el hover con la posición EXACTA del press:
+     * si hay eje, gana el GIZMO.
+     */
+    function touchGizmoAxisAt(clientX, clientY) {
+      const tc = transformControls;
+      if (!tc || !tc.object || tc.enabled === false || tc.visible === false) return null;
+      try {
+        const ndc = touchNDC(clientX, clientY);
+        if (typeof tc.pointerHover === 'function') {
+          tc.pointerHover({ x: ndc.x, y: ndc.y, button: 0 });
+        }
+      } catch (e) { /* sin pointerHover público: se usa el axis que haya */ }
+      return tc.axis || null;
+    }
+
     function touchOnDown(e) {
       if (!touchInteract.enabled) return;
 
@@ -7341,7 +7363,10 @@
 
       if (!renderer || e.target !== renderer.domElement) return;
       if (e.button !== undefined && e.button !== 0) return;
-      if (transformControls && (transformControls.dragging || transformControls.axis)) return;
+
+      // 🎯 El GIZMO tiene PRIORIDAD sobre el raycast: si el press cae en una
+      // flecha del objeto seleccionado, no se toca la pantalla (ni shader ni web).
+      if (transformControls && (transformControls.dragging || touchGizmoAxisAt(e.clientX, e.clientY))) return;
 
       const s = touchPickScreen(e.clientX, e.clientY);
       if (!s) return;
@@ -7367,6 +7392,9 @@
 
     function touchOnMove(e) {
       if (!touchInteract.enabled) return;
+
+      // Mientras se arrastra el GIZMO no se toca nada: ni marcador ni shader/web.
+      if (transformControls && transformControls.dragging) return;
 
       if (touchState.active) {
         // Arrastrando sobre la pantalla: se sigue alimentando el shader con el
@@ -7397,6 +7425,17 @@
     function touchOnUp(e) {
       if (!touchState.active) return;
       if (e && e.pointerId !== undefined && touchState.pointerId !== null && e.pointerId !== touchState.pointerId) return;
+
+      // Si el gesto terminó siendo un arrastre del GIZMO, se limpia el estado
+      // del toque SIN re-habilitar OrbitControls (TransformControls lo maneja).
+      if (transformControls && transformControls.dragging) {
+        touchState.active = false;
+        touchState.pointerId = null;
+        touchState.screenId = null;
+        if (jpView3D && jpView3D.releasePointer) jpView3D.releasePointer();
+        touchHideMarker();
+        return;
+      }
 
       // 🖱️ cerrar el gesto DENTRO de la página web (pointerup + mouseup + click)
       if (e && typeof e.clientX === 'number') {
@@ -7458,6 +7497,7 @@
       marker: () => touchMarker,
       camera: () => camera,
       controls: () => controls,
+      transform: () => transformControls,
       mapping: () => mappingMode,
       setMapping: (m) => set3DMappingMode(m),
       dimensions: () => {
