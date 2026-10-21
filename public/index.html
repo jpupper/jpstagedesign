@@ -10,6 +10,25 @@
   <link rel="stylesheet" href="/jpstagedesign/css/menu.css?v=presets1">
 </head>
 <body class="menu-body">
+
+  <!-- ?embed=1 → sólo la botonera (para incrustarla en el presupuesto) -->
+  <script>
+    (function () {
+      if (!/[?&]embed=1/.test(location.search)) return;
+      var html = document.documentElement;
+      html.classList.add('embed-botonera');
+      var st = document.createElement('style');
+      st.textContent = [
+        'html.embed-botonera body{background:transparent!important;overflow:hidden!important}',
+        'html.embed-botonera .menu-header,html.embed-botonera #mode-advanced,',
+        'html.embed-botonera #presentacion,html.embed-botonera .style-selector,',
+        'html.embed-botonera footer,html.embed-botonera .modal{display:none!important}',
+        'html.embed-botonera .menu-container{padding:0!important;max-width:none!important;margin:0!important}',
+        'html.embed-botonera #mode-user{min-height:100vh!important;padding:6px!important}'
+      ].join('');
+      document.head.appendChild(st);
+    })();
+  </script>
   <!-- Canvas para el shader de fondo -->
   <canvas id="bgShaderCanvas" class="bg-shader-canvas"></canvas>
   

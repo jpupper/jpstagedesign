@@ -335,6 +335,40 @@
         border: 1px solid #99ccee !important;
       }
     }
+
+    /* ══ Demo en vivo: escenario 3D, botonera y output dentro del presupuesto ══ */
+    .demo-intro { color: var(--text-muted); font-size: 13px; margin: -4px 0 14px; }
+    .demo-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; margin-bottom: 26px; }
+    .demo-card { background: rgba(10,12,16,.7); border: 1px solid var(--border-color); border-radius: 14px;
+                 overflow: hidden; display: flex; flex-direction: column; }
+    .demo-card--full { grid-column: 1 / -1; }
+    .demo-head { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                 padding: 10px 12px; border-bottom: 1px solid var(--border-color); font-size: 11px;
+                 letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .demo-head b { color: var(--text-main); }
+    .demo-actions { display: flex; gap: 6px; }
+    .demo-actions button { width: 26px; height: 24px; border-radius: 7px; border: 1px solid var(--border-color);
+                           background: rgba(255,255,255,.04); color: var(--text-main); cursor: pointer;
+                           font-size: 12px; line-height: 1; }
+    .demo-actions button:hover { background: rgba(0,229,255,.14); border-color: rgba(0,229,255,.4); }
+    .demo-frame { position: relative; height: 340px; background: #07080b; }
+    .demo-card--full .demo-frame { height: 320px; }
+    .demo-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #07080b; }
+    .demo-load { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer;
+                 background: radial-gradient(circle at 50% 45%, rgba(0,229,255,.12), rgba(7,8,11,.96) 60%);
+                 color: var(--text-main); font: 600 13px/1.4 inherit; letter-spacing: .04em;
+                 display: flex; align-items: center; justify-content: center; }
+    .demo-load:hover { background: radial-gradient(circle at 50% 45%, rgba(0,229,255,.22), rgba(7,8,11,.94) 60%); }
+    .demo-frame::after { content: 'cargando…'; position: absolute; inset: 0; display: flex; align-items: center;
+                         justify-content: center; font-size: 12px; color: var(--text-muted); }
+    .demo-frame[data-listo]::after { display: none; }
+    .demo-frame:has(.demo-load)::after { display: none; }
+    .demo-hint { padding: 8px 12px; font-size: 10.5px; color: var(--text-muted); border-top: 1px solid var(--border-color); }
+    .ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 22px; }
+    .p-table td .dev-tag { display: inline-block; font-size: 9px; letter-spacing: .08em; padding: 2px 6px;
+                           border-radius: 5px; border: 1px solid rgba(0,229,255,.35); color: var(--accent); }
+    @media (max-width: 900px) { .demo-grid { grid-template-columns: 1fr; } .demo-frame { height: 260px; } }
+    @media print { .demo-grid, .demo-actions, .demo-hint, .demo-intro { display: none !important; } }
   </style>
 </head>
 <body>
@@ -355,6 +389,51 @@
         <div>Validez: 30 días</div>
       </div>
     </header>
+
+    <!-- ══ DEMO EN VIVO: los módulos del proyecto funcionando acá adentro ══ -->
+    <div class="p-section-title">Demo en vivo · Output 3D, botonera y salida</div>
+    <p class="demo-intro">
+      Los módulos del proyecto corriendo dentro de este presupuesto: el <b>escenario 3D</b> simulado a escala,
+      la <b>botonera</b> que lo controla y la <b>salida limpia</b> que va a la pantalla. Apretá un botón de la
+      botonera y el escenario cambia: es el mismo motor que queda instalado.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-card">
+        <div class="demo-head">
+          <span><b>🧊 Output 3D</b> · escenario a escala + contenido en pantalla</span>
+          <span class="demo-actions">
+            <button data-demo-act="reload" title="Recargar">↻</button>
+            <button data-demo-act="full" title="Pantalla completa">⤢</button>
+          </span>
+        </div>
+        <div class="demo-frame" data-demo="3d"></div>
+        <div class="demo-hint">Arrastrá para orbitar · rueda para zoom · el contenido se reproduce sobre las pantallas</div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-head">
+          <span><b>🎛️ Botonera</b> · controlador de 6 botones</span>
+          <span class="demo-actions">
+            <button data-demo-act="reload" title="Recargar">↻</button>
+            <button data-demo-act="full" title="Pantalla completa">⤢</button>
+          </span>
+        </div>
+        <div class="demo-frame" data-demo="botonera"></div>
+        <div class="demo-hint">Cada botón dispara shader, imagen, video, página web o juego</div>
+      </div>
+
+      <div class="demo-card demo-card--full">
+        <div class="demo-head">
+          <span><b>🖥️ Salida / juego</b> · la señal que va a la pantalla de la sala</span>
+          <span class="demo-actions">
+            <button data-demo-act="reload" title="Recargar">↻</button>
+            <button data-demo-act="full" title="Pantalla completa">⤢</button>
+          </span>
+        </div>
+        <div class="demo-frame" data-demo="output"></div>
+        <div class="demo-hint">Salida sin interfaz: lo mismo que recibe el proyector o la pantalla LED</div>
+      </div>
+    </div>
 
     <!-- Room Specs -->
     <div class="p-section-title">Especificaciones del Espacio & Sala</div>
@@ -400,6 +479,96 @@
       </tbody>
     </table>
 
+    <!-- ══ Ficha técnica de pantallas (se completa desde la escena) ══ -->
+    <div class="p-section-title">Pantallas · números de salida</div>
+    <div class="ficha-grid" id="fichaPantallas"></div>
+    <table class="p-table">
+      <thead>
+        <tr>
+          <th>Pantalla</th>
+          <th class="text-right">Diagonal</th>
+          <th class="text-right">Ancho × Alto</th>
+          <th class="text-right">Superficie</th>
+          <th class="text-right">Resolución</th>
+          <th class="text-right">Relación</th>
+        </tr>
+      </thead>
+      <tbody id="fichaPantallasBody">
+        <tr><td colspan="6" style="color: var(--text-muted);">Cargando medidas de la escena…</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ══ Desarrollo de software ══ -->
+    <div class="p-section-title">Desarrollo de software & puesta en marcha</div>
+    <table class="p-table" id="tablaDesarrollo">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Módulo</th>
+          <th>Qué incluye</th>
+          <th class="text-right">Cant.</th>
+          <th class="text-right">Precio Unit. (USD)</th>
+          <th class="text-right">Subtotal (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><b>Botonera / controlador</b> <span class="dev-tag">ENTREGABLE</span></td>
+          <td>6 botones con parámetros propios, biblioteca de materiales (shader, imagen, video, web, juego),
+              disparo en vivo, blackout y sincronización master/slave entre pantallas</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="2400">2.400</td>
+          <td class="text-right" data-subtotal="2400">2.400</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><b>Salida del juego con la botonera</b> <span class="dev-tag">ENTREGABLE</span></td>
+          <td>Integración del juego con el controlador: mapeo del contenido a cada pantalla, estados de partida,
+              reinicio, precarga y cambio de escena sin cortar la salida</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="2600">2.600</td>
+          <td class="text-right" data-subtotal="2600">2.600</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><b>Render del Output 3D</b> <span class="dev-tag">ENTREGABLE</span></td>
+          <td>Simulador del escenario a escala real: sala, pantallas, proyectores con haz, objetos 3D, cotas,
+              mapeo (espejo / reparto) y export del preset para reinstalar la muestra</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="2200">2.200</td>
+          <td class="text-right" data-subtotal="2200">2.200</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Motor de shaders GLSL + índice</td>
+          <td>Reproducción de los shaders del editor sobre cada pantalla, parámetros por uniform, fondo
+              generativo de la botonera y biblioteca indexada</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="1800">1.800</td>
+          <td class="text-right" data-subtotal="1800">1.800</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Interacción con sensores (LIDAR / toque)</td>
+          <td>Puntos del sensor normalizados, toque sobre la pantalla 3D por raycast, calibración y
+              traducción de la interacción a la página o al juego que corre arriba</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="1600">1.600</td>
+          <td class="text-right" data-subtotal="1600">1.600</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Puesta en marcha + 30 días de soporte</td>
+          <td>Instalación del servidor de la obra, carga de presets, calibración final en sala y soporte
+              remoto durante el primer mes de exhibición</td>
+          <td class="text-right">1</td>
+          <td class="text-right" data-unit="900">900</td>
+          <td class="text-right" data-subtotal="900">900</td>
+        </tr>
+      </tbody>
+    </table>
+
     <!-- Dynamic Budget Categories -->
     <div id="dynamicBudgetCategoriesContainer">
       <!-- Se genera dinámicamente desde config.budgetCategories -->
@@ -415,7 +584,11 @@
         <!-- Subtotales dinámicos por categoría -->
       </div>
       <div class="summary-row total">
-        <span>INVERSIÓN TOTAL:</span>
+        <span>INVERSIÓN TOTAL:</span>      <div class="summary-row total" style="border-top: 1px solid rgba(0,229,255,.35); margin-top: 6px;">
+        <span>TOTAL PROYECTO · equipamiento + desarrollo:</span>
+        <span class="total-amount" id="sumTotalProyecto">$ 0.00</span>
+      </div>
+
         <span class="total-amount" id="sumGrandTotal">$ 0.00</span>
       </div>
     </div>
@@ -642,7 +815,16 @@
     }
 
     async function loadDataFromServer() {
-      const candidates = ['/jpstagedesign/api/room3d-config', '/api/room3d-config', '/futurex/api/room3d-config'];
+      // La API vive en el backend (VPS). En el dominio público /jpstagedesign/api/... da 404
+      // (lo sirve el FTP), así que sin esto la página caía al DEFAULT y no traía la escena real.
+      const ORIGEN_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? '' : 'https://vps-4455523-x.dattaweb.com';
+      const candidates = [
+        ORIGEN_API + '/jpstagedesign/api/room3d-config',
+        '/jpstagedesign/api/room3d-config',
+        '/api/room3d-config',
+        '/futurex/api/room3d-config'
+      ];
       for (const url of candidates) {
         try {
           const res = await fetch(url + '?t=' + Date.now());
@@ -674,5 +856,187 @@
   </script>
   <!-- botón FSC: solo el isotipo, abajo a la izquierda -->
   <script src="https://vps-4455523-x.dattaweb.com/jpconnect/js/fsc-button.js?v=10"></script>
+  <!-- ══ Demo en vivo + fichas: monta los iframes y suma el desarrollo al total ══ -->
+  <script>
+  (function () {
+    var FUENTES = {
+      '3d': '/jpstagedesign/output3d.html?embed=1',
+      'botonera': '/jpstagedesign/?embed=1',
+      'output': '/jpstagedesign/output.html?embed=1'
+    };
+
+    function montar(card) {
+      var frame = card.querySelector('.demo-frame');
+      if (!frame || frame.getAttribute('data-listo')) return;
+      var key = frame.getAttribute('data-demo');
+      if (!FUENTES[key]) return;
+      var ifr = document.createElement('iframe');
+      ifr.src = FUENTES[key] + '&_=' + Date.now();
+      ifr.setAttribute('allow', 'fullscreen; autoplay; clipboard-read; clipboard-write');
+      ifr.setAttribute('loading', 'lazy');
+      ifr.setAttribute('title', 'Demo ' + key);
+      ifr.addEventListener('load', function () { frame.setAttribute('data-listo', '1'); });
+      frame.appendChild(ifr);
+    }
+
+    // Nada se carga solo: el presupuesto tiene que abrir liviano. Cada panel trae su botón.
+    var ETIQUETAS = { '3d': 'el escenario 3D', 'botonera': 'la botonera', 'output': 'la salida' };
+    [].slice.call(document.querySelectorAll('.demo-card')).forEach(function (card) {
+      var frame = card.querySelector('.demo-frame');
+      if (!frame || frame.querySelector('.demo-load')) return;
+      var key = frame.getAttribute('data-demo');
+      var btn = document.createElement('button');
+      btn.className = 'demo-load';
+      btn.setAttribute('data-demo-act', 'cargar');
+      btn.textContent = '▶ Cargar ' + (ETIQUETAS[key] || 'la demo');
+      frame.appendChild(btn);
+    });
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-demo-act]');
+      if (!b) return;
+      var card = b.closest('.demo-card');
+      if (!card) return;
+      var frame = card.querySelector('.demo-frame');
+      var ifr = frame && frame.querySelector('iframe');
+      var act = b.getAttribute('data-demo-act');
+      if (act === 'cargar') {
+        var pb = frame.querySelector('.demo-load');
+        if (pb) pb.remove();
+        montar(card);
+        frame.setAttribute('data-listo', '1');
+        return;
+      }
+      if (act === 'reload') {
+        if (ifr) { frame.removeAttribute('data-listo'); ifr.src = ifr.src.split('&_=')[0] + '&_=' + Date.now(); }
+        else { montar(card); }
+      } else if (act === 'full' && ifr && ifr.requestFullscreen) {
+        ifr.requestFullscreen();
+      }
+    });
+
+    // ── ficha de pantallas (desde la misma escena que el resto del presupuesto) ──
+    function cm(m) { return (Math.round(m * 100) / 100).toFixed(2); }
+    function renderFicha(config) {
+      var cuerpo = document.getElementById('fichaPantallasBody');
+      var cards = document.getElementById('fichaPantallas');
+      if (!cuerpo || !config) return;
+      var pantallas = (config.screens || []).filter(function (s) { return s && s.width > 0 && s.height > 0; });
+      if (!pantallas.length) {
+        cuerpo.innerHTML = '<tr><td colspan="6" style="color: var(--text-muted);">La escena no tiene pantallas cargadas.</td></tr>';
+        if (cards) cards.innerHTML = '';
+        return;
+      }
+      var filas = '', totalM2 = 0, totalPx = 0;
+      pantallas.forEach(function (sc) {
+        var anchoM = sc.width, altoM = sc.height;
+        var m2 = anchoM * altoM;
+        var diagIn = Math.round(Math.sqrt(anchoM * anchoM + altoM * altoM) / 0.0254);
+        // Señal estándar: 1920 px de ancho por pantalla, alto según su relación de aspecto.
+        var px = 1920;
+        var py = Math.round(px * altoM / anchoM / 2) * 2;   // par, como el timing real
+        totalM2 += m2; totalPx += px * py;
+        filas += '<tr><td>' + (sc.name || 'Pantalla') + '</td>' +
+          '<td class="text-right">' + diagIn + '″</td>' +
+          '<td class="text-right">' + cm(anchoM) + ' × ' + cm(altoM) + ' m</td>' +
+          '<td class="text-right">' + m2.toFixed(2) + ' m²</td>' +
+          '<td class="text-right">' + px + ' × ' + py + ' px</td>' +
+          '<td class="text-right">' + (anchoM / altoM).toFixed(2) + ' : 1</td></tr>';
+      });
+      cuerpo.innerHTML = filas;
+      if (cards) {
+        cards.innerHTML = [
+          ['Pantallas en escena', pantallas.length + ' u.'],
+          ['Superficie total', totalM2.toFixed(2) + ' m²'],
+          ['Resolución conjunta', (totalPx / 1e6).toFixed(1) + ' MP'],
+          ['Señal', '1080p por pantalla · sincronía master/slave']
+        ].map(function (par) {
+          return '<div class="spec-card"><div class="spec-card-label">' + par[0] +
+                 '</div><div class="spec-card-value">' + par[1] + '</div></div>';
+        }).join('');
+      }
+    }
+
+    // ── total del proyecto = lo que calcula la página + desarrollo ──
+    function numero(txt) {
+      var t = String(txt || '').replace(/[^0-9.,]/g, '');
+      if (!t) return 0;
+      if (/,\d{1,2}$/.test(t)) { t = t.replace(/\./g, '').replace(',', '.'); }   // 9.000,00 (es-AR)
+      else { t = t.replace(/,/g, ''); }                                          // 9,000.00 (en-US)
+      var v = parseFloat(t);
+      return isNaN(v) ? 0 : v;
+    }
+    function subtotalDesarrollo() {
+      var sum = 0;
+      [].slice.call(document.querySelectorAll('#tablaDesarrollo [data-subtotal]')).forEach(function (td) {
+        sum += parseFloat(td.getAttribute('data-subtotal')) || 0;
+      });
+      return sum;
+    }
+    var pintandoTotal = false;
+    function pintarTotal() {
+      if (pintandoTotal) return;
+      pintandoTotal = true;
+      var base = document.getElementById('sumGrandTotal');
+      var out = document.getElementById('sumTotalProyecto');
+      if (!base || !out) return;
+      var dev = subtotalDesarrollo();
+      var total = numero(base.textContent) + dev;
+      out.textContent = '$ ' + total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      pintandoTotal = false;
+    }
+
+    // OJO: observar SOLO el total de hardware. Si se observa el .summary-box entero,
+    // pintarTotal() escribe dentro del área observada y se arma un bucle que congela la página.
+    var sumHW = document.getElementById('sumGrandTotal');
+    if (sumHW && 'MutationObserver' in window) {
+      new MutationObserver(function () { pintarTotal(); }).observe(sumHW, { childList: true, subtree: true, characterData: true });
+    }
+
+    // engancharse al render de la página (para la ficha de pantallas)
+    if (typeof window.renderBudget === 'function' && !window.__renderBudgetConFicha) {
+      window.__renderBudgetConFicha = true;
+      var original = window.renderBudget;
+      window.renderBudget = function (config) {
+        original(config);
+        try { renderFicha(config); } catch (e) {}
+        pintarTotal();
+      };
+    }
+
+    // La ficha se llena leyendo la MISMA config que usa el presupuesto, sin depender
+    // de en qué orden se llame renderBudget().
+    function cargarFicha() {
+      var origen = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? '' : 'https://vps-4455523-x.dattaweb.com';
+      fetch(origen + '/jpstagedesign/api/room3d-config?t=' + Date.now())
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { if (d && d.config) { renderFicha(d.config); pintarTotal(); } })
+        .catch(function () {});
+    }
+
+    // El escenario 3D es la pieza que el cliente quiere ver: se monta solo si está a la vista.
+    // La botonera y la salida quedan a un click (son las más pesadas).
+    function autoCargar3D() {
+      var frame = document.querySelector('.demo-frame[data-demo="3d"]');
+      if (!frame || frame.querySelector('iframe')) return;
+      var r = frame.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) {
+        var card = frame.closest('.demo-card');
+        var b = frame.querySelector('.demo-load');
+        if (b) b.remove();
+        montar(card);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(autoCargar3D, 1200);
+      cargarFicha();
+      pintarTotal();
+      setTimeout(pintarTotal, 1500);
+    });
+    setTimeout(pintarTotal, 2500);
+  })();
+  </script>
 </body>
 </html>

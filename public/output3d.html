@@ -3401,7 +3401,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · botonera+estirar';
+    const BUILD_3D = '2026-10-21 · presupuesto+embed';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -13331,6 +13331,27 @@
 
     // Iniciar cuando el DOM esté listo
     window.addEventListener('DOMContentLoaded', init);
+  </script>
+  <!-- ?embed=1 → sólo la escena 3D (para incrustarla en el presupuesto) -->
+  <script>
+    (function () {
+      if (!/[?&]embed=1/.test(location.search)) return;
+      var html = document.documentElement;
+      html.classList.add('embed-3d');
+      var st = document.createElement('style');
+      st.textContent = [
+        'html.embed-3d #userModeFloatingBar,html.embed-3d #toolbar,',
+        'html.embed-3d #control-panel,html.embed-3d #hudDims,',
+        'html.embed-3d #miniBotonera,html.embed-3d .panel-grip,',
+        'html.embed-3d #web-occlusion-layer + *{display:none!important}',
+        'html.embed-3d body{overflow:hidden!important;background:#07080b!important}',
+        'html.embed-3d canvas{display:block!important}'
+      ].join('');
+      document.head.appendChild(st);
+      window.addEventListener('load', function () {
+        setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 400);
+      });
+    })();
   </script>
 </body>
 </html>
