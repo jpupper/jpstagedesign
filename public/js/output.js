@@ -15,6 +15,9 @@
   let currentScene = null;
   let shaderCtx = null;
   let infoTimeout = null;
+  // 🔄 Shader de jpShadereditor (motor del editor, no shaders.js)
+  let jpView = null;
+  let jpShaderName = null;
 
   // --- DETECCIÓN DE PANTALLA INDIVIDUAL (?screen=1|2|3|4) ---
   const urlParams = new URLSearchParams(window.location.search);
@@ -154,6 +157,15 @@
     });
 
     socket.on('shaderUniformsChanged', (data) => {
+      // Shader del editor: se aplica directo al renderer del motor
+      if (jpView && data && data.uniforms) {
+        const target = (data.shader || '').replace(/^(effect|shader)-/, '').toLowerCase();
+        if (!target || target === jpShaderName) {
+          Object.keys(data.uniforms).forEach(n => {
+            try { jpView.setUniform(n, data.uniforms[n]); } catch (e) { /* noop */ }
+          });
+        }
+      }
       if (shaderCtx && typeof Shaders !== 'undefined' && data && data.uniforms) {
         const activeClean = (currentScene?.shader || currentScene?.effect || currentScene?.name || '').replace(/^(effect|shader)-/, '').toLowerCase();
         const targetClean = (data.shader || '').replace(/^(effect|shader)-/, '').toLowerCase();
@@ -208,10 +220,15 @@
     // Limpiar contenedor
     clearSceneContainer();
     
+    stopJpShader();
+
     // Renderizar según tipo
     switch (scene.type) {
       case 'shader':
         renderShader(scene);
+        break;
+      case 'jpshader':
+        renderJpShader(scene);
         break;
       case 'image':
         renderImage(scene);
@@ -231,6 +248,43 @@
     showSceneInfo(scene);
   }
   
+  // --- SHADER DEL EDITOR (jpShadereditor) ---
+  // El plan y el motor los sirve jpshader-bridge.js: mismo shader que en la
+  // botonera y en el Output 3D.
+  async function renderJpShader(scene) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'scene-canvas jp-scene-canvas';
+    canvas.id = 'jpShaderCanvas';
+    canvas.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; display:block; background:#000;';
+    sceneContainer.appendChild(canvas);
+
+    const nombre = scene.shader || scene.effect || scene.name;
+    jpShaderName = String(nombre || '').toLowerCase();
+    try {
+      if (typeof JPSE === 'undefined') throw new Error('falta js/jpshader-bridge.js');
+      await JPSE.loadEngine();
+      const plan = await JPSE.getPlan(nombre);
+      jpView = JPSE.createView(canvas, plan, {
+        maxDpr: 2,
+        mouse: 'window',
+        uniforms: scene.uniforms || {},
+        onError: (t) => console.warn('[OUTPUT][JPSE]', t)
+      });
+      console.log(`[OUTPUT] jpshader "${nombre}" · ${plan.passes.length} pase(s)`);
+    } catch (err) {
+      console.error('[OUTPUT] Error con el shader del editor:', err);
+      jpShaderName = null;
+    }
+  }
+
+  function stopJpShader() {
+    if (jpView) {
+      try { jpView.destroy(); } catch (e) { /* noop */ }
+      jpView = null;
+    }
+    jpShaderName = null;
+  }
+
   // --- RENDERIZAR SHADER ---
   async function renderShader(scene) {
     const canvas = document.createElement('canvas');
@@ -325,7 +379,9 @@
   // --- MODO BLACKOUT (PANTALLA TOTALMENTE NEGRA) ---
   function renderBlackout() {
     currentScene = { id: 'blackout', label: 'BLACKOUT', type: 'blackout' };
-    
+
+    stopJpShader();
+
     if (shaderCtx) {
       Shaders.stop(shaderCtx);
       shaderCtx = null;

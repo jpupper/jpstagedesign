@@ -26,7 +26,7 @@ window.CONFIG = {
   SOCKET_URL: IS_NODE_SERVER ? '' : VPS_ORIGIN,
   SOCKET_PATH: '/jpstagedesign/socket.io',
   API_URL: (IS_NODE_SERVER ? '' : VPS_ORIGIN) + '/jpstagedesign/api',
-  FSCAUTH_URL: 'https://fullscreencode.com/fscauth',
+  FSCAUTH_URL: 'https://fullscreencode.com/jpconnect',
   
   // URLs de Output (se usan cuando el usuario hace clic en "Abrir Output Completo")
   // - En local (localhost/127.0.0.1): mismo host local

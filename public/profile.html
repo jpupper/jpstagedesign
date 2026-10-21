@@ -3,131 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi perfil — JPStageDesign</title>
+  <title>Perfil y PRESETS — JPStageDesign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/jpstagedesign/css/menu.css">
-  <style>
-    :root {
-      --pf-bg: #0d0e12;
-      --pf-card: rgba(22, 24, 30, 0.92);
-      --pf-border: rgba(255, 255, 255, 0.08);
-      --pf-accent: #00e5ff;
-      --pf-accent2: #7b2cbf;
-      --pf-text: #f0f2f5;
-      --pf-muted: #8b92a5;
-      --pf-ok: #3ddc84;
-      --pf-warn: #ffb020;
-    }
-    * { box-sizing: border-box; }
-    body.pf-body {
-      margin: 0;
-      padding: 0 0 48px;
-      font-family: 'Metropolis', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background:
-        radial-gradient(circle at 15% 0%, rgba(0, 229, 255, 0.10) 0%, transparent 45%),
-        radial-gradient(circle at 85% 10%, rgba(123, 44, 191, 0.14) 0%, transparent 45%),
-        var(--pf-bg);
-      color: var(--pf-text);
-      min-height: 100vh;
-    }
-    .pf-wrap { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
-
-    /* --- barra superior --- */
-    .pf-top {
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-      padding: 14px 0 14px; margin-bottom: 18px;
-      border-bottom: 1px solid var(--pf-border);
-    }
-    .pf-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .5px; color: var(--pf-text); text-decoration: none; }
-    .pf-brand .pf-logo {
-      width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
-      background: linear-gradient(135deg, var(--pf-accent), var(--pf-accent2));
-      color: #06121a; font-weight: 900; font-size: 14px;
-    }
-    .pf-brand small { display: block; font-weight: 400; font-size: 11px; color: var(--pf-muted); letter-spacing: 0; }
-    .pf-nav { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .pf-nav a {
-      font-size: 13px; color: var(--pf-muted); text-decoration: none;
-      padding: 7px 12px; border-radius: 9px; border: 1px solid transparent;
-    }
-    .pf-nav a:hover { color: var(--pf-text); border-color: var(--pf-border); background: rgba(255,255,255,0.04); }
-    /* El widget de sesión del ecosistema (menu.css) es absolute para la cabecera de la
-       botonera; acá vive dentro de la nav, así que lo devolvemos al flujo. */
-    .pf-nav .auth-widget { position: static; top: auto; right: auto; margin: 0; }
-
-    /* --- tarjetas --- */
-    .pf-card {
-      background: var(--pf-card); border: 1px solid var(--pf-border); border-radius: 18px;
-      padding: 22px; margin-bottom: 18px;
-    }
-    .pf-card h2 { margin: 0 0 4px; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-accent); }
-    .pf-card .pf-sub { margin: 0 0 18px; font-size: 13px; color: var(--pf-muted); }
-
-    /* --- cabecera de cuenta --- */
-    .pf-account { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-    .pf-avatar {
-      width: 84px; height: 84px; border-radius: 22px; overflow: hidden; flex: 0 0 auto;
-      background: linear-gradient(135deg, rgba(0,229,255,.25), rgba(123,44,191,.35));
-      border: 1px solid var(--pf-border); display: grid; place-items: center;
-      font-size: 30px; font-weight: 700; color: #dffaff;
-    }
-    .pf-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pf-id { min-width: 240px; flex: 1 1 320px; }
-    .pf-name { font-size: 26px; font-weight: 700; margin: 0 0 2px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .pf-handle { font-size: 13px; color: var(--pf-muted); margin: 0 0 8px; }
-    .pf-bio { font-size: 13px; color: #c9cfdd; margin: 8px 0 0; max-width: 60ch; }
-    .pf-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .pf-badge {
-      font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(0,229,255,.35);
-      color: var(--pf-accent); background: rgba(0,229,255,.08);
-    }
-    .pf-badge.admin { border-color: rgba(255,176,32,.4); color: var(--pf-warn); background: rgba(255,176,32,.08); }
-    .pf-badge.soft { border-color: var(--pf-border); color: var(--pf-muted); background: rgba(255,255,255,.04); }
-
-    .pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 18px; }
-    .pf-field { border: 1px solid var(--pf-border); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,.02); }
-    .pf-field .k { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-muted); }
-    .pf-field .v { font-size: 14px; margin-top: 4px; word-break: break-word; }
-    .pf-field .v.dim { color: var(--pf-muted); }
-
-    /* --- accesos / indice de apps --- */
-    .pf-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-    .pf-app {
-      display: flex; gap: 12px; align-items: flex-start; text-decoration: none; color: inherit;
-      border: 1px solid var(--pf-border); border-radius: 14px; padding: 14px;
-      background: rgba(255,255,255,.02); transition: transform .15s ease, border-color .15s ease;
-    }
-    .pf-app:hover { transform: translateY(-2px); border-color: rgba(0,229,255,.45); }
-    .pf-app .ico { font-size: 20px; line-height: 1; flex: none; }
-    .pf-app .t { display: block; font-size: 14px; font-weight: 600; }
-    .pf-app .d { display: block; font-size: 11.5px; color: var(--pf-muted); margin-top: 3px; }
-    .pf-app .perm { display: block; margin-top: 7px; }
-
-    /* --- gate (sin sesion) --- */
-    .pf-gate { text-align: center; padding: 40px 22px; }
-    .pf-gate h2 { color: var(--pf-text); text-transform: none; letter-spacing: 0; font-size: 20px; margin-bottom: 8px; }
-    .pf-gate p { color: var(--pf-muted); font-size: 14px; max-width: 62ch; margin: 0 auto 18px; }
-    .pf-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .pf-btn {
-      font: inherit; font-size: 14px; cursor: pointer; padding: 11px 20px; border-radius: 11px;
-      border: 1px solid rgba(0,229,255,.45); background: rgba(0,229,255,.14); color: #eafcff; text-decoration: none;
-    }
-    .pf-btn:hover { background: rgba(0,229,255,.24); }
-    .pf-btn.ghost { border-color: var(--pf-border); background: rgba(255,255,255,.05); color: var(--pf-text); }
-    .pf-btn.ghost:hover { background: rgba(255,255,255,.1); }
-    .pf-status { font-size: 12px; color: var(--pf-muted); margin-top: 14px; min-height: 16px; }
-    .pf-status.err { color: #ff7a8a; }
-    .pf-foot { text-align: center; font-size: 11.5px; color: var(--pf-muted); margin-top: 26px; }
-    [hidden] { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="/jpstagedesign/css/profile.css">
 </head>
-<body class="pf-body">
+<body class="menu-body pf-body">
+  <div class="pf-shell">
 
-  <div class="pf-wrap">
+    <!-- ================= BARRA SUPERIOR ================= -->
     <header class="pf-top">
       <a class="pf-brand" href="/jpstagedesign/">
-        <span class="pf-logo">JP</span>
-        <span>JPStageDesign<small>Ecosistema FullScreen Code</small></span>
+        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign">
       </a>
       <nav class="pf-nav">
         <a href="/jpstagedesign/">🎛️ Botonera</a>
@@ -137,253 +26,57 @@
       </nav>
     </header>
 
-    <!-- SIN SESIÓN -->
-    <section class="pf-card pf-gate" id="pfGate">
-      <h2>Mi perfil</h2>
-      <p>
-        Este perfil usa la <strong>cuenta unificada de FullScreen Code</strong> (fscauth).
-        Con la misma cuenta entrás a todas las apps del ecosistema y tus permisos viajan con vos.
-      </p>
-      <div class="pf-cta">
-        <button class="pf-btn" id="pfLogin">🔑 Ingresar</button>
-        <button class="pf-btn ghost" id="pfRegister">Registrarme</button>
+    <!-- ================= IDENTIDAD: foto · usuario · bio ================= -->
+    <section class="pf-card" id="pfGate" hidden>
+      <h2 class="pf-title">Mi perfil</h2>
+      <p class="pf-gate-msg">Entrá con tu cuenta de FullScreen Code para ver tu foto, tu usuario y tu bio.</p>
+      <div class="pf-save-row">
+        <button class="pf-btn primary" id="pfLogin">🔑 Ingresar</button>
+        <button class="pf-btn" id="pfRegister">Registrarme</button>
       </div>
-      <div class="pf-status" id="pfStatus"></div>
+      <div class="pf-sub" id="pfGateStatus"></div>
     </section>
 
-    <!-- CON SESIÓN -->
-    <section class="pf-card" id="pfAccount" hidden>
-      <div class="pf-account">
+    <section class="pf-card" id="pfIdentity" hidden>
+      <h2 class="pf-title">Mi perfil</h2>
+      <div class="pf-identity">
         <div class="pf-avatar" id="pfAvatar">?</div>
         <div class="pf-id">
-          <h1 class="pf-name" id="pfName">…</h1>
-          <p class="pf-handle" id="pfHandle"></p>
-          <div class="pf-badges" id="pfBadges"></div>
-          <p class="pf-bio" id="pfBio" hidden></p>
+          <p class="pf-handle" id="pfHandle">@…</p>
+          <p class="pf-bio is-empty" id="pfBio" hidden></p>
         </div>
       </div>
-      <div class="pf-grid" id="pfFields"></div>
     </section>
 
-    <!-- ÍNDICE DE APPS -->
-    <section class="pf-card" id="pfAppsCard">
-      <h2>Accesos del ecosistema</h2>
-      <p class="pf-sub">Todas las apps comparten esta cuenta. El distintivo indica tu nivel de acceso en cada una.</p>
-      <div class="pf-apps" id="pfApps"></div>
-      <div class="pf-foot">Sesión validada contra el servicio central fscauth · JPStageDesign</div>
+    <!-- ================= PRESETS ================= -->
+    <section class="pf-card" id="pfPresetsCard">
+      <h2 class="pf-title">Presets · botonera + output 3D</h2>
+      <p class="pf-sub">
+        Un preset guarda TODO junto: los inputs y los botones de la botonera + la sala, pantallas y proyectores del simulador 3D.
+        El preset <strong>cargado</strong> es el estado en vivo: lo que guardás desde la botonera o desde el 3D cae ahí.
+      </p>
+
+      <div class="pf-active-preset">
+        <span class="pf-active-label">Preset cargado</span>
+        <span class="pf-active-name none" id="pfActiveName">…</span>
+        <div class="pf-active-actions">
+          <button class="pf-btn primary" id="pfSyncActive" disabled>💾 Guardar cambios acá</button>
+          <button class="pf-btn" id="pfReloadPresets">↻ Actualizar</button>
+        </div>
+      </div>
+
+      <div class="pf-save-row">
+        <input class="pf-input" id="pfPresetName" type="text" placeholder="Nombre del preset (ej. Tríptico Sincretismo)" autocomplete="off">
+        <button class="pf-btn primary" id="pfSavePreset">＋ Guardar estado actual como preset</button>
+      </div>
+
+      <div class="pf-presets" id="pfPresets"></div>
     </section>
   </div>
 
   <script src="/jpstagedesign/js/config.js"></script>
   <script src="/jpstagedesign/js/auth.js"></script>
-  <script>
-  // ============================================================
-  // 👤 profile.html — cuenta unificada FSC (fscauth) + índice de apps
-  // Mismo estándar que el resto del ecosistema: la identidad y los permisos
-  // viven en el registro central; esta página solo los muestra.
-  // ============================================================
-  (function () {
-    'use strict';
-
-    // --- índice de apps del ecosistema (verificadas contra el VPS/FTP) ---
-    // ftp: la app también está publicada como carpeta estática en fullscreencode.com
-    const APPS = [
-      { name: 'JPShader Editor',     path: '/jpshadereditor/',   icon: '🎛️', desc: 'Editor de shaders GLSL en vivo',        perm: 'jpshader',           ftp: true  },
-      { name: 'Arte Digital Data',   path: '/artedigitaldata/',  icon: '🗄️', desc: 'Base de datos de arte digital',         perm: 'artedigital',        ftp: true  },
-      { name: 'Pizarra IA',          path: '/pizzarraia/',       icon: '🎨', desc: 'Pizarra colaborativa con IA',           perm: 'pizarraia',          ftp: true  },
-      { name: 'Diplo IA',            path: '/diploia/',          icon: '🧠', desc: 'Diplomaturas y contenido IA',           perm: null,                 ftp: true  },
-      { name: 'MapAI',               path: '/mapai/',            icon: '🗺️', desc: 'Mapas de herramientas y nodos',         perm: null,                 ftp: true  },
-      { name: 'Volumetric',          path: '/volumetric/',       icon: '🔺', desc: 'Suite volumétrica / LED VJ',            perm: null,                 ftp: true  },
-      { name: 'Raíces Interface',    path: '/raicesinterface/',  icon: '🌱', desc: 'Interfaz del proyecto Raíces',          perm: null,                 ftp: true  },
-      { name: 'Image Campus',        path: '/imagecampus/',      icon: '🎓', desc: 'Banco de imágenes educativo',           perm: null,                 ftp: false },
-      { name: 'Botonera (Futurex)',  path: '/botonera/',         icon: '🎚️', desc: 'Botonera de shows (versión anterior)',  perm: null,                 ftp: false },
-      { name: 'JPStageDesign',       path: '/jpstagedesign/',    icon: '🎬', desc: 'Stage design 3D + control en vivo',     perm: null,                 ftp: true  },
-      { name: 'Pink Carpet',         path: '/pinkcarpet/',       icon: '🎀', desc: 'Experiencia pink carpet',               perm: null,                 ftp: false },
-      { name: 'Shiny Apps',          path: '/shiny/',            icon: '✨', desc: 'Utilidades varias',                     perm: null,                 ftp: false },
-      { name: 'Rose Dashboard',      path: '/rose/',             icon: '🌹', desc: 'Panel de control',                      perm: null,                 ftp: true  },
-      { name: 'JP Website',          path: '/jpupper/',          icon: '👤', desc: 'Sitio personal / portfolio',            perm: null,                 ftp: true  },
-      { name: 'Fullscreen Code',     path: '/fullscreencode/',   icon: '🖥️', desc: 'Sitio principal del estudio',           perm: null,                 ftp: true  },
-      { name: 'JPNet',               path: '/jpnet/',            icon: '📡', desc: 'Panel de infraestructura (PM2/nginx)',  perm: null,                 ftp: false },
-      { name: 'FSCAUTH',             path: '/fscauth/',          icon: '🔑', desc: 'Cuenta central, portal y licencias',    perm: null,                 ftp: false }
-    ];
-
-    const VPS = 'https://vps-4455523-x.dattaweb.com';
-    const host = location.hostname;
-    const ON_FTP = /fullscreencode\.com$/.test(host);
-    const IS_LOCAL = (host === 'localhost' || host === '127.0.0.1');
-
-    function appUrl(app) {
-      // En local nada de rutas relativas (no hay otras apps en :6645) → VPS.
-      if (IS_LOCAL) return VPS + app.path;
-      if (app.ftp && !ON_FTP) return app.path;   // VPS: ruta relativa
-      if (app.ftp && ON_FTP) return app.path;    // FTP: carpeta propia en el dominio
-      return VPS + app.path;                     // solo-vive-en-el-VPS
-    }
-
-    const esc = (s) => String(s == null ? '' : s).replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
-    const el = (id) => document.getElementById(id);
-
-    function fmtDate(v) {
-      if (!v) return null;
-      const d = new Date(v);
-      if (isNaN(d.getTime())) return null;
-      return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
-    }
-
-    function initials(name) {
-      const parts = String(name || '?').trim().split(/[\s._-]+/).filter(Boolean);
-      if (!parts.length) return '?';
-      return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-    }
-
-    // Nivel de acceso del usuario en una app, leído del registro central.
-    function permLabel(user, key, isAdmin) {
-      if (!key) return null;
-      if (isAdmin) return { text: 'ADMIN GLOBAL', cls: 'admin' };
-      const p = (user.permissions || {})[key];
-      if (!p) return null;
-      if (key === 'artedigital' && p.role) return { text: p.role === 'ADMINISTRADOR' ? 'ADMIN' : 'USUARIO', cls: p.role === 'ADMINISTRADOR' ? 'admin' : 'soft' };
-      if (key === 'pizarraia') {
-        if (p.canAccessAdmin) return { text: 'ADMIN', cls: 'admin' };
-        if (p.canCreateSessions) return { text: 'CREADOR', cls: '' };
-        return { text: 'USUARIO', cls: 'soft' };
-      }
-      if (key === 'jpshader') {
-        if (p.isAdmin) return { text: 'ADMIN', cls: 'admin' };
-        return { text: p.canUpload ? 'SUBIR' : 'LECTURA', cls: 'soft' };
-      }
-      return null;
-    }
-
-    function renderApps(user, isAdmin) {
-      const box = el('pfApps');
-      box.innerHTML = '';
-      APPS.forEach((app) => {
-        const a = document.createElement('a');
-        a.className = 'pf-app';
-        a.href = appUrl(app);
-        if (!app.ftp || IS_LOCAL) a.target = '_blank';
-        a.rel = 'noopener';
-        const perm = permLabel(user, app.perm, isAdmin);
-        a.innerHTML =
-          '<span class="ico">' + app.icon + '</span>' +
-          '<span style="flex:1">' +
-            '<span class="t">' + esc(app.name) + '</span>' +
-            '<span class="d">' + esc(app.desc) + '</span>' +
-            (perm ? '<div class="perm"><span class="pf-badge ' + perm.cls + '">' + esc(perm.text) + '</span></div>' : '') +
-          '</span>';
-        box.appendChild(a);
-      });
-    }
-
-    function renderAccount(user) {
-      const isAdmin = user.role === 'ADMIN' || user.role === 'SYSTEM';
-      const name = user.displayName || user.username || 'Usuario';
-
-      const av = el('pfAvatar');
-      av.innerHTML = '';
-      if (user.avatar) {
-        const img = document.createElement('img');
-        img.alt = 'Avatar';
-        img.src = user.avatar;
-        img.onerror = () => { av.textContent = initials(name); };
-        av.appendChild(img);
-      } else {
-        av.textContent = initials(name);
-      }
-
-      el('pfName').textContent = name;
-      el('pfHandle').textContent = '@' + (user.username || '—') + (user.hexId ? ' · ' + user.hexId : '');
-
-      const badges = el('pfBadges');
-      badges.innerHTML = '';
-      const addBadge = (text, cls) => {
-        const b = document.createElement('span');
-        b.className = 'pf-badge' + (cls ? ' ' + cls : '');
-        b.textContent = text;
-        badges.appendChild(b);
-      };
-      addBadge(user.role || 'USER', isAdmin ? 'admin' : '');
-      if (user.origin) addBadge('alta: ' + user.origin, 'soft');
-      Object.keys(user.permissions || {}).forEach((k) => {
-        const p = permLabel(user, k, false);
-        if (p) addBadge(k + ': ' + p.text, p.cls === 'admin' ? 'admin' : 'soft');
-      });
-
-      if (user.bio) { el('pfBio').textContent = user.bio; el('pfBio').hidden = false; }
-
-      const socials = user.socials || {};
-      const socialLinks = [];
-      if (socials.instagram) socialLinks.push('https://instagram.com/' + String(socials.instagram).replace(/^@/, ''));
-      if (socials.facebook) socialLinks.push(/^https?:/.test(socials.facebook) ? socials.facebook : 'https://facebook.com/' + socials.facebook);
-      if (socials.whatsapp) socialLinks.push('https://wa.me/' + String(socials.whatsapp).replace(/[^0-9]/g, ''));
-
-      const fields = [
-        ['Email', user.email, false],
-        ['Miembro desde', fmtDate(user.createdAt), true],
-        ['Último ingreso', fmtDate(user.meta && user.meta.lastLogin), true],
-        ['Ingresos', (user.meta && user.meta.loginCount) || 0, true],
-        ['Origen del alta', user.origin, true],
-        ['Redes', socialLinks.length ? socialLinks.join(' · ') : null, true]
-      ];
-      const grid = el('pfFields');
-      grid.innerHTML = '';
-      fields.forEach(([k, v, dim]) => {
-        if (v === null || v === undefined || v === '') return;
-        const d = document.createElement('div');
-        d.className = 'pf-field';
-        if (dim) d.innerHTML = '<div class="k">' + esc(k) + '</div><div class="v dim">' + (k === 'Redes'
-          ? v.split(' · ').map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener" style="color:var(--pf-accent)">' + esc(u.replace(/^https?:\/\//, '')) + '</a>').join(' · ')
-          : esc(v)) + '</div>';
-        else d.innerHTML = '<div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div>';
-        grid.appendChild(d);
-      });
-
-      renderApps(user, isAdmin);
-      el('pfGate').hidden = true;
-      el('pfAccount').hidden = false;
-    }
-
-    function setStatus(msg, isErr) {
-      const s = el('pfStatus');
-      s.textContent = msg || '';
-      s.className = 'pf-status' + (isErr ? ' err' : '');
-    }
-
-    function showGate(msg, isErr) {
-      el('pfGate').hidden = false;
-      el('pfAccount').hidden = true;
-      renderApps({ permissions: {} }, false);
-      if (msg) setStatus(msg, isErr);
-    }
-
-    async function load() {
-      // Sin sesión local: no pedimos nada, mostramos el gate.
-      if (!window.FSCAuth || !FSCAuth.isLoggedIn()) {
-        showGate('');
-        return;
-      }
-      try {
-        const base = (window.CONFIG && CONFIG.API_URL) || '/jpstagedesign/api';
-        const r = await fetch(base + '/auth/profile', { headers: { Authorization: 'Bearer ' + FSCAuth.getToken() } });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok || !d.ok || !d.user) throw new Error((d && d.error) || 'Sesión inválida o expirada');
-        renderAccount(d.user);
-      } catch (err) {
-        showGate('No pudimos leer tu perfil: ' + (err.message || err) + '. Probá ingresar de nuevo.', true);
-      }
-    }
-
-    document.getElementById('pfLogin').addEventListener('click', (e) => { e.currentTarget.disabled = true; window.FSCAuth ? FSCAuth.login() : (location.href = VPS + '/fscauth/login.html'); });
-    document.getElementById('pfRegister').addEventListener('click', () => { window.FSCAuth ? FSCAuth.goRegister() : (location.href = VPS + '/fscauth/register.html'); });
-    window.addEventListener('authStateChanged', load);
-
-    load();
-    // auth.js ya pintó el widget en el arranque; lo repintamos tras el handoff si hiciera falta.
-    if (window.FSCAuth) FSCAuth.render();
-  })();
-  </script>
-  <!-- botón FSC: solo el isotipo, abajo a la izquierda -->
-  <script src="https://vps-4455523-x.dattaweb.com/fscauth/js/fsc-button.js?v=10"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/jpstagedesign/js/profile.js?v=1"></script>
 </body>
 </html>

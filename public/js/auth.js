@@ -14,7 +14,7 @@
   const KEY_TOKEN = 'fsc_token';
   const KEY_USER = 'fsc_user';
   const ORIGIN_APP = 'jpstagedesign';
-  const FSCAUTH = (window.CONFIG && window.CONFIG.FSCAUTH_URL) || 'https://fullscreencode.com/fscauth';
+  const FSCAUTH = (window.CONFIG && window.CONFIG.FSCAUTH_URL) || 'https://fullscreencode.com/jpconnect';
   // Perfil unificado: la MISMA página en cualquier app del ecosistema que use fscauth.
   const PROFILE_URL = ((window.CONFIG && window.CONFIG.BASE) || '/jpstagedesign') + '/profile.html';
 

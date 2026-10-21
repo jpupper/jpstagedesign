@@ -58,6 +58,8 @@
         <span class="status-dot-advanced" id="statusDotAdvanced"></span>
         <span id="statusTextAdvanced">Conectando...</span>
       </div>
+      <!-- 🗂️ Preset cargado: acá cae todo lo que se guarda (se administra en el perfil) -->
+      <a class="preset-badge" id="presetBadge" href="/jpstagedesign/profile.html" title="Preset cargado · administrar en el perfil">SIN PRESET</a>
     </div>
     
     <div class="settings-body">
@@ -128,6 +130,9 @@
             </span>
             <span class="btn-blackout-text">OUTPUT 3D</span>
           </button>
+          <button id="btnPresentacion" class="btn-blackout btn-presentacion" title="Qué hace JPStageDesign (presentación con capturas)">
+            <span class="btn-blackout-text">ℹ️ PRESENTACIÓN</span>
+          </button>
         </div>
       </div>
     </header>
@@ -144,7 +149,43 @@
     <main class="mode-view" id="mode-advanced" style="display:none;">
       <section class="adv-section">
         <h2 class="adv-title">INPUTS</h2>
-        <div class="material-list" id="materialList"></div>
+
+        <!-- Dos fuentes de input: lo cargado en la app y el ÍNDICE del editor de shaders -->
+        <div class="input-tabs" id="inputTabs">
+          <button class="input-tab active" data-itab="cargados">CARGADOS <span class="input-tab-count" id="inputCountCargados">0</span></button>
+          <button class="input-tab" data-itab="jpeditor">JP SHADER EDITOR <span class="input-tab-count" id="inputCountEditor">···</span></button>
+        </div>
+
+        <div class="input-pane" id="inputPaneCargados">
+          <div class="material-list" id="materialList"></div>
+        </div>
+
+        <div class="input-pane" id="inputPaneEditor" hidden>
+          <div class="jpe-toolbar">
+            <input type="search" id="jpeSearch" class="jpe-search" placeholder="Buscar shader por nombre o autor…" autocomplete="off">
+            <select id="jpeAuthor" class="jpe-select" title="Filtrar por autor">
+              <option value="">Todos los autores</option>
+            </select>
+            <select id="jpeSort" class="jpe-select" title="Orden">
+              <option value="recientes">Más recientes</option>
+              <option value="az">A → Z</option>
+              <option value="autor">Por autor</option>
+            </select>
+            <button class="jpe-reload" id="jpeReload" title="Releer el índice completo del editor">↺</button>
+            <a class="jpe-editor-link" id="jpeEditorLink" href="https://fullscreencode.com/jpshadereditor/" target="_blank" rel="noopener" title="Abrir JP Shader Editor (galería de shaders)">🎛️ EDITOR</a>
+          </div>
+
+          <!-- Fondo de la aplicación: shader del editor elegido acá -->
+          <div class="jpe-bgbar" id="jpeBgBar">
+            <span class="jpe-bgbar-l">FONDO</span>
+            <strong class="jpe-bgbar-name" id="jpeBgName">shaderfondo.frag</strong>
+            <button class="jpe-bgbar-clear" id="jpeBgClear" title="Volver al fondo por defecto (shaderfondo.frag)">✕ por defecto</button>
+          </div>
+
+          <div class="jpe-meta" id="jpeMeta">Indexando jpShadereditor…</div>
+          <div class="jpe-grid" id="jpeGrid"></div>
+          <div class="jpe-pager" id="jpePager"></div>
+        </div>
       </section>
       
       <section class="adv-section">
@@ -218,11 +259,79 @@
     </main>
   </div>
   
+  <!-- ================= PRESENTACIÓN DEL SITIO ================= -->
+  <div class="presentacion" id="presentacion" hidden>
+    <div class="presentacion-box" role="dialog" aria-modal="true" aria-labelledby="presTitle">
+      <header class="presentacion-head">
+        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign" class="presentacion-logo">
+        <button class="presentacion-close" id="presClose" title="Cerrar (Esc)">✕</button>
+      </header>
+
+      <div class="presentacion-body">
+        <h2 class="presentacion-title" id="presTitle">JPSTAGEDESIGN</h2>
+        <p class="presentacion-lead">
+          Aplicación que sirve para simular disposiciones de instalaciones interactivas con sensores
+          y simulación de visuales, shaders, videojuegos y desarrollos web.
+        </p>
+
+        <div class="presentacion-shots">
+          <figure class="presentacion-shot">
+            <img src="/jpstagedesign/img/presentacion/botonera.png" alt="Botonera de JPStageDesign" loading="lazy">
+            <figcaption>
+              <strong>BOTONERA</strong>
+              6 botones para disparar contenido en vivo: shaders, imágenes, video, páginas web y juegos.
+              Cada botón tiene sus parámetros y queda guardado en el preset.
+            </figcaption>
+          </figure>
+          <figure class="presentacion-shot">
+            <img src="/jpstagedesign/img/presentacion/output3d.png" alt="Simulador 3D del escenario" loading="lazy">
+            <figcaption>
+              <strong>OUTPUT 3D</strong>
+              La sala a escala real con pantallas, teles, proyectores con haz y objetos 3D: se ve cómo
+              queda la instalación antes de montarla, y el contenido se reproduce sobre las pantallas.
+            </figcaption>
+          </figure>
+          <figure class="presentacion-shot">
+            <img src="/jpstagedesign/img/presentacion/inputs.png" alt="Inputs e índice de shaders" loading="lazy">
+            <figcaption>
+              <strong>INPUTS + SHADERS</strong>
+              Biblioteca de materiales y el índice completo de shaders del editor: cada shader se manda
+              a un botón, se abre en el editor o se pone de fondo de la app.
+            </figcaption>
+          </figure>
+          <figure class="presentacion-shot">
+            <img src="/jpstagedesign/img/presentacion/presets.png" alt="Presets guardados" loading="lazy">
+            <figcaption>
+              <strong>PRESETS</strong>
+              Cada preset guarda juntos la botonera y el escenario 3D, se carga con un click y se puede
+              exportar para reinstalar la muestra.
+            </figcaption>
+          </figure>
+        </div>
+
+        <ul class="presentacion-list">
+          <li>Diseñá la disposición: medidas de sala, pantallas y teles, proyectores con haz, objetos 3D (.obj / .glb / .gltf).</li>
+          <li>Simulá visuales: shaders GLSL del editor, imágenes, video, YouTube, páginas web EN VIVO y videojuegos.</li>
+          <li>Interacción real: la pantalla responde al click del mouse y a los sensores (LIDAR / toque sobre la pantalla 3D).</li>
+          <li>Presets: botonera + escenario 3D guardados juntos, con export para reinstalar la muestra en otra máquina.</li>
+        </ul>
+      </div>
+
+      <footer class="presentacion-foot">
+        <button class="btn-save" id="presGoBotonera">🎛️ Ir a la botonera</button>
+        <a class="btn-save pres-link" id="presGo3D" href="/jpstagedesign/output3d.html" target="_blank" rel="noopener">🧊 Abrir simulador 3D</a>
+        <button class="btn-save pres-ghost" id="presClose2">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- Indicador de shader -->
   <div class="shader-reload-indicator">R = Recargar Shader</div>
   
   <!-- Config -->
   <script src="/jpstagedesign/js/config.js"></script>
+  <!-- 🌀 Puente con jpShadereditor (índice de shaders + motor WebGL del editor) -->
+  <script src="/jpstagedesign/js/jpshader-bridge.js?v=1"></script>
   <!-- 🔑 Auth FSC: SSO central contra fscauth (login/logout/sesión) -->
   <script src="/jpstagedesign/js/auth.js"></script>
   <!-- Socket.IO desde CDN (carga garantizada ANTES de menu.js) -->
@@ -250,6 +359,6 @@
     loadAppScripts();
   </script>
   <!-- 🔘 Botón universal FSC: lleva al pasaporte de usuario (fscauth) -->
-  <script src="https://vps-4455523-x.dattaweb.com/fscauth/js/fsc-button.js?v=10"></script>
+  <script src="https://vps-4455523-x.dattaweb.com/jpconnect/js/fsc-button.js?v=10"></script>
 </body>
 </html>

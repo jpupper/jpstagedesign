@@ -1772,6 +1772,20 @@
         <span class="user-btn-state" id="lblUserDimsState">OFF</span>
       </button>
 
+      <!-- 🖱️ Click sobre la página web proyectada -->
+      <button class="panel-btn" id="btnUserWebClick" title="Qué pasa cuando clickeás una pantalla que muestra una página web · RAYCAST = el click entra a la página en la posición exacta · NATIVA = el iframe recibe el mouse real (hover, scroll, teclado) · OFF = la página sólo se ve">
+        <span class="user-btn-icon">🖱️</span>
+        <span class="user-btn-label">Click en web</span>
+        <span class="user-btn-state" id="lblUserWebClickState">RAYCAST</span>
+      </button>
+
+      <!-- 🌐 Proxy: levanta la web desde el server (webs que no se dejan embeber / localhost) -->
+      <button class="panel-btn" id="btnUserWebProxy" title="Levantar la página desde el server de la app (proxy): sirve para webs que bloquean el iframe o para un server de desarrollo en http://localhost">
+        <span class="user-btn-icon">🌐</span>
+        <span class="user-btn-label">Proxy web</span>
+        <span class="user-btn-state" id="lblUserWebProxyState">OFF</span>
+      </button>
+
       <!-- Sección Proyectores -->
       <div class="user-section-group">
         <div class="user-section-title">
@@ -2998,6 +3012,20 @@
           : 'Las medidas están OCULTAS · click para mostrarlas';
       }
 
+      // 🖱️ Click en web (RAYCAST / NATIVA / OFF) + 🌐 Proxy
+      const btnWebClick = document.getElementById('btnUserWebClick');
+      const lblWebClick = document.getElementById('lblUserWebClickState');
+      if (btnWebClick && lblWebClick) {
+        btnWebClick.classList.toggle('active', webInteract.mode !== 'off');
+        lblWebClick.textContent = webModeLabel(webInteract.mode);
+      }
+      const btnWebProxy = document.getElementById('btnUserWebProxy');
+      const lblWebProxy = document.getElementById('lblUserWebProxyState');
+      if (btnWebProxy && lblWebProxy) {
+        btnWebProxy.classList.toggle('active', !!webProxyOn);
+        lblWebProxy.textContent = webProxyOn ? 'ON' : 'OFF';
+      }
+
       // Projectors section label
       const lblProjState = document.getElementById('lblUserProjectorsState');
       const btnAllProj = document.getElementById('btnUserToggleProjectors');
@@ -3176,7 +3204,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · toque+medidas';
+    const BUILD_3D = '2026-10-21 · web-oclusion';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -7331,6 +7359,8 @@
 
       const src = touchFeed(s, pt, 1);
       if (src) touchState.src = src;
+      // 🖱️ si la pantalla muestra una página web, este click entra a la página
+      webTouch(s, pt, 'down');
       touchPlaceMarker(s, pt, true);
       touchReadout(s, pt, src, true);
     }
@@ -7348,6 +7378,7 @@
         const src = touchFeed(s, pt, 1);
         touchState.uv = { x: pt.u, y: pt.v };
         if (src) touchState.src = src;
+        webTouch(s, pt, 'move');     // arrastre dentro de la página web
         touchPlaceMarker(s, pt, true);
         touchReadout(s, pt, src, true);
         return;
@@ -7366,6 +7397,16 @@
     function touchOnUp(e) {
       if (!touchState.active) return;
       if (e && e.pointerId !== undefined && touchState.pointerId !== null && e.pointerId !== touchState.pointerId) return;
+
+      // 🖱️ cerrar el gesto DENTRO de la página web (pointerup + mouseup + click)
+      if (e && typeof e.clientX === 'number') {
+        const sWeb = stageScreens.find(x => x.id === touchState.screenId);
+        if (sWeb) {
+          const ptWeb = touchPointOnScreen(sWeb, e.clientX, e.clientY);
+          if (ptWeb) webTouch(sWeb, ptWeb, 'up');
+        }
+      }
+
       touchRelease();
     }
 
@@ -9992,6 +10033,221 @@
     const _webQuat = new THREE.Quaternion();
     const _webScl = new THREE.Vector3();
 
+    // ============================================================
+    // 🖱️ CLICK EN LA PÁGINA WEB PROYECTADA
+    // ------------------------------------------------------------
+    // El click que cae sobre una pantalla se resuelve con el RAYCAST que ya
+    // existe para los shaders (touchPickScreen + touchPointOnScreen): la UV de
+    // la pantalla se convierte a píxeles del viewport del iframe y se despacha
+    // como eventos REALES dentro de la página (pointerdown/mousedown → up/mouseup
+    // → click). Si la página es de otro origen (no se puede tocar su document)
+    // se le manda por postMessage al motor de toques inyectado
+    // (api/webproxy → js/web-touch-bridge.js).
+    //
+    // Modos (botón 🖱️ del Control de Sala):
+    //   raycast → el click de la escena maneja la página (la cámara sigue viva)
+    //   native  → el iframe recibe el mouse directo: hover, scroll, teclado
+    //   off     → la página sólo se ve
+    // ============================================================
+    const WEB_INTERACT_MODES = ['off', 'raycast', 'native'];
+    const webInteract = { mode: 'raycast', last: null };
+    let webProxyOn = false;
+    let webNoDocWarned = false;
+
+    (function webLoadCfg() {
+      try {
+        const m = localStorage.getItem('fsc_web_interact:v1');
+        if (m && WEB_INTERACT_MODES.indexOf(m) >= 0) webInteract.mode = m;
+        webProxyOn = localStorage.getItem('fsc_web_proxy:v1') === '1';
+      } catch (e) { /* noop */ }
+    })();
+
+    function webSaveCfg() {
+      try {
+        localStorage.setItem('fsc_web_interact:v1', webInteract.mode);
+        localStorage.setItem('fsc_web_proxy:v1', webProxyOn ? '1' : '0');
+      } catch (e) { /* noop */ }
+    }
+
+    function webModeLabel(mode) {
+      if (mode === 'native') return 'NATIVA';
+      if (mode === 'off') return 'OFF';
+      return 'RAYCAST';
+    }
+
+    /** pointer-events de cada capa: sólo en modo NATIVA el iframe come el mouse. */
+    function webApplyPointerEvents() {
+      const desired = (webInteract.mode === 'native' && webLiveEnabled) ? 'auto' : 'none';
+      webLayers.forEach(entry => {
+        if (entry && entry.obj && entry.obj.element.style.pointerEvents !== desired) {
+          entry.obj.element.style.pointerEvents = desired;
+        }
+      });
+      if (webLayerRoot) webLayerRoot.style.pointerEvents = 'none';   // el resto de la escena sigue vivo
+    }
+
+    function setWebInteractMode(mode, opts) {
+      opts = opts || {};
+      webInteract.mode = WEB_INTERACT_MODES.indexOf(mode) >= 0 ? mode : 'raycast';
+      webSaveCfg();
+      webApplyPointerEvents();
+      updateUserDockUI();
+      if (opts.toast !== false) {
+        showToast('🖱️ Click en web: ' + webModeLabel(webInteract.mode)
+          + (webInteract.mode === 'raycast' ? ' · el click entra a la página'
+            : webInteract.mode === 'native' ? ' · mouse real sobre el iframe'
+            : ' · la página sólo se ve'));
+      }
+      return webInteract.mode;
+    }
+
+    function cycleWebInteractMode() {
+      const i = WEB_INTERACT_MODES.indexOf(webInteract.mode);
+      return setWebInteractMode(WEB_INTERACT_MODES[(i + 1) % WEB_INTERACT_MODES.length]);
+    }
+
+    function setWebProxy(on, opts) {
+      opts = opts || {};
+      webProxyOn = !!on;
+      webSaveCfg();
+      updateUserDockUI();
+      clearWebLayers();            // se rearman con la URL proxeada
+      if (opts.toast !== false) showToast(webProxyOn ? '🌐 Proxy web: ON (la página se levanta desde el server)' : '🌐 Proxy web: OFF (iframe directo)');
+      return webProxyOn;
+    }
+
+    /**
+     * URL que se carga en el iframe. Con proxy ON y página de OTRO origen, se
+     * levanta desde el backend de la app: queda del mismo origen (permite
+     * despachar clicks adentro) y esquiva X-Frame-Options / mixed content.
+     */
+    function resolveWebSrc(url) {
+      if (!url) return url;
+      let u;
+      try { u = new URL(String(url), location.href); } catch (e) { return url; }
+      if (!/^https?:$/.test(u.protocol)) return url;
+      if (u.origin === location.origin) return u.href;
+      if (!webProxyOn) return u.href;
+      const api = (window.CONFIG && CONFIG.API_URL) ? CONFIG.API_URL
+        : (location.origin + (window.CONFIG && CONFIG.BASE ? CONFIG.BASE : '/jpstagedesign') + '/api');
+      return api + '/webproxy?url=' + encodeURIComponent(u.href);
+    }
+
+    /** Toque sobre la pantalla → coordenadas CSS dentro del viewport del iframe. */
+    function webPointInFrame(entry, u, v) {
+      const sliceOff = (entry.slice >= 0) ? entry.slice * WEB_LAYER_VW : 0;
+      const frameH = Number(entry.vh) || WEB_LAYER_VW;
+      return {
+        x: sliceOff + u * WEB_LAYER_VW,
+        y: (1 - v) * frameH,
+        vw: WEB_LAYER_VW,
+        vh: frameH
+      };
+    }
+
+    /** Despacha UN gesto (down/move/up) dentro del document de la página. */
+    function webFireInto(doc, win, x, y, kind) {
+      let target = null;
+      try { target = doc.elementFromPoint(x, y); } catch (e) { target = null; }
+      target = target || doc.body || doc.documentElement;
+      if (!target) return false;
+      const base = {
+        bubbles: true, cancelable: true, composed: true,
+        clientX: x, clientY: y, view: win, button: 0,
+        buttons: kind === 'up' ? 0 : 1
+      };
+      const seq = kind === 'down' ? ['pointerdown', 'mousedown']
+        : kind === 'up' ? ['pointerup', 'mouseup', 'click']
+          : ['pointermove', 'mousemove'];
+      seq.forEach(n => {
+        let ev = null;
+        try {
+          const esPointer = n.indexOf('pointer') === 0;
+          const Ctor = esPointer ? (win.PointerEvent || win.MouseEvent) : win.MouseEvent;
+          const extra = esPointer ? Object.assign({ pointerId: 1, pointerType: 'mouse', isPrimary: true }, base) : base;
+          ev = new Ctor(n, extra);
+        } catch (e) { ev = null; }
+        if (ev) { try { target.dispatchEvent(ev); } catch (e) { /* noop */ } }
+      });
+      return true;
+    }
+
+    /**
+     * Un toque sobre una pantalla que muestra una web → eventos en la página.
+     * Devuelve {via:'dom'|'postMessage', x, y} o null si esa pantalla no es web.
+     */
+    function webTouch(screen, pt, kind) {
+      if (webInteract.mode !== 'raycast') return null;
+      if (!webLiveEnabled || !screen || !pt) return null;
+      const entry = webLayers.get(screen.id);
+      if (!entry || !entry.frame) return null;
+      const p = webPointInFrame(entry, pt.u, pt.v);
+      let doc = null, win = null;
+      try { doc = entry.frame.contentDocument; win = entry.frame.contentWindow; } catch (e) { doc = null; }
+      let via = 'none';
+      if (doc) {
+        webFireInto(doc, win, p.x, p.y, kind);
+        via = 'dom';
+      } else if (win) {
+        // Otro origen: no se puede tocar su document. La página lo recibiría por
+        // el motor de toques, pero eso sólo existe si la levantó el proxy.
+        try { win.postMessage({ type: 'jpstage-web-touch', x: p.x, y: p.y, kind: kind, u: pt.u, v: pt.v }, '*'); via = 'postMessage'; } catch (e) { /* noop */ }
+        if (!webNoDocWarned) {
+          webNoDocWarned = true;
+          showToast('🖱️ La página es de otro origen · activá 🌐 Proxy web (o el modo NATIVA) para que el click entre');
+        }
+      }
+      webInteract.last = { screen: screen.id, x: Math.round(p.x), y: Math.round(p.y), kind: kind, via: via, at: Date.now() };
+      return webInteract.last;
+    }
+
+    /** Debug / tests: estado y disparo manual de un toque. */
+    window.JPStageWeb = {
+      mode: () => webInteract.mode,
+      setMode: (m) => setWebInteractMode(m, { toast: false }),
+      cycle: () => cycleWebInteractMode(),
+      proxyOn: () => webProxyOn,
+      setProxy: (v) => setWebProxy(v, { toast: false }),
+      live: () => webLiveEnabled,
+      occlusion: (on) => {
+        if (on === undefined) return occlusionEnabled;
+        occlusionEnabled = !!on;
+        return occlusionEnabled;
+      },
+      state: () => ({
+        mode: webInteract.mode,
+        proxy: webProxyOn,
+        live: webLiveEnabled,
+        url: currentWebUrl(),
+        src: currentWebUrl() ? resolveWebSrc(currentWebUrl()) : null,
+        last: webInteract.last,
+        layers: Array.from(webLayers.keys())
+      }),
+      layers: () => Array.from(webLayers.entries()).map(([id, e]) => ({
+        id: id,
+        url: e.url,
+        src: e.frame ? e.frame.getAttribute('src') : null,
+        slice: e.slice,
+        vh: e.vh,
+        pointerEvents: e.obj && e.obj.element ? e.obj.element.style.pointerEvents : null,
+        sameOrigin: (() => { try { return !!e.frame.contentDocument; } catch (err) { return false; } })()
+      })),
+      touchAt: (u, v, kind) => {
+        const s = stageScreens.find(x => !x.muted && webLayers.has(x.id));
+        if (!s) return null;
+        const pt = touchPointOnScreen(s, 0, 0);          // sólo para tener w/h
+        return webTouch(s, { u: touchClamp01(u), v: touchClamp01(v), w: pt && pt.w, h: pt && pt.h, local: { z: 0 } }, kind || 'down');
+      },
+      click: (u, v) => {
+        const s = stageScreens.find(x => !x.muted && webLayers.has(x.id));
+        if (!s) return null;
+        const pt = touchPointOnScreen(s, 0, 0);
+        const p = { u: touchClamp01(u), v: touchClamp01(v), w: pt && pt.w, h: pt && pt.h, local: { z: 0 } };
+        webTouch(s, p, 'down');
+        return webTouch(s, p, 'up');
+      }
+    };
+
     function setupWeb3DLayer() {
       if (typeof THREE.CSS3DRenderer !== 'function' || typeof THREE.CSS3DObject !== 'function') {
         console.warn('[3D] CSS3DRenderer no disponible: las páginas web se verán como cartel simbólico.');
@@ -10013,6 +10269,7 @@
 
       css3dRenderer.setSize(window.innerWidth, window.innerHeight);
       css3dScene = new THREE.Scene();
+      setupWebOcclusion();          // canvas que tapa la página con lo que está delante
       console.log('[3D] Capa de páginas web en vivo lista');
     }
 
@@ -10032,6 +10289,7 @@
     }
 
     function createWebLayer(screenId, url, vh, slice) {
+      // `url` ya viene resuelta (resolveWebSrc): directa o proxeada por el backend.
       const box = document.createElement('div');
       // Fondo TRANSPARENTE a propósito: si la página bloquea su carga en iframe
       // (X-Frame-Options / CSP), se sigue viendo el cartel informativo de la
@@ -10122,12 +10380,15 @@
         // Viewport con la MISMA proporción que la pantalla → la página no se deforma
         const vh = Math.max(160, Math.round(WEB_LAYER_VW * (h / w)));
 
+        // La URL efectiva del iframe: directa o levantada por el backend (proxy).
+        const src = resolveWebSrc(url);
+
         let entry = webLayers.get(s.id);
-        if (entry && (entry.url !== url || entry.vh !== vh || entry.slice !== slice)) {
+        if (entry && (entry.url !== src || entry.vh !== vh || entry.slice !== slice)) {
           removeWebLayer(s.id);
           entry = null;
         }
-        if (!entry) entry = createWebLayer(s.id, url, vh, slice);
+        if (!entry) entry = createWebLayer(s.id, src, vh, slice);
 
         // Posicionar el iframe exactamente donde está la malla de la pantalla
         group.updateWorldMatrix(true, false);
@@ -10142,6 +10403,172 @@
 
       Array.from(webLayers.keys()).forEach(id => { if (!wanted.has(id)) removeWebLayer(id); });
       webLayerRoot.style.display = wanted.size ? 'block' : 'none';
+      // En modo NATIVA cada iframe recibe el mouse directo; en el resto, no.
+      webApplyPointerEvents();
+    }
+
+    // ============================================================
+    // 🧍 OCLUSIÓN DE LA CAPA WEB (que la silueta tape la página)
+    // ------------------------------------------------------------
+    // La capa de páginas web es DOM (CSS3DRenderer) y el navegador la dibuja
+    // SIEMPRE por encima del canvas WebGL: no conoce la profundidad de la
+    // escena, así que el iframe tapaba a la persona.
+    //
+    // Fix: un SEGUNDO canvas WebGL transparente, encima de la capa web
+    // (z-index 241) y debajo de los paneles, donde se vuelve a dibujar la
+    // escena RECORTADA por el plano de cada pantalla que muestra una web
+    // (clippingPlanes): sólo sobrevive lo que está DELANTE de esa pantalla.
+    // Como el recorte es por scissor al rectángulo proyectado de la pantalla,
+    // fuera de la página no se redibuja nada (cero diferencias de píxeles).
+    // ============================================================
+    let occlusionRenderer = null;
+    let occlusionRoot = null;
+    let occlusionEnabled = true;      // QA: apagarlo muestra la página "plana" (sin profundidad)
+    let _occHidden = [];
+
+    const _occQ = new THREE.Quaternion();
+    const _occP = new THREE.Vector3();
+    const _occN = new THREE.Vector3();
+    const _occToCam = new THREE.Vector3();
+    const _occV = new THREE.Vector3();
+
+    function setupWebOcclusion() {
+      if (occlusionRenderer || !renderer) return;
+      const cont = document.getElementById('canvas-container') || document.body;
+      occlusionRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      occlusionRenderer.setPixelRatio(renderer.getPixelRatio ? renderer.getPixelRatio() : 1);
+      occlusionRenderer.setSize(window.innerWidth, window.innerHeight, false);
+      occlusionRenderer.setClearColor(0x000000, 0);
+      occlusionRenderer.localClippingEnabled = true;
+      occlusionRoot = occlusionRenderer.domElement;
+      occlusionRoot.id = 'web-occlusion-layer';
+      occlusionRoot.style.position = 'fixed';
+      occlusionRoot.style.top = '0';
+      occlusionRoot.style.left = '0';
+      occlusionRoot.style.width = '100%';
+      occlusionRoot.style.height = '100%';
+      occlusionRoot.style.pointerEvents = 'none';   // el mouse sigue yendo a la página / al canvas
+      occlusionRoot.style.zIndex = '241';           // capa web = 240 · paneles = 250
+      occlusionRoot.style.display = 'none';
+      cont.appendChild(occlusionRoot);
+      console.log('[3D] Capa de oclusión web lista');
+    }
+
+    /** Rectángulo proyectado (CSS px, origen arriba) de la superficie de una pantalla. */
+    function webScreenRect(front) {
+      const g = front.geometry && front.geometry.parameters;
+      if (!g) return null;
+      front.updateWorldMatrix(true, false);
+      const hw = (Number(g.width) || 1) / 2;
+      const hh = (Number(g.height) || 1) / 2;
+      const corners = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]];
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let i = 0; i < corners.length; i++) {
+        _occV.set(corners[i][0], corners[i][1], 0);
+        front.localToWorld(_occV);
+        _occV.project(camera);
+        const x = (_occV.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-_occV.y * 0.5 + 0.5) * window.innerHeight;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      minX = Math.max(0, Math.floor(minX) - 2);
+      minY = Math.max(0, Math.floor(minY) - 2);
+      maxX = Math.min(window.innerWidth, Math.ceil(maxX) + 2);
+      maxY = Math.min(window.innerHeight, Math.ceil(maxY) + 2);
+      const w = maxX - minX, h = maxY - minY;
+      if (w <= 0 || h <= 0) return null;
+      return { x: minX, y: minY, w: w, h: h };
+    }
+
+    /** Una entrada por pantalla que muestra una web: plano (normal hacia la cámara) + rect. */
+    function webOcclusionItems() {
+      const items = [];
+      if (!screensGroup) return items;
+      stageScreens.forEach((s) => {
+        if (!webLayers.has(s.id)) return;
+        const grp = screensGroup.getObjectByName('screen_' + s.id);
+        const front = grp ? grp.getObjectByName('frontSurface') : null;
+        if (!front || front.visible === false) return;
+        const rect = webScreenRect(front);
+        if (!rect) return;
+        front.getWorldQuaternion(_occQ);
+        _occN.set(0, 0, 1).applyQuaternion(_occQ).normalize();
+        front.getWorldPosition(_occP);
+        _occToCam.copy(camera.position).sub(_occP);
+        if (_occN.dot(_occToCam) < 0) _occN.negate();          // normal hacia la cámara
+        const plane = new THREE.Plane(_occN.clone(), -_occN.dot(_occP));
+        items.push({ screen: s, front: front, plane: plane, rect: rect });
+      });
+      return items;
+    }
+
+    /**
+     * Oculta lo que NO debe tapar la página en la pasada de oclusión:
+     * la superficie de las pantallas web (es el "papel" donde va la página),
+     * sprites (etiquetas/cotas), líneas, el marcador de toque y todo material
+     * transparente o sin depthTest (haces, halos).
+     */
+    function webOcclusionHide(items) {
+      _occHidden = [];
+      const fronts = new Set(items.map(it => it.front));
+      scene.traverse((o) => {
+        if (!o || o === scene) return;
+        let hide = false;
+        if (fronts.has(o)) hide = true;
+        else if (o.isSprite || o.isLine || o.isPoints) hide = true;
+        else if (o.isMesh && o.material) {
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          hide = mats.some(m => m && (m.transparent === true || m.depthTest === false));
+        }
+        if (hide && o.visible !== false) {
+          _occHidden.push(o);
+          o.visible = false;
+        }
+      });
+    }
+
+    function webOcclusionRestore() {
+      for (let i = 0; i < _occHidden.length; i++) _occHidden[i].visible = true;
+      _occHidden = [];
+    }
+
+    function renderWebOcclusion() {
+      if (!occlusionRenderer || !occlusionRoot) return;
+      const items = (occlusionEnabled && webLiveEnabled && webLayers.size) ? webOcclusionItems() : [];
+      if (!items.length) {
+        if (occlusionRoot.style.display !== 'none') occlusionRoot.style.display = 'none';
+        return;
+      }
+      occlusionRoot.style.display = 'block';
+
+      webOcclusionHide(items);
+      occlusionRenderer.setScissorTest(true);
+      // El fondo de la escena (scene.background) pinta TODO el canvas; en esta
+      // pasada tiene que quedar transparente para no tapar la página con negro.
+      const _bg = scene.background;
+      scene.background = null;
+      try {
+        items.forEach((it) => {
+          // scissor en px del buffer, con el eje Y desde abajo
+          const yBottom = window.innerHeight - (it.rect.y + it.rect.h);
+          occlusionRenderer.setScissor(it.rect.x, yBottom, it.rect.w, it.rect.h);
+          occlusionRenderer.clippingPlanes = [it.plane];
+          occlusionRenderer.render(scene, camera);   // autoClear limpia sólo dentro del scissor
+        });
+      } catch (e) {
+        if (!renderWebOcclusion._err) {
+          renderWebOcclusion._err = 1;
+          console.warn('[3D][oclusión]', e && e.message);
+        }
+      } finally {
+        scene.background = _bg;
+        occlusionRenderer.setScissorTest(false);
+        occlusionRenderer.clippingPlanes = [];
+        webOcclusionRestore();
+      }
     }
 
     // ============================================================
@@ -10578,6 +11005,10 @@
       if (css3dRenderer && css3dScene && webLayers.size) {
         css3dRenderer.render(css3dScene, camera);
       }
+
+      // 🧍 Y ENCIMA de la capa web, lo que está DELANTE de cada pantalla
+      // (la silueta, objetos, chasis): así el render HTML respeta la profundidad.
+      renderWebOcclusion();
     }
 
     // ============================================================
@@ -11814,6 +12245,14 @@
       const btnUProj = document.getElementById('btnUserToggleProjectors');
       if (btnUProj) btnUProj.addEventListener('click', () => toggleAllProjectors());
 
+      // 🖱️ Click en web: OFF → RAYCAST → NATIVA → OFF
+      const btnUWebClick = document.getElementById('btnUserWebClick');
+      if (btnUWebClick) btnUWebClick.addEventListener('click', () => cycleWebInteractMode());
+
+      // 🌐 Proxy web (webs que bloquean el iframe / server de desarrollo)
+      const btnUWebProxy = document.getElementById('btnUserWebProxy');
+      if (btnUWebProxy) btnUWebProxy.addEventListener('click', () => setWebProxy(!webProxyOn));
+
       // Botón Contenido (ir al front)
       const btnGoFront = document.getElementById('btnUserGoToFront');
       if (btnGoFront) {
@@ -12149,6 +12588,7 @@
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       if (css3dRenderer) css3dRenderer.setSize(window.innerWidth, window.innerHeight);
+      if (occlusionRenderer) occlusionRenderer.setSize(window.innerWidth, window.innerHeight, false);
     }
 
     // ============================================================

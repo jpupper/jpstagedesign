@@ -140,3 +140,12 @@ body.output3d-body {
     font-size: 0.65rem;
   }
 }
+
+
+/* Build del 3D: permite ver de un vistazo si el navegador corre una copia vieja */
+#info .build-tag {
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  color: #6c7a8c;
+  font-family: monospace;
+}

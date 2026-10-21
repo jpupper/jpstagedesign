@@ -1,0 +1,381 @@
+/* ============================================================
+   JPStageDesign — perfil + PRESETS
+   Misma estética que la botonera: blanco/negro/rojo, esquinas
+   rectas, tipografía retro y los 4 temas (claro/oscuro/matrix/neon).
+   ============================================================ */
+
+body.pf-body {
+  display: block;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 0 0 64px;
+}
+
+/* --- variables por tema (las usa todo el perfil) --- */
+.pf-shell {
+  --pf-surface: #ffffff;
+  --pf-soft: #f4f4f4;
+  --pf-line: #000000;
+  --pf-line-soft: #e2e2e2;
+  --pf-text: #000000;
+  --pf-muted: #6b6b6b;
+  --pf-accent: #ff0000;
+  --pf-shadow: rgba(0, 0, 0, 0.08);
+}
+
+body.menu-body.dark-mode .pf-shell {
+  --pf-surface: #1a1a1a;
+  --pf-soft: #111111;
+  --pf-line: #333333;
+  --pf-line-soft: #262626;
+  --pf-text: #ffffff;
+  --pf-muted: #9a9a9a;
+  --pf-accent: #ff0000;
+  --pf-shadow: rgba(0, 0, 0, 0.55);
+}
+
+body.menu-body.matrix-mode .pf-shell {
+  --pf-surface: #050505;
+  --pf-soft: #0a1108;
+  --pf-line: #00ff41;
+  --pf-line-soft: #123d18;
+  --pf-text: #b8ffc6;
+  --pf-muted: #4fbf63;
+  --pf-accent: #00ff41;
+  --pf-shadow: rgba(0, 255, 65, 0.18);
+}
+
+body.menu-body.neon-mode .pf-shell {
+  --pf-surface: #0a0c12;
+  --pf-soft: #0e1218;
+  --pf-line: rgba(0, 240, 255, 0.45);
+  --pf-line-soft: rgba(0, 240, 255, 0.18);
+  --pf-text: #e8fbff;
+  --pf-muted: #6d8b95;
+  --pf-accent: #00f0ff;
+  --pf-shadow: rgba(0, 240, 255, 0.2);
+}
+
+.pf-shell {
+  width: min(1180px, 94vw);
+  margin: 0 auto;
+  padding: 0 0 40px;
+  color: var(--pf-text);
+  font-family: var(--retro-font, 'Metropolis', sans-serif);
+}
+
+/* --- barra superior --- */
+.pf-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 18px 0 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--pf-line);
+}
+
+.pf-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--pf-text);
+}
+
+.pf-brand img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+body.menu-body.dark-mode .pf-brand img { filter: invert(1) hue-rotate(180deg); }
+
+.pf-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pf-nav a {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pf-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.7rem;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.pf-nav a:hover {
+  color: var(--pf-text);
+  border-color: var(--pf-line);
+  background: var(--pf-soft);
+}
+
+.pf-nav .auth-widget {
+  position: static;
+  top: auto;
+  right: auto;
+  margin: 0;
+}
+
+/* --- secciones (misma caja que .adv-section de la botonera) --- */
+.pf-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-line);
+  border-radius: 0;
+  padding: 1.5rem;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pf-title {
+  font-family: var(--retro-font, 'Metropolis', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--pf-text);
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--pf-line);
+  margin: 0;
+}
+
+.pf-title::before { content: '> '; opacity: 0.55; }
+.pf-title::after { content: '_'; opacity: 0.4; }
+
+.pf-sub {
+  font-size: 0.72rem;
+  color: var(--pf-muted);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* --- identidad: foto + usuario + bio --- */
+.pf-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pf-avatar {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 auto;
+  border: 1px solid var(--pf-line);
+  background: var(--pf-soft);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--pf-muted);
+}
+
+.pf-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pf-id { min-width: 220px; flex: 1 1 320px; }
+
+.pf-handle {
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.35rem;
+  color: var(--pf-text);
+}
+
+.pf-bio {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--pf-text);
+  margin: 0;
+  max-width: 70ch;
+  white-space: pre-line;
+}
+
+.pf-bio.is-empty { color: var(--pf-muted); font-style: italic; }
+
+.pf-gate-msg {
+  font-size: 0.82rem;
+  color: var(--pf-muted);
+  max-width: 70ch;
+  margin: 0;
+}
+
+/* --- botones (mismo lenguaje que .btn-save) --- */
+.pf-btn {
+  appearance: none;
+  font-family: var(--retro-font, 'Metropolis', sans-serif);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--pf-line);
+  background: transparent;
+  color: var(--pf-text);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pf-btn:hover { background: var(--pf-text); color: var(--pf-surface); }
+.pf-btn:disabled { opacity: 0.4; cursor: default; }
+.pf-btn.primary { border-color: var(--pf-accent); color: var(--pf-accent); }
+.pf-btn.primary:hover { background: var(--pf-accent); color: #fff; }
+.pf-btn.danger:hover { background: var(--pf-accent); color: #fff; border-color: var(--pf-accent); }
+
+/* --- preset cargado --- */
+.pf-active-preset {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--pf-accent);
+  padding: 0.85rem 1rem;
+  background: var(--pf-soft);
+}
+
+.pf-active-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pf-muted);
+}
+
+.pf-active-name {
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--pf-text);
+}
+
+.pf-active-name.none { color: var(--pf-accent); }
+
+.pf-active-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* --- guardar como preset --- */
+.pf-save-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.pf-input {
+  flex: 1 1 220px;
+  min-width: 140px;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-line);
+  color: var(--pf-text);
+  font-family: var(--retro-font, 'Metropolis', sans-serif);
+  font-size: 0.82rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.pf-input:focus { outline: none; border-color: var(--pf-accent); }
+.pf-input::placeholder { color: var(--pf-muted); }
+
+/* --- lista de presets --- */
+.pf-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 10px;
+}
+
+.preset-card {
+  border: 1px solid var(--pf-line-soft);
+  background: var(--pf-surface);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.preset-card:hover { border-color: var(--pf-line); box-shadow: 0 6px 18px var(--pf-shadow); }
+.preset-card.is-active { border-color: var(--pf-accent); }
+
+.preset-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preset-name {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: var(--pf-text);
+  word-break: break-word;
+}
+
+.preset-badge {
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--pf-accent);
+  color: var(--pf-accent);
+  padding: 0.12rem 0.4rem;
+}
+
+.preset-meta {
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pf-muted);
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.preset-buttons .pf-btn { padding: 0.42rem 0.55rem; font-size: 0.58rem; }
+
+.pf-empty {
+  font-size: 0.78rem;
+  color: var(--pf-muted);
+  border: 1px dashed var(--pf-line-soft);
+  padding: 1.2rem;
+  text-align: center;
+}
+
+/* --- aviso flotante --- */
+.pf-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-18px);
+  background: var(--pf-surface, #fff);
+  border: 1px solid var(--pf-accent, #ff0000);
+  color: var(--pf-text, #000);
+  font-family: var(--retro-font, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 0.55rem 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 9999;
+  max-width: 80vw;
+  text-align: center;
+}
+
+.pf-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+[hidden] { display: none !important; }

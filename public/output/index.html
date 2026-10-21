@@ -45,9 +45,15 @@
         var shadersScript = document.createElement('script');
         shadersScript.src = '/jpstagedesign/js/shaders.js';
         shadersScript.onload = function() {
-          var outputScript = document.createElement('script');
-          outputScript.src = '/jpstagedesign/js/output.js';
-          document.body.appendChild(outputScript);
+          // 🌀 motor del editor (para escenas "jpshader") antes de output.js
+          var bridge = document.createElement('script');
+          bridge.src = '/jpstagedesign/js/jpshader-bridge.js?v=1';
+          bridge.onload = function() {
+            var outputScript = document.createElement('script');
+            outputScript.src = '/jpstagedesign/js/output.js?v=2';
+            document.body.appendChild(outputScript);
+          };
+          document.body.appendChild(bridge);
         };
         document.body.appendChild(shadersScript);
       };

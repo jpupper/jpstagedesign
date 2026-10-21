@@ -14,6 +14,18 @@
   const modeAdvancedView = document.getElementById('mode-advanced');
   const userButtons = document.getElementById('userButtons');
   const materialList = document.getElementById('materialList');
+  const inputTabs = document.getElementById('inputTabs');
+  const inputPaneCargados = document.getElementById('inputPaneCargados');
+  const inputPaneEditor = document.getElementById('inputPaneEditor');
+  const inputCountCargados = document.getElementById('inputCountCargados');
+  const inputCountEditor = document.getElementById('inputCountEditor');
+  const jpeGrid = document.getElementById('jpeGrid');
+  const jpeSearch = document.getElementById('jpeSearch');
+  const jpeAuthor = document.getElementById('jpeAuthor');
+  const jpeSort = document.getElementById('jpeSort');
+  const jpeReload = document.getElementById('jpeReload');
+  const jpeMeta = document.getElementById('jpeMeta');
+  const jpePager = document.getElementById('jpePager');
   const buttonAssignments = document.getElementById('buttonAssignments');
   const btnAddMaterial = document.getElementById('btnAddMaterial');
   const btnSaveButtons = document.getElementById('btnSaveButtons');
@@ -30,7 +42,12 @@
   let amIMaster = false;
   let activeSceneId = null;
   let isConnected = false;
-  let bgShaderCtx = null; // Contexto del shader de fondo
+  let bgShaderCtx = null; // Contexto del shader de fondo (motor local .frag)
+  let bgJpView = null;         // 🎨 fondo con el MOTOR DEL EDITOR (shader elegido en INPUTS)
+  let bgShaderName = null;     // shader del editor usado como fondo (null = shaderfondo.frag)
+  let activePresetName = null; // preset cargado: dónde se guarda lo que se toca acá
+  // Build del front: se usa como cache-buster al abrir Outputs en otra pestaña.
+  const BUILD_MENU = '2026-10-20-jpshader';
   let currentStyle = 'light'; // Estilo visual: light | dark | matrix
   let userButtonShaderContexts = {}; // Shader contexts for user buttons
   
@@ -52,9 +69,12 @@
     connectSocket();
     setupEventListeners();
     loadSettings();
-    initBackgroundShader();
+    initFondo();            // fondo: shader del editor elegido en INPUTS o shaderfondo.frag
+    initActivePreset();
+    initPresentacion();
     setupKeyboardShortcuts();
     initMaterialUI();
+    initInputTabs();
     setupDropzone();
     initTheme();
     initLogoUI();
@@ -80,7 +100,87 @@
   // ============================================================
   // SHADER DE FONDO (Cargado 100% desde shaderfondo.frag)
   // ============================================================
-  async function initBackgroundShader() {
+  /** Lee el fondo guardado y recién ahí monta el shader. */
+  async function initFondo() {
+    try {
+      const d = await apiFetch(API_BASE + '/bg-shader');
+      bgShaderName = (d && d.shader) ? d.shader : null;
+    } catch (e) {
+      bgShaderName = null;
+    }
+    initBackgroundShader();
+  }
+
+  /** 🎨 Fondo con el motor de jpShadereditor (shader elegido en INPUTS). */
+  async function mountJpBackground(nombre) {
+    const canvas = document.getElementById('bgShaderCanvas');
+    if (!canvas || typeof JPSE === 'undefined') return false;
+    destroyJpBackground();
+    try {
+      await JPSE.loadEngine();
+      const plan = await JPSE.getPlan(nombre);
+      bgJpView = JPSE.createView(canvas, plan, {
+        maxDpr: 1.25,
+        mouse: 'window',
+        uniforms: {},
+        onError: (t) => console.warn('[FONDO][JPSE]', t)
+      });
+      console.log('[MENU] Fondo del editor: ' + nombre + ' · ' + plan.passes.length + ' pase(s)');
+      document.body.classList.add('bg-jpshader');
+      return true;
+    } catch (e) {
+      console.warn('[MENU] No se pudo montar el fondo del editor:', e.message);
+      bgJpView = null;
+      return false;
+    }
+  }
+
+  function destroyJpBackground() {
+    if (bgJpView) {
+      try { bgJpView.destroy(); } catch (e) { /* noop */ }
+      bgJpView = null;
+    }
+    document.body.classList.remove('bg-jpshader');
+  }
+
+  /**
+   * Elige el FONDO de la app: un shader del editor (lo pide a jpShadereditor) o
+   * null para volver al shaderfondo.frag local. Se guarda en el servidor.
+   */
+  async function setAppBackground(nombre) {
+    const limpio = nombre ? String(nombre) : null;
+    try {
+      await apiFetch(API_BASE + '/bg-shader', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shader: limpio })
+      });
+    } catch (e) {
+      showToast('⚠️ No se pudo guardar el fondo: ' + e.message);
+      return;
+    }
+    bgShaderName = limpio;
+    if (bgShaderName) {
+      const ok = await mountJpBackground(bgShaderName);
+      if (!ok) showToast('⚠️ No se pudo reproducir el shader; se deja el fondo anterior');
+    } else {
+      destroyJpBackground();
+      initBackgroundShaderLocal();
+    }
+    showToast(limpio ? ('🎨 Fondo: ' + limpio) : '🎨 Fondo por defecto (shaderfondo)');
+    renderJpEditorIndex();
+  }
+
+  function initBackgroundShader() {
+    if (bgShaderName) {
+      mountJpBackground(bgShaderName);
+      return;
+    }
+    destroyJpBackground();
+    initBackgroundShaderLocal();
+  }
+
+  async function initBackgroundShaderLocal() {
     var canvas = document.getElementById('bgShaderCanvas');
     if (!canvas) return;
     
@@ -198,14 +298,19 @@
     }
   }
   
-  // Recargar shader desde archivo .frag
+  // Recargar el shader de fondo (el del editor o el .frag local)
   function reloadShader() {
+    if (bgShaderName) {
+      console.log('[MENU] Recargando fondo del editor: ' + bgShaderName);
+      mountJpBackground(bgShaderName);
+      return;
+    }
     console.log('[MENU] Recargando shaderfondo.frag...');
     if (bgShaderCtx && bgShaderCtx.gl && bgShaderCtx.program) {
       if (bgShaderCtx.rafId) cancelAnimationFrame(bgShaderCtx.rafId);
       bgShaderCtx.gl.deleteProgram(bgShaderCtx.program);
     }
-    initBackgroundShader();
+    initBackgroundShaderLocal();
   }
   
   // ============================================================
@@ -339,6 +444,24 @@
       console.log('[MENU] Escena limpiada / Blackout');
       updateActiveButton('blackout');
     });
+
+    // 🗂️ PRESETS — el que está cargado (todo lo que se guarda va ahí)
+    socket.on('presetChanged', (data) => {
+      activePresetName = (data && data.name) ? data.name : null;
+      updatePresetBadge();
+      if (data && data.activated) {
+        showToast('🗂 Preset cargado: ' + data.name);
+        loadMaterialsFromServer({ activateDefault: false });
+        initFondo();     // el preset puede traer otro fondo
+      }
+    });
+
+    // 🧠 AGENTE / API — la biblioteca de inputs cambió en el servidor
+    // (un agente agregó links/imágenes o armó una instalación completa).
+    socket.on('libraryChanged', (data) => {
+      console.log('[MENU] Biblioteca actualizada por agente/API', data && data.materials ? `(${data.materials.length} inputs)` : '');
+      loadMaterialsFromServer({ activateDefault: false });
+    });
   }
 
   // ============================================================
@@ -467,6 +590,15 @@
   
   function synthesizeScene(material) {
     const base = { id: material.id, label: material.name || 'Material', type: material.type };
+    if (material.type === 'jpshader') {
+      // El nombre del editor viaja EXACTO (es la clave del plan en el backend):
+      // asi el Output 3D reproduce el mismo shader que se eligió en la botonera.
+      base.type = 'jpshader';
+      base.editor = 'jpshader';
+      base.shader = material.shader || material.effect || material.name;
+      base.thumb = getMaterialThumb(material);
+      base.uniforms = (typeof getMaterialUniformValues === 'function') ? getMaterialUniformValues(material) : (currentShaderUniformValues[material.id] || {});
+    }
     if (material.type === 'effect' || material.type === 'shader') {
       base.type = 'shader';
       base.shader = (material.effect || material.shader || material.name || '').toLowerCase();
@@ -530,7 +662,10 @@
   }
 
   function open3D() {
-    window.open(CONFIG.OUTPUT_3D_URL, '_blank');
+    // Cache-buster por BUILD: un deploy nuevo del 3D nunca se abre con la copia
+    // vieja que el navegador tenga guardada.
+    const sep = CONFIG.OUTPUT_3D_URL.indexOf('?') === -1 ? '?' : '&';
+    window.open(CONFIG.OUTPUT_3D_URL + sep + 'v=' + BUILD_MENU, '_blank');
   }
 
   function openScreenSlice(screenNum) {
@@ -683,7 +818,7 @@
     return json;
   }
   
-  async function loadMaterialsFromServer() {
+  async function loadMaterialsFromServer(opts = {}) {
     try {
       const data = await apiFetch(API_BASE + '/materials');
       materialLibrary = data.materials || [];
@@ -709,13 +844,27 @@
         }
       });
 
+      // Shaders del editor: los params se guardan con el NOMBRE del editor como
+      // clave, así que se rehidratan por ahí (no por el id del material).
+      materialLibrary.forEach(m => {
+        if (!isJpShader(m)) return;
+        const nombre = m.shader || m.effect || '';
+        const src = data.shaderParams && (data.shaderParams[nombre] || data.shaderParams[nombre.toLowerCase()]);
+        if (src && typeof src === 'object') {
+          currentShaderUniformValues[m.id] = Object.assign({}, currentShaderUniformValues[m.id] || {}, src);
+        }
+      });
+
       renderUserButtons();
       renderMaterialList();
       renderButtonAssignments();
       setStatus('uploadStatus', 'Biblioteca cargada desde el servidor', 'ok');
-      
-      // Activar botón 1 por defecto
-      setTimeout(() => activateDefaultButton(), 500);
+
+      // Activar botón 1 por defecto (se omite en refrescos automáticos,
+      // p. ej. cuando un agente/API acaba de reescribir la biblioteca)
+      if (opts.activateDefault !== false) {
+        setTimeout(() => activateDefaultButton(), 500);
+      }
     } catch (err) {
       console.error('[MENU] Error cargando materiales:', err);
       setStatus('uploadStatus', 'No se pudo conectar al servidor de materiales', 'err');
@@ -730,6 +879,7 @@
   }
   
   function materialIcon(m) {
+    if (m.type === 'jpshader') return '🌀';
     if (m.type === 'shader' || m.type === 'effect') return '✨';
     if (m.type === 'image') return '🖼️';
     if (m.type === 'youtube') return '🎬';
@@ -739,12 +889,24 @@
   }
   
   function materialTypeLabel(m) {
+    if (m.type === 'jpshader') return 'JP Shader Editor';
     if (m.type === 'shader' || m.type === 'effect') return 'Shader';
     if (m.type === 'image') return 'Imagen';
     if (m.type === 'youtube') return 'Video YT';
     if (m.type === 'video') return 'Video';
     if (m.type === 'web') return 'Página Web';
     return m.type;
+  }
+
+  // Un shader del editor se reproduce con el motor de jpShadereditor (plan),
+  // no con los .frag locales de shaders.js.
+  function isJpShader(m) {
+    return !!m && m.type === 'jpshader';
+  }
+
+  // ¿Abre panel de parámetros? (shader local o shader del editor)
+  function isParamsable(m) {
+    return !!m && (m.type === 'shader' || m.type === 'effect' || m.type === 'jpshader');
   }
   
   function setStatus(id, text, cls) {
@@ -816,6 +978,9 @@
 
   function getMaterialThumb(mat) {
     if (!mat) return null;
+    if (mat.type === 'jpshader') {
+      return mat.thumb || mat.src || null;   // miniatura publicada por el editor
+    }
     if (mat.type === 'effect' || mat.type === 'shader') {
       const eff = (mat.effect || mat.shader || mat.name || '').toLowerCase();
       return EFFECT_THUMBS[eff] || EFFECT_THUMBS.space;
@@ -851,9 +1016,21 @@
       btn.dataset.matId = mat ? mat.id : '';
       
       const isShader = mat && (mat.type === 'shader' || mat.type === 'effect');
+      const isJp = isJpShader(mat);
       
-      // For shader materials, add canvas for preview instead of image
-      if (isShader) {
+      // Shader del editor (jpshader): la tarjeta usa la miniatura del editor.
+      // El render en vivo lo hace el motor del editor en el panel de parámetros.
+      if (isJp) {
+        const thumbUrl = getMaterialThumb(mat);
+        if (thumbUrl) {
+          const bgImg = document.createElement('img');
+          bgImg.className = 'user-btn-thumb';
+          bgImg.src = thumbUrl;
+          bgImg.alt = mat.name || '';
+          bgImg.onerror = function () { this.style.display = 'none'; };
+          btn.appendChild(bgImg);
+        }
+      } else if (isShader) {
         const canvas = document.createElement('canvas');
         canvas.className = 'user-btn-shader-canvas';
         canvas.dataset.slot = slot.slot;
@@ -917,7 +1094,7 @@
       btn.appendChild(content);
       
       // Add parameter button for shader materials
-      if (isShader) {
+      if (isShader || isJp) {
         const btnParams = document.createElement('button');
         btnParams.className = 'user-btn-params-btn';
         btnParams.title = 'Configurar parámetros (uniforms)';
@@ -1093,6 +1270,7 @@
 
     // Detener el loop del preview
     stopShaderPreview();
+    jpDestroyPreview();
     
     // Remove params-active-mode
     const modeUser = document.getElementById('mode-user');
@@ -1113,6 +1291,9 @@
   }
   
   function renderUserShaderParamsPanelLarge(mat, slot) {
+    // Shader del editor: mismo panel, pero con el motor de jpShadereditor
+    if (isJpShader(mat)) return renderUserJpShaderParamsPanelLarge(mat, slot);
+
     // Remove existing panel if any
     const existingPanel = document.getElementById('userShaderParamsPanelLarge');
     if (existingPanel) {
@@ -1811,7 +1992,7 @@
 
   async function saveShaderParamsToServer(mat, statusEl) {
     if (!mat) return false;
-    const shaderId = mat.id;
+    const shaderId = paramsKey(mat);
     const uniforms = currentShaderUniformValues[mat.id] || {};
 
     try {
@@ -1900,7 +2081,7 @@
   function loadShaderParamsFromServer(mat) {
     return (async () => {
       try {
-        const data = await apiFetch(API_BASE + '/shader-params/' + encodeURIComponent(mat.id));
+        const data = await apiFetch(API_BASE + '/shader-params/' + encodeURIComponent(paramsKey(mat)));
         if (data && data.ok && data.uniforms) {
           currentShaderUniformValues[mat.id] = Object.assign({}, currentShaderUniformValues[mat.id] || {}, data.uniforms);
           console.log(`[MENU] Parámetros cargados para ${mat.id}:`, data.uniforms);
@@ -1923,11 +2104,15 @@
     } else {
       materialList.classList.remove('params-active-mode');
       stopShaderPreview(); // sin panel abierto: apagar el loop del preview
+      jpDestroyPreview();  // idem para el motor del editor
     }
+    updateInputCounts();
 
     materialList.innerHTML = '';
     materialLibrary.forEach(m => {
       const isShader = (m.type === 'shader' || m.type === 'effect');
+      const isJp = isJpShader(m);
+      const canParams = isShader || isJp;
       const isParamsOpen = (openShaderParamsMatId === m.id);
 
       const item = document.createElement('div');
@@ -1960,7 +2145,7 @@
       item.appendChild(info);
 
       // Si es shader, agregar el botón de 3 líneas con círculos en la esquina superior derecha
-      if (isShader) {
+      if (canParams) {
         const btnParams = document.createElement('button');
         btnParams.className = 'mat-params-btn' + (isParamsOpen ? ' is-active' : '');
         btnParams.title = isParamsOpen ? 'Cerrar parámetros' : 'Configurar parámetros (uniforms)';
@@ -2003,7 +2188,7 @@
 
       // Si tiene los parámetros abiertos, insertar el panel de parámetros
       if (isParamsOpen) {
-        const paramsContainer = renderShaderParamsPanel(m);
+        const paramsContainer = isJp ? renderJpShaderParamsPanel(m) : renderShaderParamsPanel(m);
         materialList.appendChild(paramsContainer);
       }
     });
@@ -2126,7 +2311,8 @@
       if (data.buttons) buttonSlots = data.buttons.slice().sort((a, b) => a.slot - b.slot);
       renderUserButtons();
       renderButtonAssignments();
-      setStatus('assignStatus', 'Asignación guardada en el servidor', 'ok');
+      setStatus('assignStatus', 'Asignación guardada en el servidor' + (activePresetName ? (' · preset: ' + activePresetName) : ' · (sin preset cargado)'), 'ok');
+      showToast('💾 Botonera guardada' + (activePresetName ? (' en "' + activePresetName + '"') : ''));
     } catch (err) {
       setStatus('assignStatus', 'Error al guardar: ' + err.message, 'err');
     }
@@ -2327,6 +2513,873 @@
     // El panel de configuración permanece abierto al cambiar de modo
   }
   
+  // ============================================================
+  // PRESETS — el estado vivo pertenece al preset cargado
+  // ============================================================
+  async function initActivePreset() {
+    try {
+      const d = await apiFetch(API_BASE + '/presets');
+      activePresetName = (d && d.active) ? d.active.name : null;
+    } catch (e) {
+      activePresetName = null;
+    }
+    updatePresetBadge();
+  }
+
+  function updatePresetBadge() {
+    const el = document.getElementById('presetBadge');
+    if (!el) return;
+    el.textContent = activePresetName ? ('PRESET · ' + activePresetName) : 'SIN PRESET';
+    el.classList.toggle('is-empty', !activePresetName);
+    el.title = activePresetName
+      ? 'Todo lo que guardes en la botonera y en el 3D cae en este preset (se administra en el perfil)'
+      : 'No hay preset cargado: guardá uno desde el perfil';
+  }
+
+  // ============================================================
+  // JP SHADER EDITOR — índice de shaders + motor del editor
+  // ============================================================
+  //
+  // Inputs "jpshader": el material NO guarda GLSL, guarda el NOMBRE del shader
+  // del editor. El render lo hace el motor de jpShadereditor (plan + WebGLRenderer)
+  // a través de js/jpshader-bridge.js, con la estética de esta app.
+
+  let activeJpView = null;            // vista WebGL viva (una por panel abierto)
+  let activeJpMat = null;
+  const jpUniformCache = {};          // nombre del editor -> uniforms escaneados
+  const jpServerLoaded = {};          // matId -> ya se mergearon los params guardados
+
+  function paramsKey(mat) {
+    // Los params del editor se guardan/leen con el nombre EXACTO del shader.
+    return isJpShader(mat) ? (mat.shader || mat.effect || mat.id) : mat.id;
+  }
+
+  function jpShaderName(mat) {
+    return mat && (mat.shader || mat.effect || mat.name) || '';
+  }
+
+  function jpDestroyPreview() {
+    if (activeJpView) {
+      try { activeJpView.destroy(); } catch (e) { /* noop */ }
+      activeJpView = null;
+    }
+    activeJpMat = null;
+  }
+
+  // Plan + uniforms + valores (servidor > plan) para un shader del editor.
+  async function jpLoad(mat) {
+    if (typeof JPSE === 'undefined') throw new Error('no cargó js/jpshader-bridge.js');
+    const nombre = jpShaderName(mat);
+    if (!nombre) throw new Error('el material no tiene nombre de shader');
+    await JPSE.loadEngine();
+    const plan = await JPSE.getPlan(nombre);
+    let lista = jpUniformCache[nombre];
+    if (!lista) {
+      lista = JPSE.uniforms(plan);
+      jpUniformCache[nombre] = lista;
+    }
+    if (!currentShaderUniformValues[mat.id]) currentShaderUniformValues[mat.id] = {};
+    const vals = currentShaderUniformValues[mat.id];
+
+    if (!jpServerLoaded[mat.id]) {
+      jpServerLoaded[mat.id] = true;
+      try {
+        const data = await apiFetch(API_BASE + '/shader-params/' + encodeURIComponent(paramsKey(mat)));
+        if (data && data.ok && data.uniforms) Object.assign(vals, data.uniforms);
+      } catch (e) { /* sin params guardados todavía */ }
+    }
+
+    const conValores = lista.map(u => {
+      const v = (vals[u.name] !== undefined) ? vals[u.name] : u.value;
+      vals[u.name] = v;
+      return Object.assign({}, u, { value: v });
+    });
+    return { plan, uniforms: conValores };
+  }
+
+  function jpMountPreview(canvas, plan, mat) {
+    jpDestroyPreview();
+    activeJpMat = mat;
+    activeJpView = JPSE.createView(canvas, plan, {
+      maxDpr: 1.25,
+      mouse: 'canvas',
+      uniforms: currentShaderUniformValues[mat.id] || {},
+      onError: (txt) => console.warn('[MENU][JPSE]', txt)
+    });
+    return activeJpView;
+  }
+
+  // Un cambio de uniform: preview + outputs (socket) + guardado automático.
+  function jpApply(mat, nombre, valor, statusEl) {
+    if (activeJpView && activeJpMat && activeJpMat.id === mat.id) {
+      try { activeJpView.setUniform(nombre, valor); } catch (e) { /* noop */ }
+    }
+    if (!currentShaderUniformValues[mat.id]) currentShaderUniformValues[mat.id] = {};
+    currentShaderUniformValues[mat.id][nombre] = valor;
+    if (socket && isConnected) {
+      socket.emit('updateShaderUniforms', {
+        shader: jpShaderName(mat).toLowerCase(),
+        uniforms: { [nombre]: valor }
+      });
+    }
+    scheduleAutoSaveShaderParams(mat, statusEl);
+  }
+
+  // Clases por panel: el de INPUTS y el grande de la botonera ya tienen las suyas.
+  function jpKinds(kind) {
+    if (kind === 'user') {
+      return {
+        row: 'user-param-item-large', header: 'user-param-header-large',
+        label: 'user-param-label-large', meta: 'user-param-meta-large',
+        wrap: 'user-param-control-wrap', range: 'user-param-slider-large',
+        val: 'user-param-val-large', color: 'user-param-color-large',
+        hex: 'user-param-hex-large', check: 'user-param-checkbox-large'
+      };
+    }
+    return {
+      row: 'param-item', header: 'param-item-header', label: 'param-label',
+      meta: 'param-meta', wrap: 'param-input-wrap', range: 'param-range-slider',
+      val: 'param-num-val', color: 'param-color-picker', hex: 'param-color-hex',
+      check: 'param-checkbox'
+    };
+  }
+
+  function jpControlRow(u, kinds, onChange) {
+    const item = document.createElement('div');
+    item.className = kinds.row;
+    item.dataset.uniform = u.name;
+
+    const head = document.createElement('div');
+    head.className = kinds.header;
+    const label = document.createElement('span');
+    label.className = kinds.label;
+    label.textContent = u.name;
+    const meta = document.createElement('span');
+    meta.className = kinds.meta;
+    meta.textContent = u.type + (u.passes && u.passes.length > 1 ? ' · ' + u.passes.join(' + ') : '');
+    head.appendChild(label);
+    head.appendChild(meta);
+    item.appendChild(head);
+
+    const wrap = document.createElement('div');
+    wrap.className = kinds.wrap;
+
+    const esVec = (u.type === 'vec3' || u.type === 'vec4' || u.type === 'vec2');
+    const esColor = (u.type === 'vec3') && Array.isArray(u.value) &&
+      u.value.length >= 3 && u.value.every(v => v >= 0 && v <= 1);
+
+    if (u.type === 'bool') {
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = kinds.check;
+      chk.dataset.uniformName = u.name;
+      chk.checked = !!Number(u.value);
+      const txt = document.createElement('span');
+      txt.className = kinds.val;
+      txt.textContent = chk.checked ? 'ON' : 'OFF';
+      chk.addEventListener('change', () => {
+        txt.textContent = chk.checked ? 'ON' : 'OFF';
+        onChange(u.name, chk.checked ? 1 : 0);
+      });
+      wrap.appendChild(chk);
+      wrap.appendChild(txt);
+    } else if (esColor) {
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = kinds.color;
+      colorInput.dataset.uniformName = u.name;
+      colorInput.value = vec3ToHex(u.value);
+      const hex = document.createElement('span');
+      hex.className = kinds.hex;
+      hex.textContent = colorInput.value;
+      colorInput.addEventListener('input', () => {
+        hex.textContent = colorInput.value;
+        onChange(u.name, hexToVec3(colorInput.value));
+      });
+      wrap.appendChild(colorInput);
+      wrap.appendChild(hex);
+    } else if (esVec) {
+      // Un slider por componente (vec2 / vec4, o vec3 fuera de 0..1).
+      const n = u.type === 'vec2' ? 2 : (u.type === 'vec3' ? 3 : 4);
+      const etiquetas = ['x', 'y', 'z', 'w'];
+      const vals = Array.isArray(u.value) ? u.value.slice() : [];
+      while (vals.length < n) vals.push(0);
+      for (let i = 0; i < n; i++) {
+        const fila = document.createElement('div');
+        fila.className = 'jp-comp-row';
+        const et = document.createElement('span');
+        et.className = kinds.val;
+        et.textContent = etiquetas[i];
+        const sl = document.createElement('input');
+        sl.type = 'range';
+        sl.className = kinds.range;
+        const ini = Number(vals[i]) || 0;
+        sl.min = Math.min(u.min, ini);
+        sl.max = Math.max(u.max, ini, sl.min + 0.0001);
+        sl.step = u.step || 0.01;
+        sl.value = ini;
+        const num = document.createElement('span');
+        num.className = kinds.val;
+        num.textContent = ini.toFixed(2);
+        sl.addEventListener('input', () => {
+          const v = parseFloat(sl.value);
+          vals[i] = v;
+          num.textContent = v.toFixed(2);
+          onChange(u.name, vals.slice());
+        });
+        fila.appendChild(et);
+        fila.appendChild(sl);
+        fila.appendChild(num);
+        wrap.appendChild(fila);
+      }
+    } else {
+      // float / int -> slider
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.className = kinds.range;
+      slider.dataset.uniformName = u.name;
+      slider.min = u.min;
+      slider.max = u.max;
+      slider.step = u.step || (u.type === 'int' ? 1 : 0.01);
+      slider.value = u.value;
+      const numDisplay = document.createElement('span');
+      numDisplay.className = kinds.val;
+      numDisplay.textContent = (u.type === 'int') ? String(Math.round(u.value)) : Number(u.value).toFixed(2);
+      slider.addEventListener('input', () => {
+        const val = (u.type === 'int') ? parseInt(slider.value, 10) : parseFloat(slider.value);
+        numDisplay.textContent = (u.type === 'int') ? String(val) : val.toFixed(2);
+        onChange(u.name, val);
+      });
+      wrap.appendChild(slider);
+      wrap.appendChild(numDisplay);
+    }
+
+    item.appendChild(wrap);
+    return item;
+  }
+
+  function jpEmptyMsg(kinds, texto) {
+    const d = document.createElement('div');
+    d.className = (kinds.row === 'param-item') ? 'shader-params-empty' : 'user-params-empty-large';
+    d.textContent = texto;
+    return d;
+  }
+
+  function jpResetToPlanDefaults(mat, plan, statusEl) {
+    const defaults = JPSE.uniforms(plan);   // valores del plan (los del editor)
+    if (!currentShaderUniformValues[mat.id]) currentShaderUniformValues[mat.id] = {};
+    defaults.forEach(u => {
+      currentShaderUniformValues[mat.id][u.name] = u.value;
+      if (activeJpView && activeJpMat && activeJpMat.id === mat.id) {
+        try { activeJpView.setUniform(u.name, u.value); } catch (e) { /* noop */ }
+      }
+    });
+    jpServerLoaded[mat.id] = true;          // no volver a pisar con lo guardado
+    saveShaderParamsToServer(mat, statusEl);
+  }
+
+  // --- Panel de parámetros del shader del editor (dentro de INPUTS) ---
+  function renderJpShaderParamsPanel(m) {
+    const panel = document.createElement('div');
+    panel.className = 'shader-params-container jp-params-container';
+
+    const header = document.createElement('div');
+    header.className = 'shader-params-header';
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'shader-params-title-wrap';
+    const badge = document.createElement('span');
+    badge.className = 'shader-params-badge';
+    badge.textContent = 'JP EDITOR';
+    const title = document.createElement('span');
+    title.className = 'shader-params-title';
+    title.textContent = `Parámetros: ${m.name}`;
+    titleWrap.appendChild(badge);
+    titleWrap.appendChild(title);
+
+    const btnBack = document.createElement('button');
+    btnBack.className = 'btn-params-back';
+    btnBack.innerHTML = '✕ Volver';
+    btnBack.title = 'Cerrar y volver a la lista de inputs';
+    btnBack.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openShaderParamsMatId = null;
+      jpDestroyPreview();
+      renderMaterialList();
+    });
+    header.appendChild(titleWrap);
+    header.appendChild(btnBack);
+    panel.appendChild(header);
+
+    const previewSection = document.createElement('div');
+    previewSection.className = 'shader-preview-section';
+    const previewLabel = document.createElement('div');
+    previewLabel.className = 'shader-preview-label';
+    previewLabel.textContent = 'Previsualización · ' + jpShaderName(m);
+    previewSection.appendChild(previewLabel);
+    const previewCanvas = document.createElement('canvas');
+    previewCanvas.className = 'shader-preview-canvas jp-preview-canvas';
+    previewCanvas.width = 640;
+    previewCanvas.height = 360;
+    previewSection.appendChild(previewCanvas);
+    panel.appendChild(previewSection);
+
+    const statusIndicator = document.createElement('span');
+    statusIndicator.className = 'shader-params-status-text';
+    statusIndicator.style.cssText = 'font-size: 0.75rem; color: #888; transition: all 0.2s; white-space: nowrap;';
+
+    const uniformsList = document.createElement('div');
+    uniformsList.className = 'shader-params-list';
+    const loading = document.createElement('div');
+    loading.className = 'shader-params-empty';
+    loading.textContent = 'Cargando el plan del editor…';
+    uniformsList.appendChild(loading);
+    panel.appendChild(uniformsList);
+
+    const kinds = jpKinds('adv');
+    jpLoad(m).then(({ plan, uniforms }) => {
+      uniformsList.innerHTML = '';
+      try {
+        jpMountPreview(previewCanvas, plan, m);
+      } catch (err) {
+        loading.textContent = '⚠️ No se pudo iniciar el motor WebGL: ' + err.message;
+        uniformsList.appendChild(loading);
+      }
+      if (!uniforms.length) {
+        uniformsList.appendChild(jpEmptyMsg(kinds, 'Este shader no declara uniforms propios: sólo se reproduce.'));
+      }
+      uniforms.forEach(u => {
+        uniformsList.appendChild(jpControlRow(u, kinds, (n, v) => jpApply(m, n, v, statusIndicator)));
+      });
+
+      const footer = document.createElement('div');
+      footer.className = 'shader-params-footer';
+      const leftWrap = document.createElement('div');
+      leftWrap.style.display = 'flex';
+      leftWrap.style.alignItems = 'center';
+      leftWrap.style.gap = '0.75rem';
+
+      const btnSave = document.createElement('button');
+      btnSave.className = 'btn-params-save';
+      btnSave.innerHTML = '💾 Guardar parámetros';
+      btnSave.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        btnSave.disabled = true;
+        const ok = await saveShaderParamsToServer(m, statusIndicator);
+        btnSave.disabled = false;
+        btnSave.innerHTML = ok ? '✅ ¡Guardado!' : '⚠️ Reintentar';
+        setTimeout(() => { btnSave.innerHTML = '💾 Guardar parámetros'; }, 2200);
+      });
+
+      const btnReset = document.createElement('button');
+      btnReset.className = 'btn-params-reset';
+      btnReset.innerHTML = '↺ Valores del editor';
+      btnReset.title = 'Volver a los valores con los que está guardado el shader en jpShadereditor';
+      btnReset.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jpResetToPlanDefaults(m, plan, statusIndicator);
+        openShaderParamsMatId = m.id;
+        renderMaterialList();
+      });
+
+      leftWrap.appendChild(btnSave);
+      leftWrap.appendChild(btnReset);
+      leftWrap.appendChild(statusIndicator);
+      footer.appendChild(leftWrap);
+      panel.appendChild(footer);
+    }).catch(err => {
+      console.error('[MENU] params jpshader:', err);
+      uniformsList.innerHTML = '';
+      uniformsList.appendChild(jpEmptyMsg(kinds, '⚠️ ' + err.message));
+    });
+
+    return panel;
+  }
+
+  // --- Panel grande (Modo User) del shader del editor ---
+  function renderUserJpShaderParamsPanelLarge(mat, slot) {
+    const existing = document.getElementById('userShaderParamsPanelLarge');
+    if (existing) existing.remove();
+    jpDestroyPreview();
+
+    const panel = document.createElement('div');
+    panel.id = 'userShaderParamsPanelLarge';
+    panel.className = 'user-params-panel-large';
+
+    const header = document.createElement('div');
+    header.className = 'user-params-large-header';
+    const titleGroup = document.createElement('div');
+    titleGroup.className = 'user-params-title-group';
+    const badge = document.createElement('span');
+    badge.className = 'user-params-badge';
+    badge.textContent = 'JP EDITOR';
+    const title = document.createElement('h3');
+    title.className = 'user-params-main-title';
+    title.textContent = slot.label || mat.name;
+    titleGroup.appendChild(badge);
+    titleGroup.appendChild(title);
+
+    const btnBack = document.createElement('button');
+    btnBack.className = 'btn-user-params-back';
+    btnBack.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Volver';
+    btnBack.title = 'Volver a todos los botones';
+    btnBack.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeUserShaderParams();
+    });
+    header.appendChild(titleGroup);
+    header.appendChild(btnBack);
+    panel.appendChild(header);
+
+    const previewSection = document.createElement('div');
+    previewSection.className = 'shader-preview-section';
+    const previewLabel = document.createElement('div');
+    previewLabel.className = 'shader-preview-label';
+    previewLabel.textContent = 'Previsualización · ' + jpShaderName(mat);
+    previewSection.appendChild(previewLabel);
+    const previewCanvas = document.createElement('canvas');
+    previewCanvas.className = 'shader-preview-canvas jp-preview-canvas';
+    previewCanvas.width = 640;
+    previewCanvas.height = 360;
+    previewSection.appendChild(previewCanvas);
+    panel.appendChild(previewSection);
+
+    const statusIndicator = document.createElement('span');
+    statusIndicator.className = 'user-params-status-text';
+    statusIndicator.style.cssText = 'font-size: 0.75rem; color: #888; transition: all 0.2s; white-space: nowrap;';
+
+    const paramsList = document.createElement('div');
+    paramsList.className = 'user-params-large-list';
+    const loading = document.createElement('div');
+    loading.className = 'user-params-empty-large';
+    loading.textContent = 'Cargando el plan del editor…';
+    paramsList.appendChild(loading);
+    panel.appendChild(paramsList);
+
+    // Se inserta ya (para que el panel exista mientras carga el plan)
+    const modeUser = document.getElementById('mode-user');
+    (modeUser || document.body).appendChild(panel);
+
+    const kinds = jpKinds('user');
+    jpLoad(mat).then(({ plan, uniforms }) => {
+      paramsList.innerHTML = '';
+      try {
+        jpMountPreview(previewCanvas, plan, mat);
+      } catch (err) {
+        loading.textContent = '⚠️ No se pudo iniciar el motor WebGL: ' + err.message;
+        paramsList.appendChild(loading);
+      }
+      if (!uniforms.length) {
+        paramsList.appendChild(jpEmptyMsg(kinds, 'Este shader no declara uniforms propios: sólo se reproduce.'));
+      }
+      uniforms.forEach(u => {
+        paramsList.appendChild(jpControlRow(u, kinds, (n, v) => jpApply(mat, n, v, statusIndicator)));
+      });
+
+      const footer = document.createElement('div');
+      footer.className = 'user-params-large-footer';
+      const leftWrap = document.createElement('div');
+      leftWrap.style.display = 'flex';
+      leftWrap.style.alignItems = 'center';
+      leftWrap.style.gap = '0.75rem';
+
+      const btnSave = document.createElement('button');
+      btnSave.className = 'btn-params-save';
+      btnSave.innerHTML = '💾 Guardar parámetros';
+      btnSave.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        btnSave.disabled = true;
+        const ok = await saveShaderParamsToServer(mat, statusIndicator);
+        btnSave.disabled = false;
+        btnSave.innerHTML = ok ? '✅ ¡Guardado!' : '⚠️ Reintentar';
+        setTimeout(() => { btnSave.innerHTML = '💾 Guardar parámetros'; }, 2200);
+      });
+
+      const btnReset = document.createElement('button');
+      btnReset.className = 'btn-params-reset';
+      btnReset.innerHTML = '↺ Valores del editor';
+      btnReset.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jpResetToPlanDefaults(mat, plan, statusIndicator);
+        openUserShaderParamsPanel(mat, slot);
+      });
+
+      leftWrap.appendChild(btnSave);
+      leftWrap.appendChild(btnReset);
+      leftWrap.appendChild(statusIndicator);
+      footer.appendChild(leftWrap);
+      panel.appendChild(footer);
+    }).catch(err => {
+      console.error('[MENU] params jpshader (user):', err);
+      paramsList.innerHTML = '';
+      paramsList.appendChild(jpEmptyMsg(kinds, '⚠️ ' + err.message));
+    });
+  }
+
+  // ---------------------------------------------------------------- indexador
+  const jpeState = { items: [], loaded: false, loading: false, query: '', autor: '', sort: 'recientes', page: 0, per: 48 };
+
+  // --- Enlaces al editor de shaders (galería + shader puntual) ---
+  function editorFront() {
+    return (typeof JPSE !== 'undefined' && JPSE.FRONT) ? JPSE.FRONT : 'https://fullscreencode.com/jpshadereditor';
+  }
+  function editorShaderUrl(nombre) {
+    return editorFront() + '/shader.html?shader=' + encodeURIComponent(nombre);
+  }
+
+  function updateBgBar() {
+    const nameEl = document.getElementById('jpeBgName');
+    const clear = document.getElementById('jpeBgClear');
+    if (nameEl) nameEl.textContent = bgShaderName || 'shaderfondo.frag (por defecto)';
+    if (clear) clear.hidden = !bgShaderName;
+  }
+
+  function initInputTabs() {
+    if (inputTabs) {
+      inputTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.input-tab');
+        if (!btn) return;
+        setInputTab(btn.dataset.itab);
+      });
+    }
+    if (jpeSearch) {
+      jpeSearch.addEventListener('input', () => {
+        jpeState.query = jpeSearch.value || '';
+        jpeState.page = 0;
+        renderJpEditorIndex();
+      });
+    }
+    if (jpeAuthor) {
+      jpeAuthor.addEventListener('change', () => {
+        jpeState.autor = jpeAuthor.value || '';
+        jpeState.page = 0;
+        renderJpEditorIndex();
+      });
+    }
+    if (jpeSort) {
+      jpeSort.addEventListener('change', () => {
+        jpeState.sort = jpeSort.value || 'recientes';
+        jpeState.page = 0;
+        renderJpEditorIndex();
+      });
+    }
+    if (jpeReload) {
+      jpeReload.addEventListener('click', () => loadJpEditorIndex(true));
+    }
+    const bgClear = document.getElementById('jpeBgClear');
+    if (bgClear) bgClear.addEventListener('click', () => setAppBackground(null));
+    updateInputCounts();
+    updateBgBar();
+  }
+
+  function setInputTab(clave) {
+    const esEditor = clave === 'jpeditor';
+    if (inputTabs) {
+      inputTabs.querySelectorAll('.input-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.itab === clave);
+      });
+    }
+    if (inputPaneCargados) inputPaneCargados.hidden = esEditor;
+    if (inputPaneEditor) inputPaneEditor.hidden = !esEditor;
+    if (esEditor && !jpeState.loaded && !jpeState.loading) loadJpEditorIndex(false);
+  }
+
+  function updateInputCounts() {
+    if (inputCountCargados) inputCountCargados.textContent = materialLibrary.length;
+    if (inputCountEditor && jpeState.items.length) inputCountEditor.textContent = jpeState.items.length;
+  }
+
+  async function loadJpEditorIndex(force) {
+    if (typeof JPSE === 'undefined') {
+      if (jpeMeta) jpeMeta.textContent = '⚠️ Falta js/jpshader-bridge.js';
+      return;
+    }
+    jpeState.loading = true;
+    if (jpeMeta) jpeMeta.textContent = 'Indexando jpShadereditor…';
+    try {
+      const items = await JPSE.listShaders({ refresh: !!force });
+      jpeState.items = items;
+      jpeState.loaded = true;
+
+      if (jpeAuthor) {
+        const autores = Array.from(new Set(items.map(s => s.autor).filter(Boolean)))
+          .sort((a, b) => a.localeCompare(b, 'es'));
+        const actual = jpeAuthor.value;
+        jpeAuthor.innerHTML = '<option value="">Todos los autores</option>' +
+          autores.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+        jpeAuthor.value = autores.indexOf(actual) >= 0 ? actual : '';
+        jpeState.autor = jpeAuthor.value;
+      }
+      if (inputCountEditor) inputCountEditor.textContent = items.length;
+      renderJpEditorIndex();
+    } catch (err) {
+      console.error('[MENU] índice jpShadereditor:', err);
+      if (jpeMeta) jpeMeta.textContent = '⚠️ No se pudo leer el índice: ' + err.message;
+    } finally {
+      jpeState.loading = false;
+    }
+  }
+
+  function jpeFiltered() {
+    const q = jpeState.query.trim().toLowerCase();
+    let arr = jpeState.items;
+    if (jpeState.autor) arr = arr.filter(s => s.autor === jpeState.autor);
+    if (q) {
+      arr = arr.filter(s =>
+        s.nombre.toLowerCase().indexOf(q) >= 0 ||
+        String(s.autor || '').toLowerCase().indexOf(q) >= 0);
+    }
+    arr = arr.slice();
+    if (jpeState.sort === 'az') {
+      arr.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    } else if (jpeState.sort === 'autor') {
+      arr.sort((a, b) => String(a.autor || '').localeCompare(String(b.autor || ''), 'es') ||
+        a.nombre.localeCompare(b.nombre, 'es'));
+    } else {
+      arr.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')) ||
+        a.nombre.localeCompare(b.nombre, 'es'));
+    }
+    return arr;
+  }
+
+  function jpeMaterialFor(nombre) {
+    const n = String(nombre || '').toLowerCase();
+    return materialLibrary.find(m => isJpShader(m) && String(m.shader || m.effect || '').toLowerCase() === n) || null;
+  }
+
+  function jpeSlotDe(materialId) {
+    const slot = buttonSlots.find(s => s.materialId === materialId);
+    return slot ? slot.slot : 0;
+  }
+
+  function jpeCard(item) {
+    const mat = jpeMaterialFor(item.nombre);
+    const card = document.createElement('article');
+    card.className = 'jpe-card' + (mat ? ' is-indexed' : '');
+    card.dataset.shader = item.nombre;
+
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'jpe-thumb';
+    if (item.thumb) {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = item.nombre;
+      img.src = item.thumb;
+      img.onerror = function () { this.remove(); };
+      thumbWrap.appendChild(img);
+    } else {
+      const ph = document.createElement('span');
+      ph.className = 'jpe-thumb-ph';
+      ph.textContent = '🌀';
+      thumbWrap.appendChild(ph);
+    }
+    card.appendChild(thumbWrap);
+
+    const info = document.createElement('div');
+    info.className = 'jpe-info';
+    const name = document.createElement('strong');
+    name.className = 'jpe-name';
+    name.textContent = item.nombre;
+    name.title = item.nombre;
+    const sub = document.createElement('span');
+    sub.className = 'jpe-sub';
+    const fecha = item.fecha ? String(item.fecha).slice(0, 10) : '';
+    sub.textContent = [item.autor || 'sin autor', fecha].filter(Boolean).join(' · ');
+    info.appendChild(name);
+    info.appendChild(sub);
+    card.appendChild(info);
+
+    const actions = document.createElement('div');
+    actions.className = 'jpe-actions';
+
+    const btnAdd = document.createElement('button');
+    btnAdd.className = 'jpe-add' + (mat ? ' is-in' : '');
+    btnAdd.textContent = mat ? '✓ EN INPUTS' : '＋ INPUTS';
+    btnAdd.disabled = !!mat;
+    btnAdd.title = mat ? 'Ya está indexado en INPUTS' : 'Indexar este shader en INPUTS';
+    btnAdd.addEventListener('click', async () => {
+      btnAdd.disabled = true;
+      btnAdd.textContent = '⏳…';
+      try {
+        await addJpShaderToInputs(item);
+      } catch (err) {
+        showToast('⚠️ ' + err.message);
+        btnAdd.disabled = false;
+        btnAdd.textContent = '＋ INPUTS';
+      }
+    });
+    actions.appendChild(btnAdd);
+
+    const slotSel = document.createElement('select');
+    slotSel.className = 'jpe-slot';
+    slotSel.title = mat ? 'Mandar este shader a un botón de la botonera' : 'Primero indexalo en INPUTS';
+    slotSel.disabled = !mat;
+    slotSel.innerHTML = '<option value="">→ BOTÓN</option>' +
+      [1, 2, 3, 4, 5, 6].map(n => `<option value="${n}">BOTÓN ${n}</option>`).join('');
+    if (mat) slotSel.value = String(jpeSlotDe(mat.id) || '');
+    slotSel.addEventListener('change', async () => {
+      const num = parseInt(slotSel.value, 10);
+      try {
+        await assignJpToSlot(mat.id, isNaN(num) ? 0 : num);
+      } catch (err) {
+        showToast('⚠️ ' + err.message);
+      }
+    });
+    actions.appendChild(slotSel);
+    card.appendChild(actions);
+
+    // 🎨 FONDO (fondo de la app) + ↗ abrir en JP Shader Editor
+    const actions2 = document.createElement('div');
+    actions2.className = 'jpe-actions jpe-actions-2';
+
+    const esFondo = !!bgShaderName && String(bgShaderName).toLowerCase() === String(item.nombre).toLowerCase();
+    const btnBg = document.createElement('button');
+    btnBg.className = 'jpe-add jpe-bg' + (esFondo ? ' is-in' : '');
+    btnBg.textContent = esFondo ? '✓ FONDO' : '🎨 FONDO';
+    btnBg.title = esFondo ? 'Es el fondo actual · click para volver al fondo por defecto' : 'Usar este shader como FONDO de la aplicación';
+    btnBg.addEventListener('click', async () => {
+      btnBg.disabled = true;
+      await setAppBackground(esFondo ? null : item.nombre);
+      btnBg.disabled = false;
+    });
+    actions2.appendChild(btnBg);
+
+    const btnEd = document.createElement('a');
+    btnEd.className = 'jpe-editor-btn';
+    btnEd.textContent = '↗';
+    btnEd.href = editorShaderUrl(item.nombre);
+    btnEd.target = '_blank';
+    btnEd.rel = 'noopener';
+    btnEd.title = 'Abrir este shader en JP Shader Editor';
+    actions2.appendChild(btnEd);
+
+    card.appendChild(actions2);
+    return card;
+  }
+
+  function renderJpEditorIndex() {
+    if (!jpeGrid) return;
+    const total = jpeState.items.length;
+    const arr = jpeFiltered();
+    const paginas = Math.max(1, Math.ceil(arr.length / jpeState.per));
+    if (jpeState.page > paginas - 1) jpeState.page = paginas - 1;
+    const desde = jpeState.page * jpeState.per;
+    const pagina = arr.slice(desde, desde + jpeState.per);
+
+    if (jpeMeta) {
+      jpeMeta.textContent = total
+        ? `${arr.length} de ${total} shaders · ${jpeState.autor || 'todos los autores'} · página ${jpeState.page + 1}/${paginas}`
+        : 'Sin resultados';
+    }
+    updateBgBar();
+    const linkEditor = document.getElementById('jpeEditorLink');
+    if (linkEditor) linkEditor.href = editorFront() + '/';
+
+    jpeGrid.innerHTML = '';
+    pagina.forEach(item => jpeGrid.appendChild(jpeCard(item)));
+
+    if (jpePager) {
+      jpePager.innerHTML = '';
+      if (paginas > 1) {
+        const prev = document.createElement('button');
+        prev.className = 'jpe-page-btn';
+        prev.textContent = '‹';
+        prev.disabled = jpeState.page === 0;
+        prev.addEventListener('click', () => { jpeState.page--; renderJpEditorIndex(); jpeGrid.scrollIntoView({ block: 'nearest' }); });
+        const next = document.createElement('button');
+        next.className = 'jpe-page-btn';
+        next.textContent = '›';
+        next.disabled = jpeState.page >= paginas - 1;
+        next.addEventListener('click', () => { jpeState.page++; renderJpEditorIndex(); jpeGrid.scrollIntoView({ block: 'nearest' }); });
+        const info = document.createElement('span');
+        info.className = 'jpe-page-info';
+        info.textContent = `${jpeState.page + 1} / ${paginas}`;
+        jpePager.appendChild(prev);
+        jpePager.appendChild(info);
+        jpePager.appendChild(next);
+      }
+    }
+    updateInputCounts();
+  }
+
+  async function addJpShaderToInputs(item) {
+    const ya = jpeMaterialFor(item.nombre);
+    if (ya) return ya;
+    await apiFetch(API_BASE + '/materials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'jpshader', name: item.nombre, shader: item.nombre, thumb: item.thumb || null })
+    });
+    await loadMaterialsFromServer({ activateDefault: false });
+    showToast('＋ ' + item.nombre + ' indexado en INPUTS');
+    renderJpEditorIndex();
+    return jpeMaterialFor(item.nombre);
+  }
+
+  async function assignJpToSlot(materialId, slotNum) {
+    const slot = buttonSlots.find(s => s.slot === slotNum);
+    if (!slot) {
+      // slot 0 = sacarlo de la botonera
+      buttonSlots.forEach(s => {
+        if (s.materialId === materialId) { s.materialId = null; s.label = null; }
+      });
+      await onSaveButtons();
+      renderJpEditorIndex();
+      showToast('Sacado de la botonera');
+      return;
+    }
+    // un material no puede estar en dos botones a la vez
+    buttonSlots.forEach(s => {
+      if (s.materialId === materialId && s.slot !== slotNum) { s.materialId = null; s.label = null; }
+    });
+    slot.materialId = materialId;
+    const mat = getMaterialById(materialId);
+    slot.label = mat ? mat.name : null;
+    await onSaveButtons();
+    renderJpEditorIndex();
+    if (mat) showToast('➜ ' + mat.name + ' al BOTÓN ' + slotNum);
+  }
+
+  // ============================================================
+  // PRESENTACIÓN DEL SITIO (qué es, para qué sirve, con capturas)
+  // ============================================================
+  const PRESENTACION_KEY = 'fsc_presentacion_visto:v1';
+
+  function openPresentacion() {
+    const box = document.getElementById('presentacion');
+    if (!box) return;
+    box.hidden = false;
+    document.body.classList.add('presentacion-abierta');
+  }
+
+  function closePresentacion() {
+    const box = document.getElementById('presentacion');
+    if (box) box.hidden = true;
+    document.body.classList.remove('presentacion-abierta');
+    try { localStorage.setItem(PRESENTACION_KEY, '1'); } catch (e) { /* noop */ }
+  }
+
+  function initPresentacion() {
+    const box = document.getElementById('presentacion');
+    if (!box) return;
+
+    const btn = document.getElementById('btnPresentacion');
+    if (btn) btn.addEventListener('click', openPresentacion);
+    document.getElementById('presClose')?.addEventListener('click', closePresentacion);
+    document.getElementById('presClose2')?.addEventListener('click', closePresentacion);
+    document.getElementById('presGoBotonera')?.addEventListener('click', closePresentacion);
+
+    // click en el fondo oscuro cierra
+    box.addEventListener('mousedown', (e) => { if (e.target === box) closePresentacion(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !box.hidden) closePresentacion();
+    });
+
+    // Primera visita: se muestra sola (una vez por navegador).
+    let visto = '0';
+    try { visto = localStorage.getItem(PRESENTACION_KEY) || '0'; } catch (e) { /* noop */ }
+    if (visto !== '1') setTimeout(openPresentacion, 900);
+  }
+
   function initMaterialUI() {
     loadMaterialsFromServer();
   }

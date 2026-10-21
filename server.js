@@ -369,6 +369,8 @@ function loadLibrary() {
   return library;
 }
 
+let _presetRestoring = false;   // true mientras se RESTAURA un preset (no re-sincronizar)
+
 function saveLibrary() {
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -377,6 +379,8 @@ function saveLibrary() {
   } catch (err) {
     console.error('[MATERIALES] Error guardando biblioteca:', err.message);
   }
+  // Lo que se guarda en la BOTONERA (y en INPUTS) va al PRESET cargado.
+  if (!_presetRestoring) syncActivePreset('botonera');
 }
 
 function makeId(prefix) {
@@ -561,6 +565,36 @@ app.post(BASE_PATH + '/api/materials', (req, res) => {
       uniforms: fx.uniforms,
       createdAt: new Date().toISOString()
     };
+  } else if (type === 'jpshader') {
+    // Shader de jpShadereditor: NO se copia el GLSL, se guarda la referencia
+    // (el motor lo pide como plan al editor). La miniatura viene del editor.
+    const nombreEditor = ((req.body && (req.body.shader || req.body.effect)) || '').toString().trim();
+    if (!nombreEditor) return res.status(400).json({ error: 'Falta el nombre del shader de jpShadereditor' });
+    const thumb = ((req.body && req.body.thumb) || '').toString().trim() || null;
+    material = {
+      id: 'jpshader-' + nombreEditor.toLowerCase().replace(/[^a-z0-9_-]/g, '_'),
+      type: 'jpshader',
+      name: cleanName || nombreEditor,
+      effect: nombreEditor,
+      shader: nombreEditor,
+      editor: 'jpshader',
+      thumb: thumb,
+      src: thumb,
+      builtin: false,
+      videoId: null,
+      uniforms: [],
+      createdAt: new Date().toISOString()
+    };
+    const yaEsta = library.materials.findIndex(m => m.id === material.id);
+    if (yaEsta >= 0) {
+      const previo = library.materials[yaEsta];
+      material.createdAt = previo.createdAt;
+      library.materials[yaEsta] = material;
+      // mantener la asignación de botones que ya lo usaba
+      library.buttons.forEach(b => { if (b.materialId === previo.id) b.materialId = material.id; });
+      saveLibrary();
+      return res.json({ ok: true, material, existed: true });
+    }
   } else if (type === 'image') {
     if (!url) return res.status(400).json({ error: 'Falta la URL de la imagen' });
     material = {
@@ -627,6 +661,138 @@ const handleGetShaders = (req, res) => {
 };
 app.get(BASE_PATH + '/api/shaders', handleGetShaders);
 app.get('/api/shaders', handleGetShaders);
+
+// --- API: GET /api/jpshaders (índice COMPLETO de jpShadereditor) ---
+// Proxy + cache: el front (FTP) pide acá y este server consulta el backend del
+// editor. Así el índice no depende del CORS del editor y se cachea 5 minutos.
+const JPSE_API = process.env.JPSE_API || 'https://vps-4455523-x.dattaweb.com/jpshadereditor/api';
+let jpShadersCache = { at: 0, data: null };
+
+const handleGetJpShaders = async (req, res) => {
+  const TTL = 5 * 60 * 1000;
+  const refresh = String(req.query.refresh || '') === '1';
+  if (!refresh && jpShadersCache.data && (Date.now() - jpShadersCache.at) < TTL) {
+    return res.json({ ok: true, total: jpShadersCache.data.length, cached: true, shaders: jpShadersCache.data });
+  }
+  try {
+    const r = await fetch(JPSE_API + '/shaders');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const raw = await r.json();
+    const arr = Array.isArray(raw) ? raw : (raw && raw.shaders) || [];
+    const shaders = arr.map(s => ({
+      nombre: s.nombre || s.name || '',
+      autor: s.autor || s.author || '',
+      fecha: s.fechaActualizacion || s.fecha || null,
+      thumb: s.imagePath || s.thumb || null,
+      compiles: s.compiles !== false
+    })).filter(s => s.nombre);
+    jpShadersCache = { at: Date.now(), data: shaders };
+    console.log(`[JPSHADERS] Índice actualizado: ${shaders.length} shaders`);
+    res.json({ ok: true, total: shaders.length, cached: false, shaders });
+  } catch (err) {
+    console.error('[JPSHADERS] Error consultando el editor:', err.message);
+    if (jpShadersCache.data) {
+      return res.json({ ok: true, total: jpShadersCache.data.length, stale: true, shaders: jpShadersCache.data });
+    }
+    res.status(502).json({ ok: false, error: 'No se pudo leer el índice de jpShadereditor: ' + err.message });
+  }
+};
+app.get(BASE_PATH + '/api/jpshaders', handleGetJpShaders);
+app.get('/api/jpshaders', handleGetJpShaders);
+
+// --- API: GET /api/webproxy?url= (levantar una web para MOSTRARLA en vivo en el 3D) ---
+// Qué hace: trae la página del lado del server y la sirve desde este origen.
+//   · le inyecta <base href="<url real>"> para que sus assets relativos sigan resolviendo
+//   · le inyecta el motor de toques (js/web-touch-bridge.js) para poder mandarle
+//     los clicks del raycast cuando el padre no puede tocar su document
+//   · al quedar servida desde el MISMO origen de la app, el iframe del 3D puede
+//     despachar eventos reales dentro de la página (click que maneja la web)
+// También resuelve los dos bloqueos clásicos: X-Frame-Options y mixed content
+// (https → http://localhost de un server de desarrollo).
+const WEB_TOUCH_BRIDGE = `
+(function(){
+  if (window.__JPSTAGE_WEB_BRIDGE__) return;
+  window.__JPSTAGE_WEB_BRIDGE__ = 1;
+  window.__JPSTAGE_TOUCHES__ = [];
+  function fire(x, y, kind) {
+    var t = document.elementFromPoint(x, y) || document.body;
+    if (!t) return;
+    var base = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, view: window, button: 0, buttons: kind === 'up' ? 0 : 1 };
+    var seq = kind === 'down' ? ['pointerdown', 'mousedown']
+      : kind === 'up' ? ['pointerup', 'mouseup', 'click']
+      : ['pointermove', 'mousemove'];
+    seq.forEach(function (n) {
+      var E = (n.indexOf('pointer') === 0 && window.PointerEvent) ? PointerEvent : MouseEvent;
+      try { t.dispatchEvent(new E(n, base)); } catch (e) {}
+    });
+    window.__JPSTAGE_TOUCHES__.push({ x: x, y: y, kind: kind, at: Date.now() });
+    if (window.__JPSTAGE_TOUCHES__.length > 200) window.__JPSTAGE_TOUCHES__.shift();
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data || {};
+    if (!d || d.type !== 'jpstage-web-touch') return;
+    fire(Number(d.x) || 0, Number(d.y) || 0, d.kind || 'down');
+  });
+})();`;
+
+const handleWebProxy = async (req, res) => {
+  const raw = String(req.query.url || '').trim();
+  if (!raw) return res.status(400).json({ ok: false, error: 'falta ?url=' });
+  let target;
+  try {
+    target = new URL(/^https?:\/\//i.test(raw) ? raw : ('https://' + raw));
+  } catch (e) {
+    return res.status(400).json({ ok: false, error: 'URL inválida' });
+  }
+  if (!/^https?:$/.test(target.protocol)) {
+    return res.status(400).json({ ok: false, error: 'sólo http/https' });
+  }
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 12000);
+    const r = await fetch(target.href, {
+      signal: ctl.signal,
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (JPStageDesign webproxy)', 'Accept': 'text/html,application/xhtml+xml,*/*' }
+    });
+    clearTimeout(timer);
+    const ct = String(r.headers.get('content-type') || '');
+    if (!/text\/html/i.test(ct)) {
+      // No es HTML (imagen, PDF, video…): que el iframe lo cargue directo.
+      return res.redirect(302, target.href);
+    }
+    let html = await r.text();
+    // La base va con la URL FINAL (después de redirects), no con la pedida.
+    const baseHref = String(r.url || target.href);
+    if (!/<base\s/i.test(html)) {
+      const baseTag = '<base href="' + baseHref.replace(/"/g, '&quot;') + '">';
+      if (/<head[^>]*>/i.test(html)) {
+        html = html.replace(/<head[^>]*>/i, m => m + baseTag);
+      } else if (/<html[^>]*>/i.test(html)) {
+        // Página sin <head> (minificada / rota): se le arma uno para que los
+        // assets relativos sigan apuntando al sitio original.
+        html = html.replace(/<html[^>]*>/i, m => m + '<head>' + baseTag + '</head>');
+      } else {
+        html = baseTag + html;
+      }
+    }
+    const bridgeTag = '<script>' + WEB_TOUCH_BRIDGE + '<' + '/script>';
+    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, bridgeTag + '</body>');
+    else html += bridgeTag;
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.set('Cache-Control', 'no-store');
+    res.set('Access-Control-Allow-Origin', '*');
+    console.log('[WEBPROXY]', target.href, '->', html.length, 'bytes');
+    res.send(html);
+  } catch (err) {
+    console.error('[WEBPROXY] Error:', target.href, err.message);
+    res.status(502).send('<!doctype html><meta charset="utf-8"><body style="font:14px system-ui;background:#0b0d13;color:#ff6b6b;padding:24px">'
+      + '<b>No se pudo levantar la web</b><br>' + String(target.href).replace(/</g, '&lt;') + '<br><br>'
+      + String(err.message).replace(/</g, '&lt;') + '</body>');
+  }
+};
+app.get(BASE_PATH + '/api/webproxy', handleWebProxy);
+app.get('/api/webproxy', handleWebProxy);
 
 // --- API: POST /api/materials/upload (archivo imagen, video o shader .frag) ---
 app.post(BASE_PATH + '/api/materials/upload', upload.single('file'), (req, res) => {
@@ -792,7 +958,7 @@ const handlePostShaderParams = (req, res) => {
     }
 
     // Notificar a todos los outputs y clientes conectados vía WebSocket
-    io.emit('shaderUniformsChanged', {
+    emitSiCambio('shaderUniformsChanged', {
       shader: cleanName,
       uniforms: uniforms
     });
@@ -907,7 +1073,7 @@ const handlePostLogo = (req, res) => {
   saveSettings(settings);
 
   console.log('[LOGO] Nuevo logo personalizado subido:', fileUrl);
-  io.emit('logoChanged', { logoUrl: fileUrl, isCustom: true });
+  emitSiCambio('logoChanged', { logoUrl: fileUrl, isCustom: true });
 
   res.json({ ok: true, logoUrl: fileUrl });
 };
@@ -924,7 +1090,7 @@ const handleDeleteLogo = (req, res) => {
 
   const defaultLogo = BASE_PATH + '/img/logo.svg';
   console.log('[LOGO] Logo restaurado al valor por defecto');
-  io.emit('logoChanged', { logoUrl: defaultLogo, isCustom: false });
+  emitSiCambio('logoChanged', { logoUrl: defaultLogo, isCustom: false });
 
   res.json({ ok: true, logoUrl: defaultLogo, message: 'Logo por defecto restaurado' });
 };
@@ -971,7 +1137,8 @@ const handlePostRoom3DConfig = (req, res) => {
       return res.status(400).json({ error: 'Configuración inválida' });
     }
     writeRoom3DConfig(config);
-    res.json({ ok: true, message: 'Configuración guardada exitosamente' });
+    if (!_presetRestoring) syncActivePreset('output3d');
+    res.json({ ok: true, message: 'Configuración guardada exitosamente', preset: activePresetSummary() });
   } catch (err) {
     console.error('[ROOM3D] Error guardando config:', err.message);
     res.status(500).json({ error: err.message });
@@ -982,6 +1149,300 @@ app.get(BASE_PATH + '/api/room3d-config', handleGetRoom3DConfig);
 app.get('/api/room3d-config', handleGetRoom3DConfig);
 app.post(BASE_PATH + '/api/room3d-config', handlePostRoom3DConfig);
 app.post('/api/room3d-config', handlePostRoom3DConfig);
+
+// ============================================================
+// PRESETS — un seteo = BOTONERA (inputs + botones) + OUTPUT 3D (sala)
+// ------------------------------------------------------------
+// data/presets.json:  { activeId, presets: [{ id, name, author, createdAt,
+//                       updatedAt, library, room3d, shaderParams }] }
+// El preset ACTIVO es el estado vivo: cualquier guardado desde la botonera o
+// desde el simulador 3D se espeja acá (syncActivePreset). Cargar un preset
+// escribe materials.json + room3d_config.json y avisa por socket.
+// ============================================================
+const PRESETS_FILE = path.join(DATA_DIR, 'presets.json');
+const SHADER_PARAMS_FILE = path.join(DATA_DIR, 'shader_params.json');
+
+function loadPresetsStore() {
+  try {
+    if (fs.existsSync(PRESETS_FILE)) {
+      const d = JSON.parse(fs.readFileSync(PRESETS_FILE, 'utf8'));
+      return { activeId: d.activeId || null, presets: Array.isArray(d.presets) ? d.presets : [] };
+    }
+  } catch (e) {
+    console.error('[PRESETS] Error leyendo presets:', e.message);
+  }
+  return { activeId: null, presets: [] };
+}
+
+function savePresetsStore(store) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(PRESETS_FILE, JSON.stringify(store, null, 2), 'utf8');
+  } catch (e) {
+    console.error('[PRESETS] Error guardando presets:', e.message);
+  }
+}
+
+function readShaderParams() {
+  try {
+    if (fs.existsSync(SHADER_PARAMS_FILE)) return JSON.parse(fs.readFileSync(SHADER_PARAMS_FILE, 'utf8'));
+  } catch (e) { /* noop */ }
+  return {};
+}
+
+function presetSnapshot() {
+  loadLibrary();
+  return {
+    library: { materials: library.materials, buttons: library.buttons },
+    room3d: getRoom3DConfig(),
+    shaderParams: readShaderParams()
+  };
+}
+
+function presetSummary(p) {
+  if (!p) return null;
+  const mats = (p.library && p.library.materials) || [];
+  if (!library) loadLibrary();
+  const nameOf = (id) => {
+    const m = (library.materials || []).find(x => x.id === id);
+    return m ? m.name : null;
+  };
+  const buttons = ((p.library && p.library.buttons) || []).map(b => ({
+    slot: b.slot, materialId: b.materialId, label: b.label || (b.materialId ? nameOf(b.materialId) : null)
+  }));
+  return {
+    screens: ((p.room3d && p.room3d.screens) || []).length,
+    projectors: ((p.room3d && p.room3d.projectors) || []).length,
+    materials: mats.length,
+    buttons: buttons,
+    botonesAsignados: buttons.filter(b => b.materialId).length,
+    mappingMode: (p.room3d && p.room3d.mappingMode) || 'duplicated'
+  };
+}
+
+function presetPublic(p) {
+  return {
+    id: p.id, name: p.name, author: p.author || null,
+    createdAt: p.createdAt, updatedAt: p.updatedAt,
+    summary: presetSummary(p)
+  };
+}
+
+function activePreset() {
+  const store = loadPresetsStore();
+  if (!store.activeId) return null;
+  return store.presets.find(p => p.id === store.activeId) || null;
+}
+
+function activePresetSummary() {
+  const p = activePreset();
+  return p ? presetPublic(p) : null;
+}
+
+/** Copia el estado VIVO dentro del preset activo (lo llaman los guardados). */
+function syncActivePreset(reason) {
+  const store = loadPresetsStore();
+  if (!store.activeId) return null;
+  const idx = store.presets.findIndex(p => p.id === store.activeId);
+  if (idx < 0) return null;
+  const snap = presetSnapshot();
+  store.presets[idx] = Object.assign({}, store.presets[idx], snap, { updatedAt: new Date().toISOString() });
+  savePresetsStore(store);
+  console.log(`[PRESETS] "${store.presets[idx].name}" actualizado (${reason})`);
+  return store.presets[idx];
+}
+
+function presetSlug(name) {
+  return String(name || '')
+    .trim().toLowerCase()
+    .replace(/[áàäâã]/g, 'a').replace(/[éèëê]/g, 'e').replace(/[íìïî]/g, 'i')
+    .replace(/[óòöô]/g, 'o').replace(/[úùüû]/g, 'u').replace(/ñ/g, 'n')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'preset';
+}
+
+// --- GET /api/presets : lista + cuál está cargado
+const handleGetPresets = (req, res) => {
+  const store = loadPresetsStore();
+  res.json({
+    ok: true,
+    activeId: store.activeId,
+    active: activePresetSummary(),
+    presets: store.presets
+      .slice()
+      .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+      .map(presetPublic)
+  });
+};
+app.get(BASE_PATH + '/api/presets', handleGetPresets);
+app.get('/api/presets', handleGetPresets);
+
+// --- POST /api/presets : guarda el estado vivo COMO preset (crea o pisa)
+const handlePostPreset = (req, res) => {
+  const name = String((req.body && req.body.name) || '').trim();
+  const id = (req.body && req.body.id) ? String(req.body.id) : null;
+  if (!name) return res.status(400).json({ error: 'Falta el nombre del preset' });
+  if (!library) loadLibrary();
+
+  const store = loadPresetsStore();
+  const snap = presetSnapshot();
+  const ahora = new Date().toISOString();
+
+  let preset = id ? store.presets.find(p => p.id === id) : null;
+  if (preset) {
+    Object.assign(preset, snap, { name: name, updatedAt: ahora });
+  } else {
+    preset = Object.assign({
+      id: 'preset-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6),
+      name: name,
+      author: (req.body && req.body.author) || null,
+      createdAt: ahora,
+      updatedAt: ahora
+    }, snap);
+    store.presets.push(preset);
+  }
+  store.activeId = preset.id;
+  savePresetsStore(store);
+  emitSiCambio('presetChanged', { activeId: preset.id, name: preset.name });
+  console.log(`[PRESETS] Guardado "${preset.name}" (${preset.id}) · ${presetSummary(preset).materials} inputs`);
+  res.json({ ok: true, preset: presetPublic(preset), activeId: preset.id });
+};
+app.post(BASE_PATH + '/api/presets', handlePostPreset);
+app.post('/api/presets', handlePostPreset);
+
+// --- POST /api/presets/active/sync : "guardar" sobre el preset cargado
+const handleSyncActive = (req, res) => {
+  const p = syncActivePreset('manual');
+  if (!p) return res.status(400).json({ error: 'No hay un preset cargado' });
+  emitSiCambio('presetChanged', { activeId: p.id, name: p.name });
+  res.json({ ok: true, preset: presetPublic(p) });
+};
+app.post(BASE_PATH + '/api/presets/active/sync', handleSyncActive);
+app.post('/api/presets/sync', handleSyncActive);
+
+// --- POST /api/presets/:id/activate : carga un preset en vivo
+const handleActivatePreset = (req, res) => {
+  const store = loadPresetsStore();
+  const preset = store.presets.find(p => p.id === req.params.id);
+  if (!preset) return res.status(404).json({ error: 'Preset no encontrado' });
+
+  _presetRestoring = true;
+  try {
+    // 1) biblioteca (inputs + botones)
+    if (preset.library && Array.isArray(preset.library.materials)) {
+      library = {
+        materials: preset.library.materials,
+        buttons: (preset.library.buttons && preset.library.buttons.length === 6)
+          ? preset.library.buttons
+          : library.buttons
+      };
+      fs.writeFileSync(MATERIALS_FILE, JSON.stringify(library, null, 2), 'utf8');
+    }
+    // 2) uniformes guardados
+    if (preset.shaderParams && typeof preset.shaderParams === 'object') {
+      fs.writeFileSync(SHADER_PARAMS_FILE, JSON.stringify(preset.shaderParams, null, 2), 'utf8');
+    }
+    // 3) sala / escena 3D
+    if (preset.room3d && typeof preset.room3d === 'object') writeRoom3DConfig(preset.room3d);
+
+    store.activeId = preset.id;
+    savePresetsStore(store);
+  } finally {
+    _presetRestoring = false;
+  }
+
+  // 4) avisar a las pestañas abiertas (botonera + 3D) sin recargar
+  emitSiCambio('libraryChanged', { materials: library.materials, buttons: library.buttons });
+  io.emit('stageConfig', { config: preset.room3d, source: 'preset' });
+  io.emit('presetChanged', { activeId: preset.id, name: preset.name, activated: true });
+  console.log(`[PRESETS] Cargado "${preset.name}" (${preset.id})`);
+  res.json({ ok: true, activeId: preset.id, preset: presetPublic(preset) });
+};
+app.post(BASE_PATH + '/api/presets/:id/activate', handleActivatePreset);
+
+// --- PATCH /api/presets/:id : renombrar
+const handleRenamePreset = (req, res) => {
+  const store = loadPresetsStore();
+  const preset = store.presets.find(p => p.id === req.params.id);
+  if (!preset) return res.status(404).json({ error: 'Preset no encontrado' });
+  const name = String((req.body && req.body.name) || '').trim();
+  if (!name) return res.status(400).json({ error: 'Falta el nombre' });
+  preset.name = name;
+  preset.updatedAt = new Date().toISOString();
+  savePresetsStore(store);
+  emitSiCambio('presetChanged', { activeId: store.activeId, name: preset.name });
+  res.json({ ok: true, preset: presetPublic(preset) });
+};
+app.patch(BASE_PATH + '/api/presets/:id', handleRenamePreset);
+
+// --- DELETE /api/presets/:id
+const handleDeletePreset = (req, res) => {
+  const store = loadPresetsStore();
+  const idx = store.presets.findIndex(p => p.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Preset no encontrado' });
+  const [borrado] = store.presets.splice(idx, 1);
+  if (store.activeId === borrado.id) store.activeId = null;
+  savePresetsStore(store);
+  emitSiCambio('presetChanged', { activeId: store.activeId, name: null });
+  res.json({ ok: true, deleted: borrado.id });
+};
+app.delete(BASE_PATH + '/api/presets/:id', handleDeletePreset);
+
+// --- GET /api/presets/:id/export : descarga BOTONERA y/o OUTPUT 3D
+const handleExportPreset = (req, res) => {
+  const store = loadPresetsStore();
+  const preset = store.presets.find(p => p.id === req.params.id);
+  if (!preset) return res.status(404).json({ error: 'Preset no encontrado' });
+  const part = String(req.query.part || 'all');   // all | botonera | output3d
+  const slug = presetSlug(preset.name);
+
+  const payload = {
+    app: 'jpstagedesign',
+    tipo: part === 'all' ? 'preset-completo' : ('preset-' + part),
+    version: 1,
+    preset: { id: preset.id, nombre: preset.name, actualizadoEn: preset.updatedAt },
+    exportadoEn: new Date().toISOString()
+  };
+  if (part !== 'output3d') {
+    payload.botonera = {
+      materiales: (preset.library && preset.library.materials) || [],
+      botones: (preset.library && preset.library.buttons) || [],
+      shaderParams: preset.shaderParams || {}
+    };
+  }
+  if (part !== 'botonera') {
+    payload.output3d = { sala: preset.room3d || null };
+  }
+
+  const sufijo = part === 'all' ? '' : '-' + part;
+  const filename = `jpstagedesign-preset-${slug}${sufijo}.json`;
+  res.set('Content-Type', 'application/json; charset=utf-8');
+  res.set('Content-Disposition', 'attachment; filename="' + filename + '"');
+  console.log(`[PRESETS] Export ${filename} (${part})`);
+  res.send(JSON.stringify(payload, null, 2));
+};
+app.get(BASE_PATH + '/api/presets/:id/export', handleExportPreset);
+
+// --- SHADER DE FONDO de la botonera (shader del editor elegido en INPUTS)
+const handleGetBgShader = (req, res) => {
+  const settings = getSettings();
+  res.json({ ok: true, shader: settings.bgShader || null });
+};
+app.get(BASE_PATH + '/api/bg-shader', handleGetBgShader);
+app.get(BASE_PATH + '/api/settings/background', handleGetBgShader);
+
+const handlePostBgShader = (req, res) => {
+  const raw = req.body && req.body.shader;
+  const shader = (raw === null || raw === undefined || raw === '') ? null : String(raw);
+  const settings = getSettings();
+  settings.bgShader = shader;
+  settings.updatedAt = new Date().toISOString();
+  saveSettings(settings);
+  emitSiCambio('bgShaderChanged', { shader: shader });
+  console.log('[FONDO] Shader de fondo:', shader || '(por defecto shaderfondo.frag)');
+  res.json({ ok: true, shader: shader });
+};
+app.post(BASE_PATH + '/api/bg-shader', handlePostBgShader);
+app.post(BASE_PATH + '/api/settings/background', handlePostBgShader);
 
 // ============================================================
 // TEMPLATES DE ESCENARIO (guardar / cargar configuraciones con nombre)
@@ -1007,6 +1468,7 @@ function listTemplates() {
         try { meta = JSON.parse(fs.readFileSync(path.join(TEMPLATES_DIR, f), 'utf8')); } catch (e) {}
         return {
           slug: path.basename(f, '.json'),
+          owner: meta.owner || '',
           name: meta.name || path.basename(f, '.json'),
           savedAt: meta.savedAt || st.mtime.toISOString(),
           screens: (meta.config && meta.config.screens) ? meta.config.screens.length : 0,
@@ -1036,7 +1498,8 @@ app.post([BASE_PATH + '/api/templates', '/api/templates'], (req, res) => {
     fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
     const slug = templateSlug(cleanName);
     const file = path.join(TEMPLATES_DIR, slug + '.json');
-    const payload = { name: cleanName, slug, savedAt: new Date().toISOString(), config };
+    const owner = String((req.body && req.body.owner) || '').trim();
+    const payload = { name: cleanName, slug, savedAt: new Date().toISOString(), owner, config };
     fs.writeFileSync(file, JSON.stringify(payload, null, 2), 'utf8');
     console.log(`[TEMPLATES] Guardado "${cleanName}" (${slug}.json)`);
     res.json({ ok: true, slug, name: cleanName, templates: listTemplates() });
@@ -1105,19 +1568,22 @@ app.get([BASE_PATH + '/api/fsc/assets', '/api/fsc/assets'], async (req, res) => 
   if (!(await fscAssetsAuthorized(req, username))) return res.status(401).json({ ok: false, error: 'No autorizado' });
   try {
     const templates = listTemplates();
+    const user = String(username).toLowerCase();
+    const item = (t) => ({
+      id: t.slug,
+      title: t.name,
+      url: '/jpstagedesign/output3d.html?preset=' + encodeURIComponent(t.slug),
+      meta: { pantallas: t.screens, proyectores: t.projectors, objetos: t.furniture, guardado: t.savedAt }
+    });
+    // Solo son "tuyos" los que tienen autor; los demas son presets del sistema.
+    const propios = templates.filter((t) => t.owner && String(t.owner).toLowerCase() === user);
+    const sistema = templates.filter((t) => !t.owner);
     const groups = [];
-    if (templates.length) {
-      groups.push({
-        type: 'escenario',
-        label: 'Escenarios guardados',
-        count: templates.length,
-        items: templates.slice(0, 100).map((t) => ({
-          id: t.slug,
-          title: t.name,
-          url: '/jpstagedesign/output3d.html?preset=' + encodeURIComponent(t.slug),
-          meta: { pantallas: t.screens, proyectores: t.projectors, objetos: t.furniture, guardado: t.savedAt }
-        }))
-      });
+    if (propios.length) {
+      groups.push({ type: 'escenario', label: 'Escenarios guardados', count: propios.length, items: propios.slice(0, 100).map(item) });
+    }
+    if (sistema.length) {
+      groups.push({ type: 'escenario-sistema', label: 'Escenarios del sistema (presets)', count: sistema.length, items: sistema.slice(0, 100).map(item) });
     }
     res.json({ ok: true, app: 'jpstagedesign', username, total: groups.reduce((n, g) => n + g.count, 0), groups });
   } catch (err) {
@@ -1132,7 +1598,7 @@ app.get([BASE_PATH + '/api/fsc/assets', '/api/fsc/assets'], async (req, res) => 
 // contra su API, así no hace falta agregar jsonwebtoken ni copiar JWT_SECRET.
 // La botonera NO se bloquea: sin sesión se usa igual (los presets son públicos).
 // ============================================================
-const FSCAUTH_API = process.env.FSCAUTH_URL || 'https://vps-4455523-x.dattaweb.com/fscauth';
+const FSCAUTH_API = process.env.FSCAUTH_URL || 'https://vps-4455523-x.dattaweb.com/jpconnect';
 
 app.get([BASE_PATH + '/api/auth/me', '/api/auth/me'], async (req, res) => {
   try {
@@ -1349,6 +1815,19 @@ let masterSocketId = null;
 let currentScene = null;
 let currentMappingMode = 'duplicated'; // 'duplicated' o 'extended'
 
+// No reemitir un payload identico al anterior: repintaba TODAS las pantallas al pedo.
+// Los eventos de estado son idempotentes; los de borde (masterClaimed, sceneCleared)
+// siguen emitiendose siempre. Un cliente nuevo recibe el estado en `masterStatus`.
+const _emitCache = new Map();
+function emitSiCambio(evento, payload) {
+  try {
+    const clave = JSON.stringify(payload);
+    if (_emitCache.get(evento) === clave) return;
+    _emitCache.set(evento, clave);
+  } catch (e) { /* payload no serializable: se emite igual */ }
+  io.emit(evento, payload);
+}
+
 io.on('connection', (socket) => {
   console.log(`[JPSTAGE DESIGN] Cliente conectado: ${socket.id} desde ${socket.handshake.headers.origin || 'unknown'}`);
 
@@ -1368,7 +1847,7 @@ io.on('connection', (socket) => {
     const mode = (data && data.mode) ? data.mode : data;
     currentMappingMode = mode === 'extended' ? 'extended' : 'duplicated';
     console.log(`[BOTONERA] Modo de mapeo actualizado: ${currentMappingMode}`);
-    io.emit('mappingModeChanged', { mode: currentMappingMode });
+    emitSiCambio('mappingModeChanged', { mode: currentMappingMode });
   });
 
   // --- CLAIM MASTER ---
@@ -1387,7 +1866,7 @@ io.on('connection', (socket) => {
     console.log(`[BOTONERA] Escena activa: ${data.sceneId || data.id || 'sin-id'} - ${data.label || data.name || ''} (por socket ${socket.id})`);
     
     // Broadcast a todos los clientes (incluido el master y pantallas 3D/output)
-    io.emit('sceneChanged', data);
+    emitSiCambio('sceneChanged', data);
   });
 
   // --- LIMPIAR OUTPUT / BLACKOUT ---
@@ -1395,13 +1874,13 @@ io.on('connection', (socket) => {
     currentScene = { id: 'blackout', label: 'BLACKOUT', name: 'BLACKOUT', type: 'blackout' };
     console.log('[BOTONERA] BLACKOUT / Escena limpiada');
     io.emit('sceneCleared');
-    io.emit('sceneChanged', currentScene);
+    emitSiCambio('sceneChanged', currentScene);
   });
 
   // --- CONFIGURACIÓN DE HABITACIÓN ---
   socket.on('roomConfig', (data) => {
     console.log(`[BOTONERA] Config de habitación: ${JSON.stringify(data)}`);
-    io.emit('roomConfig', data);
+    emitSiCambio('roomConfig', data);
   });
 
   // --- ACTUALIZACIÓN DINÁMICA DE UNIFORMS DE SHADER ---
@@ -1415,7 +1894,7 @@ io.on('connection', (socket) => {
         Object.assign(currentScene.uniforms, data.uniforms);
       }
     }
-    io.emit('shaderUniformsChanged', data);
+    emitSiCambio('shaderUniformsChanged', data);
   });
 
   // --- DISCONNECT ---
