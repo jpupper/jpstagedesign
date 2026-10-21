@@ -11,8 +11,11 @@ body.pf-body {
   padding: 0 0 64px;
 }
 
-/* --- variables por tema (las usa todo el perfil) --- */
-.pf-shell {
+/* --- variables por tema (las usa todo el perfil: shell + toast flotante) ---
+   OJO: van en el BODY, no en .pf-shell: el toast (#pfToast) es position:fixed y
+   se cuelga del body, así que si las variables viven en el shell queda blanco
+   sobre blanco en modo oscuro. */
+body.pf-body {
   --pf-surface: #ffffff;
   --pf-soft: #f4f4f4;
   --pf-line: #000000;
@@ -23,7 +26,7 @@ body.pf-body {
   --pf-shadow: rgba(0, 0, 0, 0.08);
 }
 
-body.menu-body.dark-mode .pf-shell {
+body.menu-body.dark-mode {
   --pf-surface: #1a1a1a;
   --pf-soft: #111111;
   --pf-line: #333333;
@@ -34,7 +37,7 @@ body.menu-body.dark-mode .pf-shell {
   --pf-shadow: rgba(0, 0, 0, 0.55);
 }
 
-body.menu-body.matrix-mode .pf-shell {
+body.menu-body.matrix-mode {
   --pf-surface: #050505;
   --pf-soft: #0a1108;
   --pf-line: #00ff41;
@@ -45,7 +48,7 @@ body.menu-body.matrix-mode .pf-shell {
   --pf-shadow: rgba(0, 255, 65, 0.18);
 }
 
-body.menu-body.neon-mode .pf-shell {
+body.menu-body.neon-mode {
   --pf-surface: #0a0c12;
   --pf-soft: #0e1218;
   --pf-line: rgba(0, 240, 255, 0.45);
@@ -91,12 +94,32 @@ body.menu-body.neon-mode .pf-shell {
 
 body.menu-body.dark-mode .pf-brand img { filter: invert(1) hue-rotate(180deg); }
 
+/* Matrix / Neon: fondo oscuro → el logo se invierte y se tiñe (si no, el texto
+   negro del logo desaparece sobre negro). */
+body.menu-body.matrix-mode .pf-brand img {
+  filter: invert(1) drop-shadow(0 0 10px rgba(0, 255, 65, 0.55)) hue-rotate(85deg) saturate(2.2);
+}
+
+body.menu-body.neon-mode .pf-brand img {
+  filter: invert(1) drop-shadow(0 0 8px rgba(0, 240, 255, 0.55)) saturate(1.2);
+}
+
 .pf-nav {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  /* El selector de estilo flota fijo arriba a la derecha (misma pieza que la
+     botonera): le dejamos el lugar para que no tape el widget de sesión. */
+  padding-right: 190px;
+}
+
+@media (max-width: 760px) {
+  /* En pantallas chicas el selector flota arriba de todo: bajamos la barra
+     entera para que no tape el logo. */
+  .pf-top { padding-top: 64px; }
+  .pf-nav { padding-right: 0; }
 }
 
 .pf-nav a {

@@ -267,6 +267,7 @@
     if (s === 'dark') document.body.classList.add('dark-mode');
     if (s === 'matrix') document.body.classList.add('matrix-mode');
     if (s === 'neon') document.body.classList.add('neon-mode');
+    document.body.setAttribute('data-style', s);   // misma marca que la botonera
     try { localStorage.setItem(STYLE_KEY, s); } catch (e) { /* noop */ }
     const sel = el('styleSelect');
     if (sel) sel.value = s;

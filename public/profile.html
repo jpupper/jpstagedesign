@@ -8,9 +8,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/jpstagedesign/css/menu.css">
-  <link rel="stylesheet" href="/jpstagedesign/css/profile.css">
+  <link rel="stylesheet" href="/jpstagedesign/css/profile.css?v=2">
 </head>
 <body class="menu-body pf-body">
+  <script>
+    // Tema guardado ANTES del primer paint (misma clave que la botonera): si no,
+    // el que usa modo oscuro ve un flash blanco hasta que arranca profile.js.
+    try {
+      var __fscStyle = localStorage.getItem('fsc_theme') || 'light';
+      if (__fscStyle === 'dark') document.body.classList.add('dark-mode');
+      else if (__fscStyle === 'matrix') document.body.classList.add('matrix-mode');
+      else if (__fscStyle === 'neon') document.body.classList.add('neon-mode');
+    } catch (e) { /* sin localStorage: queda en claro */ }
+  </script>
   <div class="pf-shell">
 
     <!-- ================= BARRA SUPERIOR ================= -->
@@ -24,6 +34,24 @@
         <a href="/jpstagedesign/presupuesto.html">📐 Presupuesto</a>
         <div id="authWidget" class="auth-widget"></div>
       </nav>
+
+      <!-- Selector de estilo visual (Claro / Oscuro / Matrix / Minimal Neon)
+           Es la MISMA pieza de la botonera: el CSS vive en menu.css y flota
+           arriba a la derecha; el perfil sólo le deja el lugar libre. -->
+      <div class="style-selector" id="styleSelector" title="Estilo visual de la interfaz">
+        <span class="style-selector-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
+          </svg>
+        </span>
+        <select id="styleSelect" class="style-select" aria-label="Estilo visual de la interfaz">
+          <option value="light">☀ Claro</option>
+          <option value="dark">☾ Oscuro</option>
+          <option value="matrix">▚ Matrix</option>
+          <option value="neon">✧ Minimal Neon</option>
+        </select>
+      </div>
     </header>
 
     <!-- ================= IDENTIDAD: foto · usuario · bio ================= -->
@@ -77,6 +105,6 @@
   <script src="/jpstagedesign/js/config.js"></script>
   <script src="/jpstagedesign/js/auth.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="/jpstagedesign/js/profile.js?v=1"></script>
+  <script src="/jpstagedesign/js/profile.js?v=2"></script>
 </body>
 </html>
