@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/jpstagedesign/css/menu.css">
+  <link rel="stylesheet" href="/jpstagedesign/css/menu.css?v=presets1">
 </head>
 <body class="menu-body">
   <!-- Canvas para el shader de fondo -->
@@ -114,7 +114,7 @@
   <div class="menu-container">
     <header class="menu-header">
       <div class="logo-container">
-        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign" class="logo-img">
+        <img src="/jpstagedesign/img/logo.svg?v=2" alt="JPStageDesign" class="logo-img">
         <div class="blackout-wrap">
           <button id="btnBlackout" class="btn-blackout" title="Apagar todas las pantallas (Blackout)">
             <span class="btn-blackout-indicator"></span>
@@ -227,7 +227,7 @@
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 14px;">
               <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(0,229,255,0.3); border-radius: 6px; padding: 8px 14px; min-width: 140px; text-align: center;">
-                <img id="logoPreviewAdvanced" src="/jpstagedesign/img/logo.svg" alt="Logo Actual" style="height: 38px; max-width: 160px; object-fit: contain; vertical-align: middle;">
+                <img id="logoPreviewAdvanced" src="/jpstagedesign/img/logo.svg?v=2" alt="Logo Actual" style="height: 38px; max-width: 160px; object-fit: contain; vertical-align: middle;">
               </div>
               <div>
                 <strong style="color: #fff; font-size: 13px; display: block;">Logo en Botonera de Tablet y Outputs</strong>
@@ -263,7 +263,7 @@
   <div class="presentacion" id="presentacion" hidden>
     <div class="presentacion-box" role="dialog" aria-modal="true" aria-labelledby="presTitle">
       <header class="presentacion-head">
-        <img src="/jpstagedesign/img/logo.svg" alt="JPStageDesign" class="presentacion-logo">
+        <img src="/jpstagedesign/img/logo.svg?v=2" alt="JPStageDesign" class="presentacion-logo">
         <button class="presentacion-close" id="presClose" title="Cerrar (Esc)">✕</button>
       </header>
 
@@ -351,7 +351,7 @@
       sh.src = '/jpstagedesign/js/shaders.js';
       sh.onload = function() {
         var m = document.createElement('script');
-        m.src = '/jpstagedesign/js/menu.js';
+        m.src = '/jpstagedesign/js/menu.js?v=presets1';
         document.body.appendChild(m);
       };
       document.body.appendChild(sh);

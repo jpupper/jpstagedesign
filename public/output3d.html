@@ -679,6 +679,172 @@
       pointer-events: none;
     }
 
+    /* ============================================================
+       ESTIRAR LOS CONTENEDORES (grip en el borde derecho)
+       El grip lo crea el JS y vive en <body> con position:fixed pegado al
+       borde derecho del panel. NO va dentro del panel porque el panel
+       scrollea y el handle se iría con el contenido.
+       ============================================================ */
+    .panel-grip {
+      position: fixed;
+      width: 14px;
+      z-index: 400;
+      cursor: col-resize;
+      display: none;
+      touch-action: none;
+    }
+
+    .panel-grip::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 50%;
+      width: 3px;
+      margin-left: -1.5px;
+      border-radius: 3px;
+      background: rgba(0, 229, 255, 0.35);
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .panel-grip:hover::after,
+    .panel-grip.dragging::after {
+      background: #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.85);
+    }
+
+    body.panel-dragging,
+    body.panel-dragging * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+
+    /* ============================================================
+       🎛️ MINI BOTONERA — la botonera adentro del 3D
+       ============================================================ */
+    #miniBotonera {
+      position: fixed;
+      right: 15px;
+      bottom: 15px;
+      width: 268px;
+      max-width: 76vw;
+      z-index: 260;
+      background: rgba(15, 17, 23, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 2px solid rgba(0, 229, 255, 0.5);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      color: #f0f2f5;
+      font-size: 11px;
+      display: none;
+      overflow: hidden;
+    }
+
+    #miniBotonera.on { display: block; }
+
+    #miniBotonera .mb-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 9px;
+      cursor: move;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      user-select: none;
+      touch-action: none;
+    }
+
+    #miniBotonera .mb-title {
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #9fe9ff;
+    }
+
+    #miniBotonera .mb-count { font-size: 9px; color: #6d7785; }
+    #miniBotonera .mb-actions { margin-left: auto; display: flex; gap: 4px; }
+
+    #miniBotonera .mb-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: transparent;
+      color: #cfd6e6;
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    #miniBotonera .mb-icon:hover { border-color: #00e5ff; color: #00e5ff; }
+
+    #miniBotonera .mb-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 8px;
+      max-height: 46vh;
+      overflow-y: auto;
+    }
+
+    #miniBotonera.mini .mb-grid { display: none; }
+
+    .mb-btn {
+      position: relative;
+      height: 54px;
+      padding: 0;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      background: #0d1016;
+      color: #fff;
+      cursor: pointer;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .mb-btn img.mb-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+    }
+
+    .mb-btn .mb-lbl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 3px 6px;
+      font-size: 9px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.78) 65%);
+    }
+
+    .mb-btn:hover { border-color: #00e5ff; }
+    .mb-btn.active { border-color: #ff3366; box-shadow: inset 0 0 12px rgba(255, 51, 102, 0.55); }
+    .mb-btn.empty { opacity: 0.4; }
+
+    .mb-empty,
+    .mb-msg {
+      grid-column: 1 / -1;
+      padding: 10px 6px;
+      color: #6d7785;
+      font-size: 10px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
     .user-controls-content {
       padding: 12px 14px;
       display: flex;
@@ -1772,6 +1938,13 @@
         <span class="user-btn-state" id="lblUserDimsState">OFF</span>
       </button>
 
+      <!-- Mini botonera: cambiar el contenido sin salir del 3D -->
+      <button class="panel-btn" id="btnUserToggleBotonera" title="Abrir/cerrar la botonera acá mismo: cambia el contenido de las pantallas sin salir del simulador">
+        <span class="user-btn-icon">🎛️</span>
+        <span class="user-btn-label">Botonera</span>
+        <span class="user-btn-state" id="lblUserBotoneraState">OFF</span>
+      </button>
+
       <!-- 🖱️ Click sobre la página web proyectada -->
       <button class="panel-btn" id="btnUserWebClick" title="Qué pasa cuando clickeás una pantalla que muestra una página web · RAYCAST = el click entra a la página en la posición exacta · NATIVA = el iframe recibe el mouse real (hover, scroll, teclado) · OFF = la página sólo se ve">
         <span class="user-btn-icon">🖱️</span>
@@ -1811,6 +1984,20 @@
         📋 Ver Presupuesto
       </button>
     </div>
+  </div>
+
+  <!-- 🎛️ MINI BOTONERA (ventanita flotante: la botonera adentro del 3D) -->
+  <div id="miniBotonera" aria-label="Botonera">
+    <div class="mb-head" id="mbHead">
+      <span class="mb-title">🎛️ Botonera</span>
+      <span class="mb-count" id="mbCount"></span>
+      <div class="mb-actions">
+        <button class="mb-icon" id="mbReload" title="Recargar la botonera desde el servidor">↻</button>
+        <button class="mb-icon" id="mbMin" title="Minimizar / desplegar">—</button>
+        <button class="mb-icon" id="mbClose" title="Cerrar (se abre con el botón 🎛️ del Control de Sala)">✕</button>
+      </div>
+    </div>
+    <div class="mb-grid" id="mbGrid"></div>
   </div>
 
   <!-- Connection Status -->
@@ -3012,6 +3199,16 @@
           : 'Las medidas están OCULTAS · click para mostrarlas';
       }
 
+      // Mini botonera (ventanita flotante)
+      const btnMini = document.getElementById('btnUserToggleBotonera');
+      const lblMini = document.getElementById('lblUserBotoneraState');
+      if (btnMini && lblMini) {
+        const miniEl = document.getElementById('miniBotonera');
+        const on = !!(miniEl && miniEl.classList.contains('on'));
+        btnMini.classList.toggle('active', on);
+        lblMini.textContent = on ? 'ON' : 'OFF';
+      }
+
       // 🖱️ Click en web (RAYCAST / NATIVA / OFF) + 🌐 Proxy
       const btnWebClick = document.getElementById('btnUserWebClick');
       const lblWebClick = document.getElementById('lblUserWebClickState');
@@ -3204,7 +3401,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · gizmo+raycast';
+    const BUILD_3D = '2026-10-21 · botonera+estirar';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -4878,6 +5075,9 @@
       setupSocket();
       // 🖐️ Raycast del mouse sobre las pantallas (toque directo al shader)
       setupTouchInteraction();
+      // ↔️ Grips para estirar los contenedores + 🎛️ mini botonera
+      setupPanelResize();
+      setupMiniBotonera();
 
       // Cargar configuración guardada del servidor (o inicializar defaults)
       loadRoom3DConfigFromServer();
@@ -7518,6 +7718,328 @@
       setDimensions: (v) => setDimensionsVisible(v, { persist: false }),
       screens: () => stageScreens.map(s => ({ id: s.id, name: s.name, width: s.width, height: s.height, sliceIndex: s.sliceIndex, muted: !!s.muted }))
     };
+
+    // ============================================================
+    // ↔️ ESTIRAR LOS CONTENEDORES (grip en el borde derecho)
+    // ------------------------------------------------------------
+    // Un grip fino pegado al borde derecho de cada panel: arrastrando hacia
+    // la derecha el contenedor se ensancha (no se deforma nada adentro: es
+    // ancho real). El ancho queda guardado en localStorage.
+    // El grip vive en <body> y se posiciona en px: dentro del panel no sirve
+    // porque el panel scrollea y el handle se iría con el contenido.
+    // ============================================================
+    const PANEL_GRIPS = [
+      { sel: '#control-panel', key: 'fsc_panel_w:admin', min: 380, adminOnly: true },
+      { sel: '#userModeFloatingBar', key: 'fsc_panel_w:user', min: 220 },
+      { sel: '#miniBotonera', key: 'fsc_panel_w:mini', min: 200, needsClass: 'on' }
+    ];
+    const panelGrips = [];
+
+    function placePanelGrips() {
+      panelGrips.forEach(g => g.place());
+    }
+
+    function setupPanelResize() {
+      PANEL_GRIPS.forEach(cfg => {
+        const el = document.querySelector(cfg.sel);
+        if (!el) return;
+
+        const grip = document.createElement('div');
+        grip.className = 'panel-grip';
+        grip.title = 'Arrastrá para estirar el contenedor';
+        document.body.appendChild(grip);
+
+        let drag = null;
+
+        function visible() {
+          if (cfg.adminOnly && !isAdminMode) return false;
+          if (cfg.needsClass && !el.classList.contains(cfg.needsClass)) return false;
+          const cs = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          if (cs.display === 'none' || cs.pointerEvents === 'none' || Number(cs.opacity) < 0.05) return false;
+          return r.width > 4 && r.height > 20;
+        }
+
+        function place() {
+          if (!visible() || drag) { grip.style.display = 'none'; return; }
+          const r = el.getBoundingClientRect();
+          grip.style.display = 'block';
+          grip.style.left = (r.right - 7) + 'px';
+          grip.style.top = r.top + 'px';
+          grip.style.height = r.height + 'px';
+        }
+
+        // ancho guardado
+        try {
+          const saved = parseInt(localStorage.getItem(cfg.key), 10);
+          if (saved > 0) { el.style.width = Math.max(cfg.min, saved) + 'px'; el.style.maxWidth = '92vw'; }
+        } catch (e) { /* noop */ }
+
+        grip.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return;
+          const r = el.getBoundingClientRect();
+          drag = { x0: e.clientX, w0: r.width };
+          grip.classList.add('dragging');
+          document.body.classList.add('panel-dragging');
+          try { grip.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+          e.preventDefault();
+          e.stopPropagation();
+        });
+
+        grip.addEventListener('pointermove', (e) => {
+          if (!drag) return;
+          const max = Math.max(cfg.min, Math.round(window.innerWidth * 0.92));
+          const w = Math.min(max, Math.max(cfg.min, Math.round(drag.w0 + (e.clientX - drag.x0))));
+          el.style.width = w + 'px';
+          el.style.maxWidth = '92vw';
+          place();
+          e.preventDefault();
+        });
+
+        function endDrag() {
+          if (!drag) return;
+          drag = null;
+          grip.classList.remove('dragging');
+          document.body.classList.remove('panel-dragging');
+          try { localStorage.setItem(cfg.key, String(Math.round(el.getBoundingClientRect().width))); } catch (e) { /* noop */ }
+          place();
+        }
+        grip.addEventListener('pointerup', endDrag);
+        grip.addEventListener('pointercancel', endDrag);
+
+        if (window.ResizeObserver) {
+          try { new ResizeObserver(() => place()).observe(el); } catch (e) { /* noop */ }
+        }
+        window.addEventListener('resize', place);
+        panelGrips.push({ el: el, grip: grip, place: place });
+      });
+      placePanelGrips();
+    }
+
+    // ============================================================
+    // 🎛️ MINI BOTONERA — la botonera adentro del 3D
+    // ------------------------------------------------------------
+    // Misma data y mismo socket que la botonera (index.html):
+    //   GET  {api}/materials            → materiales + los 6 botones
+    //   emit claimMaster + selectScene  → el server hace broadcast a TODOS
+    //                                     los clientes (incluido este output)
+    // No reimplementa nada del motor: sólo arma el mismo payload que
+    // synthesizeScene() de menu.js para que el 3D reproduzca igual.
+    // ============================================================
+    const MINI_THUMBS = {
+      space: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=600&q=80',
+      fire: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80',
+      waves: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80',
+      lines: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&q=80',
+      hearts: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&q=80',
+      rain: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=600&q=80',
+      gradient: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&q=80',
+      noise: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&q=80',
+      solid: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&q=80'
+    };
+
+    const miniBot = { on: false, loaded: false, loading: false, buttons: [], materials: [], params: {}, activeId: null };
+
+    function miniApiBase() { return (window.BACKEND_URL || '') + '/jpstagedesign/api'; }
+
+    function miniThumb(m) {
+      if (!m) return null;
+      if (m.type === 'jpshader') return m.thumb || m.src || null;
+      if (m.type === 'shader' || m.type === 'effect') {
+        const eff = (m.effect || m.shader || m.name || '').toLowerCase();
+        return MINI_THUMBS[eff] || MINI_THUMBS.space;
+      }
+      if (m.type === 'image') return m.src;
+      if (m.type === 'youtube' && m.videoId) return 'https://img.youtube.com/vi/' + m.videoId + '/hqdefault.jpg';
+      if (m.type === 'video') return m.thumb || m.src || null;
+      if (m.type === 'web') {
+        try { return 'https://www.google.com/s2/favicons?sz=128&domain=' + new URL(m.src).hostname; } catch (e) { return null; }
+      }
+      return null;
+    }
+
+    /** Igual que synthesizeScene() de menu.js: el payload que entiende el 3D. */
+    function miniSceneFor(m) {
+      const base = { id: m.id, label: m.name || 'Material', type: m.type };
+      const uni = m.savedUniforms || miniBot.params[m.id] || {};
+      if (m.type === 'jpshader') {
+        base.type = 'jpshader';
+        base.editor = 'jpshader';
+        base.shader = m.shader || m.effect || m.name;
+        base.thumb = miniThumb(m);
+        base.uniforms = uni;
+      } else if (m.type === 'effect' || m.type === 'shader') {
+        base.type = 'shader';
+        base.shader = (m.effect || m.shader || m.name || '').toLowerCase();
+        base.uniforms = uni;
+      } else if (m.type === 'image' || m.type === 'video') {
+        base.src = m.src;
+      } else if (m.type === 'youtube') {
+        base.videoId = m.videoId;
+      } else if (m.type === 'web') {
+        base.type = 'web';
+        base.src = m.src;
+        base.url = m.src;
+      }
+      return base;
+    }
+
+    function miniRender() {
+      const grid = document.getElementById('mbGrid');
+      if (!grid) return;
+      const n = document.getElementById('mbCount');
+      if (n) n.textContent = miniBot.buttons.length ? (miniBot.buttons.length + ' botones') : '';
+      grid.innerHTML = '';
+      if (!miniBot.buttons.length) {
+        grid.innerHTML = '<div class="mb-empty">La botonera no tiene botones cargados.</div>';
+        return;
+      }
+      miniBot.buttons.forEach(slot => {
+        const mat = miniBot.materials.find(m => m.id === slot.materialId);
+        const btn = document.createElement('button');
+        btn.className = 'mb-btn' + (mat ? '' : ' empty') + (mat && miniBot.activeId === mat.id ? ' active' : '');
+        btn.type = 'button';
+        btn.title = mat ? (mat.name || '') + ' · ' + (mat.type || '') : 'Botón sin material';
+        const thumb = miniThumb(mat);
+        if (thumb) {
+          const img = document.createElement('img');
+          img.className = 'mb-thumb';
+          img.src = thumb;
+          img.alt = mat ? (mat.name || '') : '';
+          img.onerror = function () { this.style.display = 'none'; };
+          btn.appendChild(img);
+        }
+        const lbl = document.createElement('span');
+        lbl.className = 'mb-lbl';
+        lbl.textContent = slot.label || (mat ? mat.name : '') || ('Botón ' + slot.slot);
+        btn.appendChild(lbl);
+        btn.addEventListener('click', () => miniSelect(mat));
+        grid.appendChild(btn);
+      });
+    }
+
+    async function miniLoad(force) {
+      if (miniBot.loading) return;
+      if (miniBot.loaded && !force) return;
+      miniBot.loading = true;
+      const grid = document.getElementById('mbGrid');
+      if (grid) grid.innerHTML = '<div class="mb-msg">Cargando botonera…</div>';
+      try {
+        const r = await fetch(miniApiBase() + '/materials', { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        miniBot.materials = d.materials || [];
+        miniBot.params = d.shaderParams || {};
+        miniBot.buttons = (d.buttons || []).slice().sort((a, b) => a.slot - b.slot);
+        miniBot.loaded = true;
+      } catch (e) {
+        if (grid) grid.innerHTML = '<div class="mb-msg">No se pudo cargar la botonera<br>' + (e && e.message ? e.message : e) + '</div>';
+      } finally {
+        miniBot.loading = false;
+        miniRender();
+      }
+    }
+
+    function miniSelect(mat) {
+      if (!mat) { showToast('⚠️ Ese botón no tiene material asignado'); return; }
+      if (!socket || !socket.connected) { showToast('⚠️ Sin conexión con el servidor'); return; }
+      socket.emit('claimMaster');
+      const scene = miniSceneFor(mat);
+      socket.emit('selectScene', scene);
+      miniBot.activeId = mat.id;
+      miniRender();
+      showToast('🎬 ' + (mat.name || 'Contenido') + ' → pantallas');
+    }
+
+    function miniToggle(force) {
+      const el = document.getElementById('miniBotonera');
+      if (!el) return;
+      const on = (force === undefined) ? !el.classList.contains('on') : !!force;
+      el.classList.toggle('on', on);
+      miniBot.on = on;
+      if (on) miniLoad(false);
+      try { localStorage.setItem('fsc_mini_botonera', on ? '1' : '0'); } catch (e) { /* noop */ }
+      updateUserDockUI();
+      setTimeout(placePanelGrips, 30);
+    }
+
+    function setupMiniBotonera() {
+      const el = document.getElementById('miniBotonera');
+      if (!el) return;
+
+      document.getElementById('mbClose').addEventListener('click', () => miniToggle(false));
+      document.getElementById('mbReload').addEventListener('click', () => { miniBot.loaded = false; miniLoad(true); });
+      document.getElementById('mbMin').addEventListener('click', () => {
+        el.classList.toggle('mini');
+        setTimeout(placePanelGrips, 30);
+      });
+
+      // Arrastrar la ventanita desde el header (no desde los botones)
+      const head = document.getElementById('mbHead');
+      let mv = null;
+      head.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.mb-icon')) return;
+        if (e.button !== 0) return;
+        const r = el.getBoundingClientRect();
+        mv = { x0: e.clientX, y0: e.clientY, left: r.left, top: r.top, w: r.width, h: r.height };
+        el.style.right = 'auto';
+        el.style.bottom = 'auto';
+        el.style.left = r.left + 'px';
+        el.style.top = r.top + 'px';
+        try { head.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        e.preventDefault();
+      });
+      head.addEventListener('pointermove', (e) => {
+        if (!mv) return;
+        const left = Math.min(window.innerWidth - 80, Math.max(0, mv.left + (e.clientX - mv.x0)));
+        const top = Math.min(window.innerHeight - 40, Math.max(0, mv.top + (e.clientY - mv.y0)));
+        el.style.left = Math.round(left) + 'px';
+        el.style.top = Math.round(top) + 'px';
+        placePanelGrips();
+        e.preventDefault();
+      });
+      const endMove = () => {
+        if (!mv) return;
+        mv = null;
+        try {
+          localStorage.setItem('fsc_mini_pos', JSON.stringify({
+            left: Math.round(el.getBoundingClientRect().left),
+            top: Math.round(el.getBoundingClientRect().top),
+            mini: el.classList.contains('mini') ? 1 : 0
+          }));
+        } catch (e) { /* noop */ }
+        placePanelGrips();
+      };
+      head.addEventListener('pointerup', endMove);
+      head.addEventListener('pointercancel', endMove);
+
+      // posición / estado guardados
+      try {
+        const p = JSON.parse(localStorage.getItem('fsc_mini_pos') || 'null');
+        if (p) {
+          if (typeof p.left === 'number') { el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.left = p.left + 'px'; el.style.top = p.top + 'px'; }
+          if (p.mini) el.classList.add('mini');
+        }
+        if (localStorage.getItem('fsc_mini_botonera') === '1') el.classList.add('on');
+      } catch (e) { /* noop */ }
+      miniBot.on = el.classList.contains('on');
+
+      // contenido activo sincronizado (si otro cliente cambia la escena)
+      const hookScene = () => {
+        if (!socket) { setTimeout(hookScene, 500); return; }
+        socket.on('sceneChanged', (d) => {
+          miniBot.activeId = d && d.id ? d.id : null;
+          miniRender();
+        });
+      };
+      hookScene();
+
+      if (miniBot.on) miniLoad(false);
+
+      // botón del Control de Sala
+      const btn = document.getElementById('btnUserToggleBotonera');
+      if (btn) btn.addEventListener('click', () => miniToggle());
+    }
 
     function setupDefaultProjectors() {
       const w = ROOM_LENGTH * SCALE;
@@ -12396,6 +12918,11 @@
       }
 
       showToast(isAdminMode ? '🎛️ Modo Administrador activado (Tecla P para salir)' : '👤 Modo Usuario (Tecla P para Administrador)');
+
+      // Los grips siguen al panel: al entrar/salir de admin cambia cuál está visible.
+      // El 2º pase es porque la entrada/salida anima el transform (0.3s).
+      placePanelGrips();
+      setTimeout(placePanelGrips, 380);
     }
 
     // Renderizar categorías e ítems dinámicos de Presupuesto
