@@ -1730,6 +1730,8 @@
   <script src="/jpstagedesign/js/CSS3DRenderer.js?v=20260926"></script>
   <!-- Shaders WebGL -->
   <script src="/jpstagedesign/js/shaders.js?v=20260925"></script>
+  <!-- 🌀 Puente con jpShadereditor: escenas "jpshader" (motor del editor) -->
+  <script src="/jpstagedesign/js/jpshader-bridge.js?v=2"></script>
   <!-- Socket.IO desde CDN (carga síncrona) -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
@@ -1798,7 +1800,7 @@
   
   <!-- Info -->
   <div id="info">
-    JPStageDesign 3D<br>
+    JPStageDesign 3D<span class="build-tag" id="buildTag"></span><br>
     <span class="scene-label" id="scene-name">Sin escena</span>
     <div class="dims-summary" id="hudDims">L: 44.80m | An: 30.15m | Al: 2.00m</div>
   </div>
@@ -2393,6 +2395,34 @@
           <button class="panel-btn" id="btnCenterScreen">🎯 Centrar</button>
           <button class="panel-btn" id="btnDuplicateScreen">📋 Duplicar</button>
         </div>
+      </div>
+    </div>
+
+    <!-- 2b. Toque directo sobre la pantalla (RAYCAST → SHADER) -->
+    <div class="accordion-item" data-tab="toque" data-tab-label="🖐️ Toque">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span class="acc-title">🖐️ Tocar Pantalla (RAYCAST → Shader)</span>
+        <span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-content">
+        <div style="font-size:9.5px; color:#8b93a7; line-height:1.45; margin-bottom:8px;">
+          Clic y arrastrá sobre una pantalla: el shader recibe esa posición como si
+          le estuvieras tocando la pantalla. Mientras tocás, la cámara <b>no gira</b>
+          (para orbitar, arrastrá desde el fondo).
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:10.5px; color:#cfd6e6; margin:6px 0; cursor:pointer;">
+          <input type="checkbox" id="chkTouchMode" checked> Interacción directa ACTIVA
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:10.5px; color:#cfd6e6; margin:6px 0; cursor:pointer;">
+          <input type="checkbox" id="chkTouchDot" checked> Dibujar el punto en la pantalla
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:10.5px; color:#cfd6e6; margin:6px 0; cursor:pointer;">
+          <input type="checkbox" id="chkTouchLidar" checked> Simular LIDAR (lidarPointers)
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:10.5px; color:#cfd6e6; margin:6px 0; cursor:pointer;">
+          <input type="checkbox" id="chkTouchWindowMouse"> El shader también sigue el mouse de la ventana
+        </label>
+        <div id="touchReadout" style="margin-top:8px; padding:8px; border:1px solid #262c3a; border-radius:8px; background:#0b0d13; font-family:ui-monospace,SFMono-Regular,monospace; font-size:10px; color:#9be7ff; line-height:1.6; white-space:pre-line;">Sin pantalla bajo el cursor</div>
       </div>
     </div>
 
@@ -3084,6 +3114,17 @@
     let webglShaderCtx = null;
     let currentShaderName = null;
     let videoElement = null;
+
+    // Shader de jpShadereditor (motor del editor): canvas offscreen propio.
+    // La pantalla del 3D dibuja ESTE canvas, así se ve exactamente el shader
+    // elegido en la botonera (mismo plan, mismos uniforms).
+    // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
+    // header NO muestra esta fecha, el navegador está corriendo una copia vieja
+    // (recargar con Ctrl+Shift+R).
+    const BUILD_3D = '2026-10-21 · touch-raycast';
+    let jpCanvas = document.createElement('canvas');
+    let jpView3D = null;
+    let jpShaderName3D = null;
 
     // Acordeón UI
     function toggleAccordion(headerEl) {
@@ -4599,7 +4640,19 @@
       }
     }
 
+    function stopJPShader3D() {
+      if (jpView3D) {
+        try { jpView3D.destroy(); } catch (e) { /* noop */ }
+        jpView3D = null;
+      }
+      // El canvas se descarta junto con su contexto WebGL (destroy hace
+      // loseContext): al volver a montar se crea uno NUEVO, nunca se reusa.
+      jpCanvas = null;
+      jpShaderName3D = null;
+    }
+
     function stopWebGLShader() {
+      stopJPShader3D();
       if (webglShaderCtx) {
         if (typeof Shaders !== 'undefined') {
           Shaders.stop(webglShaderCtx);
@@ -4740,6 +4793,8 @@
       // UI y Socket
       setupUI();
       setupSocket();
+      // 🖐️ Raycast del mouse sobre las pantallas (toque directo al shader)
+      setupTouchInteraction();
 
       // Cargar configuración guardada del servidor (o inicializar defaults)
       loadRoom3DConfigFromServer();
@@ -5469,6 +5524,10 @@
 
     function rebuildScreens3D() {
       if (!screensGroup) return;
+
+      // El punto del toque vive como hijo de una pantalla: se descarta con ella
+      // (sus geometrías/materiales se liberan abajo, no se pueden reusar).
+      touchMarker = null;
 
       let attachedScreenId = null;
       if (transformControls && transformControls.object && transformControls.object.userData?.screenId) {
@@ -6940,6 +6999,373 @@
       else if (target.kind === 'screen') selectScreen(target.id);
       else if (target.kind === 'furniture') selectFurniture(target.id);
     }
+
+    // ============================================================
+    // 🖐️ TOQUE DIRECTO SOBRE LA PANTALLA 3D (RAYCAST → SHADER)
+    // ------------------------------------------------------------
+    // Simula la instalación de un LIDAR: el mouse "toca" la pantalla 3D.
+    //   1. RAYCAST del mouse contra la superficie de la pantalla
+    //   2. el impacto se pasa a UV de la pantalla (0..1 de su ancho/alto)
+    //   3. se invierte el mapeo (ESPEJO / REPARTIDO) para saber qué píxel del
+    //      canvas de contenido se está tocando
+    //   4. esa X/Y normalizada entra al motor de jpShadereditor igual que el
+    //      dedo dentro del include (mouse.xy + pointers[] + lidarPointers[])
+    // Mientras se toca una pantalla OrbitControls queda deshabilitado: la
+    // cámara NO gira.
+    // ============================================================
+
+    const TOUCH_CFG_DEFAULTS = { enabled: true, dot: true, lidar: true, windowMouse: false };
+    const touchInteract = Object.assign({}, TOUCH_CFG_DEFAULTS);
+    const touchState = { active: false, pointerId: null, screenId: null, uv: { x: 0, y: 0 }, src: { x: 0, y: 0 } };
+    let touchMarker = null;
+
+    (function touchLoadCfg() {
+      try {
+        const raw = localStorage.getItem('fsc_touch_cfg:v1');
+        if (!raw) return;
+        const cfg = JSON.parse(raw);
+        Object.keys(TOUCH_CFG_DEFAULTS).forEach(k => {
+          if (cfg && typeof cfg[k] === 'boolean') touchInteract[k] = cfg[k];
+        });
+      } catch (e) { /* noop */ }
+    })();
+
+    function touchSaveCfg() {
+      try {
+        localStorage.setItem('fsc_touch_cfg:v1', JSON.stringify({
+          enabled: !!touchInteract.enabled,
+          dot: !!touchInteract.dot,
+          lidar: !!touchInteract.lidar,
+          windowMouse: !!touchInteract.windowMouse
+        }));
+      } catch (e) { /* noop */ }
+    }
+
+    function touchClamp01(v) {
+      v = Number(v);
+      return isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
+    }
+
+    /** Grupo 3D de una pantalla por id. */
+    function touchGroupFor(screenId) {
+      if (!screensGroup) return null;
+      return screensGroup.children.find(c => c.userData && c.userData.screenId === screenId) || null;
+    }
+
+    /** Pantalla (objeto de stageScreens) dueña de un mesh del raycast. */
+    function touchScreenOwnerOf(obj) {
+      let o = obj;
+      while (o) {
+        const ud = o.userData || {};
+        if (ud.screenId) return stageScreens.find(s => s.id === ud.screenId) || null;
+        o = o.parent;
+      }
+      return null;
+    }
+
+    /** NDC del mouse en la ventana (el canvas 3D ocupa toda la pantalla). */
+    function touchNDC(clientX, clientY) {
+      return new THREE.Vector2(
+        (clientX / Math.max(1, window.innerWidth)) * 2 - 1,
+        -(clientY / Math.max(1, window.innerHeight)) * 2 + 1
+      );
+    }
+
+    /** RAYCAST: la pantalla que está debajo del cursor (null si no hay). */
+    function touchPickScreen(clientX, clientY) {
+      if (!raycaster || !camera || !screensGroup) return null;
+      raycaster.setFromCamera(touchNDC(clientX, clientY), camera);
+      const hits = raycaster.intersectObjects(screensGroup.children, true);
+      for (const h of hits) {
+        if (!h.object || h.object.visible === false) continue;
+        const name = h.object.name || '';
+        // Sólo la superficie que muestra el contenido (no chasis, no etiquetas)
+        if (name !== 'frontSurface' && name !== 'calcoSurface') continue;
+        const s = touchScreenOwnerOf(h.object);
+        if (!s || s.muted) continue;
+        return s;
+      }
+      return null;
+    }
+
+    /**
+     * Punto del mouse sobre el PLANO de la pantalla, en coordenadas de la
+     * pantalla: u = 0..1 de su ancho, v = 0..1 de su alto (v = 0 abajo, igual
+     * que la UV del plano y que gl_FragCoord).
+     * Se usa el plano infinito a propósito: al arrastrar fuera del borde el
+     * punto queda pegado al borde en vez de cortarse.
+     */
+    function touchPointOnScreen(screen, clientX, clientY) {
+      const grp = touchGroupFor(screen.id);
+      if (!grp || !raycaster || !camera) return null;
+      const front = grp.getObjectByName('frontSurface') || grp.getObjectByName('calcoSurface');
+      if (!front || !front.geometry || !front.geometry.parameters) return null;
+
+      raycaster.setFromCamera(touchNDC(clientX, clientY), camera);
+
+      const q = new THREE.Quaternion();
+      front.getWorldQuaternion(q);
+      const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(q).normalize();
+      const centro = new THREE.Vector3();
+      front.getWorldPosition(centro);
+      const plano = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, centro);
+
+      const world = new THREE.Vector3();
+      if (!raycaster.ray.intersectPlane(plano, world)) return null;
+
+      const local = grp.worldToLocal(world.clone());
+      const w = Number(front.geometry.parameters.width) || Number(screen.width) || 1;
+      const h = Number(front.geometry.parameters.height) || Number(screen.height) || 1;
+      return {
+        u: touchClamp01(local.x / w + 0.5),
+        v: touchClamp01(local.y / h + 0.5),
+        w: w,
+        h: h,
+        local: local,
+        world: world
+      };
+    }
+
+    /** Tamaño REAL del canvas de contenido (para invertir el mapeo). */
+    function touchSourceSize() {
+      if (currentContent.type === 'jpshader' && jpCanvas) return { w: jpCanvas.width, h: jpCanvas.height };
+      if (currentContent.type === 'shader' && offscreenShaderCanvas) return { w: offscreenShaderCanvas.width, h: offscreenShaderCanvas.height };
+      if (videoElement && videoElement.videoWidth) return { w: videoElement.videoWidth, h: videoElement.videoHeight };
+      if (currentLoadedImage && currentLoadedImage.naturalWidth) return { w: currentLoadedImage.naturalWidth, h: currentLoadedImage.naturalHeight };
+      return { w: 1024, h: 512 };
+    }
+
+    /**
+     * UV de la pantalla -> X/Y normalizada DENTRO del contenido (0..1, y = 0 abajo).
+     * Invierte resolveSourceRect(): con el contenido REPARTIDO en 4 slices, el
+     * toque en la 2ª pantalla cae en el 2º cuarto del shader.
+     */
+    function touchSourcePoint(screen, u, v) {
+      const size = touchSourceSize();
+      const idx = Math.max(0, stageScreens.indexOf(screen));
+      const r = resolveSourceRect(screen, idx, size.w, size.h);
+      const pxX = r.sx + u * r.sw;
+      const pxY = r.sy + (1 - v) * r.sh;          // el canvas 2D tiene y hacia abajo
+      return {
+        x: touchClamp01(pxX / size.w),
+        y: touchClamp01(1 - pxY / size.h),
+        pxX: pxX, pxY: pxY, w: size.w, h: size.h,
+        slice: r.slice
+      };
+    }
+
+    // --------------------------------------------------------- punto en la pantalla
+    function touchEnsureMarker() {
+      if (touchMarker) return touchMarker;
+      const grp = new THREE.Group();
+      grp.name = 'touchMarker';
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xff2d95, transparent: true, opacity: 0.95,
+        depthTest: false, depthWrite: false, side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.55, 1.0, 40), mat);
+      ring.name = 'touchRing';
+      ring.renderOrder = 999;
+      const dot = new THREE.Mesh(new THREE.CircleGeometry(0.24, 24), mat);
+      dot.name = 'touchDot';
+      dot.renderOrder = 1000;
+      grp.add(ring, dot);
+      grp.renderOrder = 998;
+      grp.visible = false;
+      touchMarker = grp;
+      return grp;
+    }
+
+    function touchHideMarker() {
+      if (touchMarker) touchMarker.visible = false;
+    }
+
+    /** El punto del raycast se dibuja SOBRE la superficie, con el tamaño de la pantalla. */
+    function touchPlaceMarker(screen, pt, pressed) {
+      if (!touchInteract.dot || !pt) { touchHideMarker(); return; }
+      const grp = touchGroupFor(screen.id);
+      if (!grp) { touchHideMarker(); return; }
+      const marker = touchEnsureMarker();
+      if (marker.parent !== grp) {
+        if (marker.parent) marker.parent.remove(marker);
+        grp.add(marker);
+      }
+      const base = Math.max(0.02, Math.min(Number(screen.width) || 1, Number(screen.height) || 1) * 0.035);
+      marker.scale.setScalar(pressed ? base : base * 0.7);
+      // El punto se dibuja con la UV CLAMPEADA: si el cursor se va afuera de la
+      // pantalla, queda pegado al borde y no flotando en el aire.
+      const w = Number(pt.w) || Number(screen.width) || 1;
+      const h = Number(pt.h) || Number(screen.height) || 1;
+      marker.position.set(
+        (pt.u - 0.5) * w,
+        (pt.v - 0.5) * h,
+        (Number(pt.local && pt.local.z) || 0) + 0.01
+      );
+      marker.visible = true;
+      const ring = marker.getObjectByName('touchRing');
+      const dot = marker.getObjectByName('touchDot');
+      if (ring) ring.material.opacity = pressed ? 0.95 : 0.45;
+      if (dot) dot.visible = !!pressed;
+    }
+
+    // ------------------------------------------------------------------ lectura
+    function touchReadout(screen, pt, src, pressed) {
+      const el = document.getElementById('touchReadout');
+      if (!el) return;
+      if (!screen || !pt) {
+        el.textContent = 'Sin pantalla bajo el cursor';
+        return;
+      }
+      const nombre = screen.name || screen.id;
+      const lineas = [
+        (pressed ? '👆 TOCANDO · ' : '🖱️ SOBRE · ') + nombre,
+        'Pantalla  U ' + pt.u.toFixed(3) + '  ·  V ' + pt.v.toFixed(3),
+        'Shader    X ' + (src ? src.x.toFixed(3) : '—') + '  ·  Y ' + (src ? src.y.toFixed(3) : '—')
+      ];
+      if (src) {
+        lineas.push('px  ' + Math.round(src.pxX) + ' × ' + Math.round(src.pxY) + '  /  ' + src.w + ' × ' + src.h
+          + (src.slice ? '  ·  slice ' + src.slice + '/4' : ''));
+      }
+      el.textContent = lineas.join('\n');
+    }
+
+    // ------------------------------------------------------- alimentar al shader
+    function touchFeed(screen, pt, down) {
+      if (!jpView3D || !jpView3D.setPointer) return null;
+      const src = touchSourcePoint(screen, pt.u, pt.v);
+      jpView3D.setPointer(src.x, src.y, down, { lidar: !!touchInteract.lidar });
+      return src;
+    }
+
+    function touchRelease() {
+      touchState.active = false;
+      touchState.pointerId = null;
+      touchState.screenId = null;
+      if (controls) controls.enabled = true;
+      if (jpView3D && jpView3D.releasePointer) jpView3D.releasePointer();
+      touchHideMarker();
+    }
+
+    // ------------------------------------------------------------ eventos
+    function touchOnDown(e) {
+      if (!touchInteract.enabled) return;
+
+      // Recuperación: si un pointerup se perdió (se soltó fuera de la ventana),
+      // OrbitControls puede haber quedado frenado sin ningún toque activo.
+      if (!touchState.active && controls && !controls.enabled && !(transformControls && transformControls.dragging)) {
+        controls.enabled = true;
+      }
+
+      if (!renderer || e.target !== renderer.domElement) return;
+      if (e.button !== undefined && e.button !== 0) return;
+      if (transformControls && (transformControls.dragging || transformControls.axis)) return;
+
+      const s = touchPickScreen(e.clientX, e.clientY);
+      if (!s) return;
+      const pt = touchPointOnScreen(s, e.clientX, e.clientY);
+      if (!pt) return;
+
+      touchState.active = true;
+      touchState.pointerId = (e.pointerId === undefined) ? null : e.pointerId;
+      touchState.screenId = s.id;
+      touchState.uv = { x: pt.u, y: pt.v };
+
+      // 🔒 Tocar la pantalla NO gira la cámara. Se hace acá (fase de captura,
+      // ANTES del listener de OrbitControls) porque si no el arrastre ya arrancó.
+      if (controls) controls.enabled = false;
+
+      const src = touchFeed(s, pt, 1);
+      if (src) touchState.src = src;
+      touchPlaceMarker(s, pt, true);
+      touchReadout(s, pt, src, true);
+    }
+
+    function touchOnMove(e) {
+      if (!touchInteract.enabled) return;
+
+      if (touchState.active) {
+        // Arrastrando sobre la pantalla: se sigue alimentando el shader con el
+        // mismo toque, aunque el cursor se vaya un poco afuera (se clampea).
+        const s = stageScreens.find(x => x.id === touchState.screenId);
+        if (!s) return;
+        const pt = touchPointOnScreen(s, e.clientX, e.clientY);
+        if (!pt) return;
+        const src = touchFeed(s, pt, 1);
+        touchState.uv = { x: pt.u, y: pt.v };
+        if (src) touchState.src = src;
+        touchPlaceMarker(s, pt, true);
+        touchReadout(s, pt, src, true);
+        return;
+      }
+
+      // Sin apretar: el punto guía del raycast (no alimenta al shader).
+      if (!renderer || e.target !== renderer.domElement) { touchHideMarker(); return; }
+      const s = touchPickScreen(e.clientX, e.clientY);
+      if (!s) { touchHideMarker(); touchReadout(null); return; }
+      const pt = touchPointOnScreen(s, e.clientX, e.clientY);
+      if (!pt) { touchHideMarker(); return; }
+      touchPlaceMarker(s, pt, false);
+      touchReadout(s, pt, touchSourcePoint(s, pt.u, pt.v), false);
+    }
+
+    function touchOnUp(e) {
+      if (!touchState.active) return;
+      if (e && e.pointerId !== undefined && touchState.pointerId !== null && e.pointerId !== touchState.pointerId) return;
+      touchRelease();
+    }
+
+    function setupTouchInteraction() {
+      if (!renderer) return;
+
+      // Fase de CAPTURA en window: corre antes que los listeners del canvas
+      // (OrbitControls / TransformControls), que es lo que permite frenar la
+      // cámara antes de que empiece a rotar.
+      window.addEventListener('pointerdown', touchOnDown, true);
+      window.addEventListener('pointermove', touchOnMove, { capture: true, passive: true });
+      window.addEventListener('pointerup', touchOnUp, true);
+      window.addEventListener('pointercancel', touchOnUp, true);
+      window.addEventListener('blur', () => touchOnUp({ pointerId: null }));
+
+      const bind = (id, key, onChange) => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.checked = !!touchInteract[key];
+        input.addEventListener('change', () => {
+          touchInteract[key] = !!input.checked;
+          touchSaveCfg();
+          if (onChange) onChange();
+        });
+      };
+      bind('chkTouchMode', 'enabled', () => {
+        if (!touchInteract.enabled) { touchRelease(); touchReadout(null, null, null, false); }
+      });
+      bind('chkTouchDot', 'dot', () => { if (!touchInteract.dot) touchHideMarker(); });
+      bind('chkTouchLidar', 'lidar');
+      bind('chkTouchWindowMouse', 'windowMouse', () => {
+        if (jpView3D && jpView3D.setWindowMouse) jpView3D.setWindowMouse(!!touchInteract.windowMouse);
+      });
+      if (jpView3D && jpView3D.setWindowMouse) jpView3D.setWindowMouse(!!touchInteract.windowMouse);
+    }
+
+    // API para depurar desde la consola (y para los tests): qué pantalla está
+    // bajo el cursor, qué UV, qué X/Y normalizada llega al shader, y el estado
+    // del puntero que recibe el motor del editor.
+    window.JPStageTouch = {
+      interact: touchInteract,
+      state: touchState,
+      pick: touchPickScreen,
+      point: touchPointOnScreen,
+      source: touchSourcePoint,
+      load: (data) => loadContent(data),
+      view: () => jpView3D,
+      pointer: () => (jpView3D && jpView3D.pointer ? jpView3D.pointer() : null),
+      marker: () => touchMarker,
+      camera: () => camera,
+      controls: () => controls,
+      mapping: () => mappingMode,
+      setMapping: (m) => set3DMappingMode(m),
+      screens: () => stageScreens.map(s => ({ id: s.id, name: s.name, width: s.width, height: s.height, sliceIndex: s.sliceIndex, muted: !!s.muted }))
+    };
 
     function setupDefaultProjectors() {
       const w = ROOM_LENGTH * SCALE;
@@ -9381,7 +9807,9 @@
     }
 
     function refreshWallTextures() {
-      if (currentContent.type === 'shader' && offscreenShaderCanvas) {
+      if (currentContent.type === 'jpshader' && jpView3D) {
+        updateWallTextures(jpCanvas);
+      } else if (currentContent.type === 'shader' && offscreenShaderCanvas) {
         updateWallTextures(offscreenShaderCanvas);
       } else if (currentLoadedImage) {
         updateWallTextures(currentLoadedImage);
@@ -9401,7 +9829,11 @@
       updateScreensSelectUI();   // refresca el badge de mapeo de cada pantalla
 
       // Repintar el contenido actual con el nuevo mapeo
-      if (currentContent.type === 'shader' && currentShaderName) {
+      if (currentContent.type === 'jpshader' && jpShaderName3D) {
+        const nombreActual = currentContent.shaderType || jpShaderName3D;
+        stopJPShader3D();
+        initJPShader3D({ type: 'jpshader', shader: nombreActual, uniforms: currentContent.uniforms || null });
+      } else if (currentContent.type === 'shader' && currentShaderName) {
         initWebGLShader(currentShaderName, true);
       } else if (currentLoadedImage) {
         updateWallTextures(currentLoadedImage);
@@ -10014,7 +10446,9 @@
 
       // Determinar la fuente de video/imagen/shader global de la botonera
       let globalSrc = null;
-      if (currentContent.type === 'shader' && webglShaderCtx && offscreenShaderCanvas) {
+      if (currentContent.type === 'jpshader' && jpView3D) {
+        globalSrc = jpCanvas;
+      } else if (currentContent.type === 'shader' && webglShaderCtx && offscreenShaderCanvas) {
         globalSrc = offscreenShaderCanvas;
       } else if (currentContent.type === 'video' && videoElement && videoElement.readyState >= 2) {
         globalSrc = videoElement;
@@ -10078,6 +10512,61 @@
     // SHADERS Y DEMOS
     // ============================================================
     
+    async function initJPShader3D(data) {
+      const nombre = data && (data.shader || data.effect || data.name);
+      if (!nombre) return;
+      const clave = String(nombre).toLowerCase();
+
+      // Mismo shader ya montado: sólo empujar uniforms
+      if (jpView3D && jpShaderName3D === clave) {
+        if (data.uniforms && jpView3D.applyUniforms) jpView3D.applyUniforms(data.uniforms);
+        currentContent.type = 'jpshader';
+        return;
+      }
+
+      stopWebGLShader();   // apaga el motor de shaders.js
+      try {
+        if (typeof JPSE === 'undefined') throw new Error('falta js/jpshader-bridge.js');
+        await JPSE.loadEngine();
+        const plan = await JPSE.getPlan(nombre);
+
+        // Canvas offscreen NUEVO por shader, con el mismo criterio de tamaño que
+        // el shader local (REPARTO usa un panorama 4x1; ESPEJO usa 2x1).
+        jpCanvas = document.createElement('canvas');
+        jpCanvas.width = (mappingMode === 'extended') ? 2048 : 1024;
+        jpCanvas.height = 512;
+
+        jpView3D = JPSE.createView(jpCanvas, plan, {
+          maxDpr: 1,
+          // El puntero del shader lo maneja el RAYCAST sobre la pantalla 3D
+          // (touchInteract): el mouse de la ventana queda opcional.
+          mouse: touchInteract.windowMouse ? 'window' : 'none',
+          uniforms: data.uniforms || {},
+          onError: (t) => console.warn('[3D][JPSE]', t)
+        });
+        if (jpView3D && jpView3D.setWindowMouse) jpView3D.setWindowMouse(!!touchInteract.windowMouse);
+        jpShaderName3D = clave;
+        currentContent.type = 'jpshader';
+        currentContent.shaderType = nombre;
+        const nombreEl = document.getElementById('scene-name');
+        if (nombreEl) nombreEl.textContent = data.label || data.name || nombre;
+        console.log(`[3D] jpshader "${nombre}" · ${plan.passes.length} pase(s) · ${jpCanvas.width}x${jpCanvas.height}`);
+      } catch (err) {
+        console.error('[3D] Error con el shader del editor:', err);
+        jpShaderName3D = null;
+        // Nunca dejar las pantallas en negro sin explicación: si el material
+        // trae miniatura del editor, se muestra esa imagen y queda el aviso.
+        if (data && data.thumb) {
+          currentContent.type = 'image';
+          currentContent.imageUrl = data.thumb;
+          loadImageTexture(data.thumb);
+        }
+        if (typeof showToast === 'function') {
+          showToast('⚠️ No se pudo cargar el shader del editor: ' + (err && err.message ? err.message : err));
+        }
+      }
+    }
+
     async function initWebGLShader(shaderName, forceReset = false, uniforms = null) {
       if (!shaderName) return;
       if (typeof Shaders === 'undefined') {
@@ -10244,7 +10733,13 @@
         if (sceneNameEl) sceneNameEl.textContent = 'BLACKOUT';
         return;
       }
-      if (type === 'shader' || type === 'effect') {
+      if (type === 'jpshader') {
+        // Shader de jpShadereditor: se reproduce con el motor del editor
+        currentContent.type = 'jpshader';
+        currentContent.shaderType = data.shader || data.effect || data.id;
+        currentContent.uniforms = data.uniforms || null;
+        initJPShader3D(data);
+      } else if (type === 'shader' || type === 'effect') {
         currentContent.type = 'shader';
         currentContent.shaderType = data.effect || data.shader || data.id;
         initWebGLShader(currentContent.shaderType, false, data.uniforms);
@@ -11684,6 +12179,15 @@
       });
 
       socket.on('shaderUniformsChanged', (data) => {
+        // jpshader: se aplica directo al renderer del editor
+        if (jpView3D && data && data.uniforms) {
+          const targetJp = (data.shader || '').replace(/^(effect|shader)-/, '').toLowerCase();
+          if (!targetJp || targetJp === jpShaderName3D) {
+            Object.keys(data.uniforms).forEach(n => {
+              try { jpView3D.setUniform(n, data.uniforms[n]); } catch (e) { /* noop */ }
+            });
+          }
+        }
         if (webglShaderCtx && typeof Shaders !== 'undefined' && data && data.uniforms) {
           const activeClean = (currentShaderName || '').replace(/^(effect|shader)-/, '').toLowerCase();
           const targetClean = (data.shader || '').replace(/^(effect|shader)-/, '').toLowerCase();
@@ -11693,6 +12197,61 @@
         }
       });
     }
+
+    // ---------------------------------------------------------------
+    // DEBUG / QA: estado del contenido y de las texturas de las pantallas.
+    // Sirve para verificar (sin mirar píxeles a ojo) que lo que elige la
+    // botonera es EXACTAMENTE lo que se está dibujando en las pantallas.
+    //   JP3D.state()        -> tipo de contenido, shader, pases, frames
+    //   JP3D.screenSample(i)-> promedio de color de la textura de la pantalla i
+    // ---------------------------------------------------------------
+    console.log('[3D] BUILD', BUILD_3D);
+    try {
+      var _bt = document.getElementById('buildTag');
+      if (_bt) _bt.textContent = ' · ' + BUILD_3D;
+    } catch (e) { /* noop */ }
+
+    window.JP3D = {
+      build: BUILD_3D,
+      state: function () {
+        return {
+          type: currentContent.type,
+          scene: currentContent.shaderType,
+          shaderLocal: currentShaderName,
+          jpShader: jpShaderName3D,
+          jpPases: jpView3D ? jpView3D.renderer.passOrder.length : 0,
+          jpFrames: jpView3D ? jpView3D.frames : 0,
+          jpErrors: jpView3D ? jpView3D.errors.slice(0, 3) : [],
+          jpCanvas: jpCanvas ? { w: jpCanvas.width, h: jpCanvas.height } : null,
+          mappingMode: mappingMode,
+          screens: stageScreens.map(function (s) {
+            return { name: s.name, lock: !!s.lockSource, muted: !!s.muted, slice: s.sliceIndex };
+          })
+        };
+      },
+      sampleCanvas: function (cv) {
+        if (!cv || !cv.width) return null;
+        var c = document.createElement('canvas');
+        c.width = Math.min(160, cv.width);
+        c.height = Math.min(90, cv.height);
+        var cx = c.getContext('2d');
+        try { cx.drawImage(cv, 0, 0, c.width, c.height); } catch (e) { return { error: e.message }; }
+        var d = cx.getImageData(0, 0, c.width, c.height).data;
+        var sum = 0, nz = 0;
+        for (var k = 0; k < d.length; k += 4) {
+          var v = d[k] + d[k + 1] + d[k + 2];
+          sum += v;
+          if (v > 12) nz++;
+        }
+        return { avg: +(sum / (d.length / 4)).toFixed(1), nonBlack: nz, px: d.length / 4 };
+      },
+      screenSample: function (i) {
+        var s = stageScreens[i];
+        if (!s || !s.canvas) return null;
+        return Object.assign({ name: s.name }, this.sampleCanvas(s.canvas));
+      },
+      jpSample: function () { return this.sampleCanvas(jpCanvas); }
+    };
 
     // Iniciar cuando el DOM esté listo
     window.addEventListener('DOMContentLoaded', init);
