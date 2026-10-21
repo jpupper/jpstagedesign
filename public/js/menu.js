@@ -2278,7 +2278,7 @@
       }
       
       // 📸 sin captura todavía: botón para sacarla (web / shader del editor / video)
-      if (!m.builtin && !thumbSrc && (m.type === 'web' || m.type === 'video' || isJp)) {
+      if (!m.builtin && !thumbSrc && (m.type === 'web' || isJp)) {
         const btnShot = document.createElement('button');
         btnShot.className = 'mat-shot-btn';
         btnShot.textContent = '📸';
