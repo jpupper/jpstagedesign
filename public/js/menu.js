@@ -878,6 +878,95 @@
     return materialLibrary.find(m => m.id === id) || null;
   }
   
+  // --- Capturas / previews de los inputs (thumbnail de cada tarjeta) ---
+  // Lo que ya tiene una imagen o un video con miniatura se muestra tal cual;
+  // las webs se capturan con el headless del backend (/api/webthumb) y los
+  // shaders del editor se renderizan acá mismo en un canvas offscreen.
+  let inputFilter = 'todos';   // todos | cargados | imagen | web
+
+  function matThumb(m) {
+    if (!m) return null;
+    if (m.thumb) return m.thumb;
+    if (m.type === 'image' && m.src) return m.src;
+    if (m.type === 'youtube' && m.videoId) return 'https://img.youtube.com/vi/' + m.videoId + '/mqdefault.jpg';
+    return null;
+  }
+
+  async function jpThumbDataUrl(m) {
+    if (typeof JPSE === 'undefined') return null;
+    const nombre = m.shader || m.effect || '';
+    if (!nombre) return null;
+    await JPSE.loadEngine();
+    const plan = await JPSE.getPlan(nombre);
+    const canvas = document.createElement('canvas');
+    canvas.width = 640; canvas.height = 400;
+    const view = JPSE.createView(canvas, plan, { maxDpr: 1, mouse: 'none', uniforms: {} });
+    await new Promise(r => setTimeout(r, 800));
+    let data = null;
+    try { data = canvas.toDataURL('image/jpeg', 0.7); } catch (e) { data = null; }
+    try { view.destroy(); } catch (e) { /* noop */ }
+    return data;
+  }
+
+  /** Saca (o rehace) la captura de un input y la guarda en el servidor. */
+  async function captureThumb(m) {
+    if (!m || m.builtin) return null;
+    let thumb = null;
+    try {
+      // OJO: las webs guardan la URL en `src` (no en `url`)
+      const webUrl = m.type === 'web' ? (m.url || m.src) : null;
+      if (webUrl) {
+        const d = await apiFetch(API_BASE + '/webthumb?url=' + encodeURIComponent(webUrl));
+        if (d && d.thumb) thumb = d.thumb;
+      } else if (m.type === 'youtube' && m.videoId) {
+        thumb = 'https://img.youtube.com/vi/' + m.videoId + '/mqdefault.jpg';
+      } else if (isJpShader(m)) {
+        thumb = await jpThumbDataUrl(m);
+      } else if (m.type === 'image' && m.src) {
+        thumb = m.src;
+      }
+    } catch (e) {
+      console.warn('[THUMB] ' + (m.name || m.id) + ': ' + e.message);
+    }
+    if (!thumb) return null;
+    m.thumb = thumb;   // se muestra ya, aunque el guardado falle
+    try {
+      await apiFetch(API_BASE + '/materials/' + m.id + '/thumb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ thumb })
+      });
+    } catch (e) {
+      console.warn('[THUMB] no se pudo guardar en el servidor:', e.message);
+    }
+    return thumb;
+  }
+
+  function matchesFilter(m) {
+    if (inputFilter === 'cargados') return !m.builtin;
+    if (inputFilter === 'imagen') return m.type === 'image';
+    if (inputFilter === 'web') return m.type === 'web';
+    return true;
+  }
+
+  function filteredMaterials() {
+    return materialLibrary.filter(matchesFilter);
+  }
+
+  function initInputFilters() {
+    const saved = localStorage.getItem('fsc_input_filter') || 'todos';
+    inputFilter = ['todos', 'cargados', 'imagen', 'web'].indexOf(saved) >= 0 ? saved : 'todos';
+    document.querySelectorAll('#inputFilters [data-ifilter]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.ifilter === inputFilter);
+      btn.addEventListener('click', () => {
+        inputFilter = btn.dataset.ifilter;
+        localStorage.setItem('fsc_input_filter', inputFilter);
+        document.querySelectorAll('#inputFilters [data-ifilter]').forEach(b => b.classList.toggle('active', b === btn));
+        renderMaterialList();
+      });
+    });
+  }
+
   function materialIcon(m) {
     if (m.type === 'jpshader') return '🌀';
     if (m.type === 'shader' || m.type === 'effect') return '✨';
@@ -2094,8 +2183,14 @@
 
   function renderMaterialList() {
     if (!materialList) return;
+    const visibles = filteredMaterials();
     if (!materialLibrary.length) {
       materialList.innerHTML = '<div class="mat-empty">Sin inputs cargados</div>';
+      return;
+    }
+    if (!visibles.length) {
+      materialList.innerHTML = '<div class="mat-empty">No hay inputs de ese tipo todavía</div>';
+      updateInputCounts();
       return;
     }
 
@@ -2109,7 +2204,7 @@
     updateInputCounts();
 
     materialList.innerHTML = '';
-    materialLibrary.forEach(m => {
+    visibles.forEach(m => {
       const isShader = (m.type === 'shader' || m.type === 'effect');
       const isJp = isJpShader(m);
       const canParams = isShader || isJp;
@@ -2125,7 +2220,23 @@
       
       const icon = document.createElement('span');
       icon.className = 'mat-icon';
-      icon.textContent = materialIcon(m);
+      const thumbSrc = matThumb(m);
+      if (thumbSrc) {
+        icon.classList.add('has-thumb');
+        const img = document.createElement('img');
+        img.src = thumbSrc;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.draggable = false;
+        img.addEventListener('error', () => {
+          icon.classList.remove('has-thumb');
+          icon.innerHTML = '';
+          icon.textContent = materialIcon(m);
+        });
+        icon.appendChild(img);
+      } else {
+        icon.textContent = materialIcon(m);
+      }
       
       const info = document.createElement('div');
       info.className = 'mat-info';
@@ -2166,6 +2277,28 @@
         item.appendChild(btnParams);
       }
       
+      // 📸 sin captura todavía: botón para sacarla (web / shader del editor / video)
+      if (!m.builtin && !thumbSrc && (m.type === 'web' || m.type === 'video' || isJp)) {
+        const btnShot = document.createElement('button');
+        btnShot.className = 'mat-shot-btn';
+        btnShot.textContent = '📸';
+        btnShot.title = m.type === 'web' ? 'Sacar captura de la web' : 'Sacar preview del shader';
+        btnShot.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          btnShot.disabled = true;
+          btnShot.textContent = '⏳';
+          const ok = await captureThumb(m);
+          if (!ok) {
+            btnShot.disabled = false;
+            btnShot.textContent = '📸';
+            showToast('⚠️ No se pudo sacar la captura');
+            return;
+          }
+          renderMaterialList();
+        });
+        item.appendChild(btnShot);
+      }
+
       // Clic para disparar el contenido en el Output y Output 3D
       item.addEventListener('click', (e) => {
         if (e.target.closest('.mat-del') || e.target.closest('.mat-params-btn')) return;
@@ -2473,22 +2606,23 @@
         else type = 'web'; // URL sin extensión de archivo => página web
       }
 
+      let created = null;
       if (type === 'youtube') {
         if (!videoId) {
           setStatus('uploadStatus', 'La URL no parece ser de YouTube', 'err');
           return;
         }
         if (!name) name = 'YouTube ' + videoId;
-        await post({ type: 'youtube', name, videoId });
+        created = await post({ type: 'youtube', name, videoId });
       } else if (type === 'web') {
         if (!name) name = webNameFromUrl(url);
-        await post({ type: 'web', name, url });
+        created = await post({ type: 'web', name, url });
       } else if (type === 'video') {
         if (!name) name = nameFromUrl(url, 'Video');
-        await post({ type: 'video', name, url });
+        created = await post({ type: 'video', name, url });
       } else {
         if (!name) name = nameFromUrl(url, 'Imagen');
-        await post({ type: 'image', name, url });
+        created = await post({ type: 'image', name, url });
       }
 
       document.getElementById('newMatUrl').value = '';
@@ -2496,6 +2630,18 @@
       if (typeSelEl) typeSelEl.value = 'auto';
       setStatus('uploadStatus', `Input agregado correctamente (${type === 'web' ? 'Página Web' : type})`, 'ok');
       await loadMaterialsFromServer();
+
+      // 📸 al agregar se le saca la captura (web / preview de shader / imagen)
+      const mat = created && created.material;
+      if (mat && !mat.builtin) {
+        setStatus('uploadStatus', 'Sacando captura del input…', '');
+        const thumb = await captureThumb(mat);
+        await loadMaterialsFromServer();
+        setStatus('uploadStatus', thumb
+          ? `Input agregado con captura (${type === 'web' ? 'Página Web' : type})`
+          : `Input agregado (${type === 'web' ? 'Página Web' : type}) · sin captura`, thumb ? 'ok' : '');
+        showToast(thumb ? '📸 Captura lista' : '⚠️ El input se agregó pero no se pudo capturar');
+      }
     } catch (err) {
       console.error('[MENU] Error agregando material:', err);
       setStatus('uploadStatus', 'Error: ' + err.message, 'err');
@@ -3067,6 +3213,7 @@
     }
     const bgClear = document.getElementById('jpeBgClear');
     if (bgClear) bgClear.addEventListener('click', () => setAppBackground(null));
+    initInputFilters();
     updateInputCounts();
     updateBgBar();
   }
@@ -3085,6 +3232,16 @@
 
   function updateInputCounts() {
     if (inputCountCargados) inputCountCargados.textContent = materialLibrary.length;
+    const cuenta = {
+      todos: materialLibrary.length,
+      cargados: materialLibrary.filter(m => !m.builtin).length,
+      imagen: materialLibrary.filter(m => m.type === 'image').length,
+      web: materialLibrary.filter(m => m.type === 'web').length
+    };
+    Object.keys(cuenta).forEach(k => {
+      const el = document.getElementById('ifCount' + k.charAt(0).toUpperCase() + k.slice(1));
+      if (el) el.textContent = cuenta[k];
+    });
     if (inputCountEditor && jpeState.items.length) inputCountEditor.textContent = jpeState.items.length;
   }
 
@@ -3200,7 +3357,18 @@
       btnAdd.disabled = true;
       btnAdd.textContent = '⏳…';
       try {
-        await addJpShaderToInputs(item);
+        const nuevo = await addJpShaderToInputs(item);
+        // 📸 el preview del shader se renderiza acá mismo y queda de thumbnail
+        if (nuevo && !nuevo.thumb) {
+          showToast('🎨 Renderizando preview…');
+          const thumb = await captureThumb(nuevo);
+          await loadMaterialsFromServer();
+          renderJpEditorIndex();
+          showToast(thumb ? '📸 Preview listo en INPUTS' : '⚠️ El shader se indexó sin preview');
+        } else if (nuevo) {
+          renderJpEditorIndex();
+          showToast('＋ ' + nuevo.name + ' en INPUTS con su preview');
+        }
       } catch (err) {
         showToast('⚠️ ' + err.message);
         btnAdd.disabled = false;

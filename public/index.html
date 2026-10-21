@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/jpstagedesign/css/menu.css?v=presets1">
+  <link rel="stylesheet" href="/jpstagedesign/css/menu.css?v=thumbs1">
 </head>
 <body class="menu-body">
 
@@ -176,6 +176,13 @@
         </div>
 
         <div class="input-pane" id="inputPaneCargados">
+          <!-- Filtro de la biblioteca: todo / sólo lo agregado / imágenes / webs -->
+          <div class="input-filters" id="inputFilters">
+            <button class="input-filter active" data-ifilter="todos">TODOS <span class="input-filter-count" id="ifCountTodos">0</span></button>
+            <button class="input-filter" data-ifilter="cargados">CARGADOS <span class="input-filter-count" id="ifCountCargados">0</span></button>
+            <button class="input-filter" data-ifilter="imagen">SOLO IMAGEN <span class="input-filter-count" id="ifCountImagen">0</span></button>
+            <button class="input-filter" data-ifilter="web">WEB <span class="input-filter-count" id="ifCountWeb">0</span></button>
+          </div>
           <div class="material-list" id="materialList"></div>
         </div>
 
@@ -370,7 +377,7 @@
       sh.src = '/jpstagedesign/js/shaders.js';
       sh.onload = function() {
         var m = document.createElement('script');
-        m.src = '/jpstagedesign/js/menu.js?v=presets1';
+        m.src = '/jpstagedesign/js/menu.js?v=thumbs1';
         document.body.appendChild(m);
       };
       document.body.appendChild(sh);

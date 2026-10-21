@@ -1733,6 +1733,136 @@ require('./agent_api')({
   listTemplates
 });
 
+// ============================================================
+// CAPTURAS de inputs (thumbnail automático al agregar)
+// ------------------------------------------------------------
+// El front de producción sale del FTP (Apache) y NO ve los archivos que
+// escribe este backend, así que la captura viaja como data URL dentro del
+// material (`material.thumb`). Se cachea por URL para no repetir el browser.
+// ============================================================
+const THUMB_CACHE = new Map();   // url → dataURL
+let _thumbBrowser = null;
+let _thumbBrowserAt = 0;
+
+function loadPuppeteer() {
+  const tries = ['puppeteer', 'puppeteer-core',
+    '/root/pinkcarpet/node_modules/puppeteer',
+    '/root/pinkcarpet/node_modules/puppeteer-core'];
+  for (const t of tries) {
+    try { return require(t); } catch (e) { /* siguiente */ }
+  }
+  return null;
+}
+
+// Candidatos de browser, en orden: primero chrome-headless-shell (no necesita
+// libgbm/GPU), después el chrome completo. Cada uno con su modo de headless.
+let _thumbCfg = null;   // { exe, headless } que funcionó
+
+function chromeCandidates() {
+  const out = [];
+  if (process.env.CHROME_PATH) out.push({ exe: process.env.CHROME_PATH, headless: true });
+  const base = path.join(process.env.HOME || '/root', '.cache', 'puppeteer');
+  try {
+    for (const v of fs.readdirSync(path.join(base, 'chrome-headless-shell'))) {
+      out.push({ exe: path.join(base, 'chrome-headless-shell', v, 'chrome-headless-shell-linux64', 'chrome-headless-shell'), headless: 'shell' });
+    }
+  } catch (e) { /* sin shell */ }
+  try {
+    for (const v of fs.readdirSync(path.join(base, 'chrome'))) {
+      out.push({ exe: path.join(base, 'chrome', v, 'chrome-linux64', 'chrome'), headless: true });
+    }
+  } catch (e) { /* sin chrome */ }
+  out.push(
+    { exe: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true },
+    { exe: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe', headless: true },
+    { exe: '/usr/bin/google-chrome', headless: true },
+    { exe: '/usr/bin/chromium', headless: true },
+    { exe: '/usr/bin/chromium-browser', headless: true }
+  );
+  return out.filter(c => !!c.exe && fs.existsSync(c.exe));
+}
+
+async function getThumbBrowser() {
+  const pup = loadPuppeteer();
+  if (!pup) throw new Error('puppeteer no instalado en el server');
+  if (_thumbBrowser) {
+    try {
+      if (_thumbBrowser.connected) return _thumbBrowser;
+    } catch (e) { /* relanzar */ }
+    _thumbBrowser = null;
+  }
+  const cands = _thumbCfg ? [_thumbCfg, ...chromeCandidates().filter(c => c.exe !== _thumbCfg.exe)] : chromeCandidates();
+  let ultimoError = null;
+  for (const cand of cands) {
+    try {
+      _thumbBrowser = await pup.launch({
+        headless: cand.headless,
+        executablePath: cand.exe,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
+               '--hide-scrollbars', '--disable-gpu', '--force-device-scale-factor=1']
+      });
+      _thumbCfg = cand;
+      _thumbBrowserAt = Date.now();
+      console.log('[THUMB] Browser de capturas: ' + cand.exe);
+      return _thumbBrowser;
+    } catch (err) {
+      ultimoError = err;
+      console.warn('[THUMB] No arrancó ' + cand.exe + ': ' + String(err.message).split('\n')[0]);
+    }
+  }
+  throw ultimoError || new Error('no hay browser para capturas');
+}
+
+// GET/POST /api/webthumb?url=…  → { ok, thumb: 'data:image/jpeg;base64,…' }
+const handleWebThumb = async (req, res) => {
+  const raw = String(req.query.url || (req.body && req.body.url) || '').trim();
+  if (!/^https?:\/\//i.test(raw)) return res.status(400).json({ ok: false, error: 'URL inválida' });
+  if (THUMB_CACHE.has(raw)) return res.json({ ok: true, thumb: THUMB_CACHE.get(raw), cached: true });
+  let page = null;
+  try {
+    const browser = await getThumbBrowser();
+    page = await browser.newPage();
+    await page.setViewport({ width: 960, height: 600, deviceScaleFactor: 1 });
+    await page.goto(raw, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    // dar tiempo a fuentes/imágenes; si la página no termina de cargar igual capturamos
+    await page.waitForNetworkIdle({ idleTime: 700, timeout: 6000 }).catch(() => {});
+    const buf = await page.screenshot({ type: 'jpeg', quality: 62, captureBeyondViewport: false });
+    // puppeteer 24 devuelve Uint8Array: hay que pasarlo por Buffer o el base64
+    // sale como "255,216,255,..." (lista de bytes).
+    const dataUrl = 'data:image/jpeg;base64,' + Buffer.from(buf).toString('base64');
+    THUMB_CACHE.set(raw, dataUrl);
+    if (THUMB_CACHE.size > 120) THUMB_CACHE.delete(THUMB_CACHE.keys().next().value);
+    console.log('[THUMB] Captura ' + raw + ' (' + Math.round(dataUrl.length / 1024) + ' KB)');
+    res.json({ ok: true, thumb: dataUrl });
+  } catch (err) {
+    console.error('[THUMB] Error capturando ' + raw + ':', err.message);
+    res.status(502).json({ ok: false, error: err.message });
+  } finally {
+    if (page) { try { await page.close(); } catch (e) { /* noop */ } }
+  }
+};
+app.get([BASE_PATH + '/api/webthumb', '/api/webthumb'], handleWebThumb);
+app.post([BASE_PATH + '/api/webthumb', '/api/webthumb'], handleWebThumb);
+
+// POST /api/materials/:id/thumb  { thumb } → guarda la captura en el material
+app.post([BASE_PATH + '/api/materials/:id/thumb', '/api/materials/:id/thumb'], (req, res) => {
+  try {
+    loadLibrary();
+    const m = (library.materials || []).find(x => x.id === req.params.id);
+    if (!m) return res.status(404).json({ error: 'Material no encontrado' });
+    const thumb = String((req.body || {}).thumb || '').trim();
+    if (!/^(data:image\/|https?:\/\/|\/)/i.test(thumb)) return res.status(400).json({ error: 'thumb inválido' });
+    if (thumb.length > 1200000) return res.status(413).json({ error: 'thumb demasiado grande' });
+    m.thumb = thumb;
+    saveLibrary();
+    console.log('[THUMB] Guardado en "' + m.name + '" (' + Math.round(thumb.length / 1024) + ' KB)');
+    res.json({ ok: true, id: m.id, bytes: thumb.length });
+  } catch (err) {
+    console.error('[THUMB] Error guardando thumb:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- Manejo de errores de upload (multer) ---
 app.use((err, req, res, next) => {
   if (err) {
