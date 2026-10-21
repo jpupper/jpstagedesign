@@ -1765,6 +1765,13 @@
         <span class="user-btn-state" id="lblUserPaintlightState">ON</span>
       </button>
 
+      <!-- Medidas / cotas del escenario -->
+      <button class="panel-btn" id="btnUserToggleDims" title="Mostrar u ocultar TODAS las medidas del escenario: cotas de sala, tamaño de las pantallas y de los objetos 3D">
+        <span class="user-btn-icon">📐</span>
+        <span class="user-btn-label">Esconder medidas</span>
+        <span class="user-btn-state" id="lblUserDimsState">OFF</span>
+      </button>
+
       <!-- Sección Proyectores -->
       <div class="user-section-group">
         <div class="user-section-title">
@@ -2926,6 +2933,43 @@
       showToast(paintlightEnabled ? '✨ Paintlight: ACTIVADO' : '🚫 Paintlight: DESACTIVADO');
     }
 
+    /**
+     * Muestra / oculta TODAS las medidas del escenario: cotas de sala, etiquetas
+     * de tamaño de cada pantalla y cotas de los objetos 3D.
+     * Es la ÚNICA puerta: la usan el botón 📐 de la barra, el checkbox
+     * "Mostrar Cotas 3D" del panel admin y el botón "Esconder medidas" del
+     * Control de Sala. Si cada uno tocara la variable por su cuenta, los tres
+     * quedan desincronizados (el pedido vuelve como "prendo uno y se apaga el otro").
+     */
+    function setDimensionsVisible(visible, opts) {
+      opts = opts || {};
+      dimensionsVisible = !!visible;
+
+      const chk = document.getElementById('chkShowDimensions');
+      if (chk) chk.checked = dimensionsVisible;
+      const tb = document.getElementById('tb-dims');
+      if (tb) tb.classList.toggle('active', dimensionsVisible);
+
+      // Etiquetas de cada pantalla / calco / objeto (nacen como 'label')
+      if (screensGroup) {
+        screensGroup.traverse(o => {
+          if (o && o.name === 'label') o.visible = dimensionsVisible;
+        });
+      }
+      if (dimensionLinesGroup) dimensionLinesGroup.visible = dimensionsVisible;
+      (dimensionSprites || []).forEach(sp => { if (sp) sp.visible = dimensionsVisible; });
+
+      // Rearma cotas: con dimensionsVisible = false deja el grupo VACÍO
+      createDimensionLines();
+      updateUserDockUI();
+
+      if (opts.persist !== false) saveRoom3DConfigToServer(false);
+      if (opts.toast) {
+        showToast(dimensionsVisible ? '📐 Medidas: VISIBLES' : '📏 Medidas: OCULTAS');
+      }
+      return dimensionsVisible;
+    }
+
     function updateUserDockUI() {
       // Sync
       const btnSync = document.getElementById('btnUserToggleSync');
@@ -2941,6 +2985,17 @@
       if (btnPL && lblPL) {
         btnPL.classList.toggle('active', paintlightEnabled);
         lblPL.textContent = paintlightEnabled ? 'ON' : 'OFF';
+      }
+
+      // Medidas / cotas: el botón dice "Esconder medidas", así que ON = ocultas
+      const btnDimsU = document.getElementById('btnUserToggleDims');
+      const lblDimsU = document.getElementById('lblUserDimsState');
+      if (btnDimsU && lblDimsU) {
+        btnDimsU.classList.toggle('active', !dimensionsVisible);
+        lblDimsU.textContent = dimensionsVisible ? 'OFF' : 'ON';
+        btnDimsU.title = dimensionsVisible
+          ? 'Las medidas están VISIBLES · click para esconderlas'
+          : 'Las medidas están OCULTAS · click para mostrarlas';
       }
 
       // Projectors section label
@@ -3121,7 +3176,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · touch-raycast';
+    const BUILD_3D = '2026-10-21 · toque+medidas';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -7364,6 +7419,22 @@
       controls: () => controls,
       mapping: () => mappingMode,
       setMapping: (m) => set3DMappingMode(m),
+      dimensions: () => {
+        let labels = 0, labelsVisible = 0;
+        if (screensGroup) screensGroup.traverse(o => { if (o && o.name === 'label') { labels++; if (o.visible) labelsVisible++; } });
+        return {
+          visible: dimensionsVisible,
+          lineas: dimensionLinesGroup ? dimensionLinesGroup.children.length : null,
+          lineasVisible: !!(dimensionLinesGroup && dimensionLinesGroup.visible),
+          sprites: (dimensionSprites || []).length,
+          labels: labels,
+          labelsVisible: labelsVisible,
+          chk: !!(document.getElementById('chkShowDimensions') || {}).checked,
+          tbActive: !!(document.getElementById('tb-dims') || { classList: { contains: () => false } }).classList.contains('active'),
+          pill: (document.getElementById('lblUserDimsState') || {}).textContent
+        };
+      },
+      setDimensions: (v) => setDimensionsVisible(v, { persist: false }),
       screens: () => stageScreens.map(s => ({ id: s.id, name: s.name, width: s.width, height: s.height, sliceIndex: s.sliceIndex, muted: !!s.muted }))
     };
 
@@ -8092,6 +8163,7 @@
         if (chkDims) chkDims.checked = dimensionsVisible;
         const tbDims = document.getElementById('tb-dims');
         if (tbDims) tbDims.classList.toggle('active', dimensionsVisible);
+        updateUserDockUI();   // el botón "Esconder medidas" del Control de Sala
       }
 
       // 3. Techo
@@ -10818,10 +10890,7 @@
           : '🌐 Páginas web en vivo: desactivado (se ve el cartel de referencia)');
       });
       document.getElementById('tb-dims').addEventListener('click', () => {
-        dimensionsVisible = !dimensionsVisible;
-        document.getElementById('chkShowDimensions').checked = dimensionsVisible;
-        document.getElementById('tb-dims').classList.toggle('active', dimensionsVisible);
-        createDimensionLines();
+        setDimensionsVisible(!dimensionsVisible);
       });
       document.getElementById('tb-wire').addEventListener('click', () => {
         isWireframe = !isWireframe;
@@ -10867,10 +10936,7 @@
       });
 
       document.getElementById('chkShowDimensions').addEventListener('change', (e) => {
-        dimensionsVisible = e.target.checked;
-        document.getElementById('tb-dims').classList.toggle('active', dimensionsVisible);
-        createDimensionLines();
-        saveRoom3DConfigToServer();
+        setDimensionsVisible(e.target.checked);
       });
 
       // (Eliminados los controles de Techo: el techo ya no existe como superficie)
@@ -11741,6 +11807,9 @@
 
       const btnUPL = document.getElementById('btnUserTogglePaintlight');
       if (btnUPL) btnUPL.addEventListener('click', () => toggleUserPaintlight());
+
+      const btnUDims = document.getElementById('btnUserToggleDims');
+      if (btnUDims) btnUDims.addEventListener('click', () => setDimensionsVisible(!dimensionsVisible, { toast: true }));
 
       const btnUProj = document.getElementById('btnUserToggleProjectors');
       if (btnUProj) btnUProj.addEventListener('click', () => toggleAllProjectors());
