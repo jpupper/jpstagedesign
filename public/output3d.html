@@ -680,6 +680,55 @@
     }
 
     /* ============================================================
+       CERRAR / ABRIR EL CONTROL DE SALA
+       - La ✕ del header lo cierra (queda sólo la ruedita).
+       - La ruedita ⚙️ arriba a la izquierda lo vuelve a abrir.
+       - El estado se guarda por dispositivo; en celular arranca CERRADO.
+       ============================================================ */
+    #userModeFloatingBar.user-panel-collapsed {
+      opacity: 0;
+      transform: translateX(-18px);
+      pointer-events: none;
+    }
+
+    #btnUserPanelOpen {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      border-radius: 11px;
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      border-top: 2px solid rgba(0, 229, 255, 0.75);
+      background: rgba(15, 17, 23, 0.95);
+      color: #eafcff;
+      z-index: 310;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 14px rgba(0, 229, 255, 0.16);
+      backdrop-filter: blur(15px);
+      pointer-events: auto;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    #btnUserPanelOpen.show { display: flex; }
+
+    #btnUserPanelOpen:hover,
+    #btnUserPanelOpen:active {
+      border-color: #00e5ff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 229, 255, 0.32);
+      transform: scale(1.05);
+    }
+
+    /* en admin no hay barra USER: tampoco su ruedita */
+    body.admin-mode #btnUserPanelOpen { display: none !important; }
+
+    /* ============================================================
        ESTIRAR LOS CONTENEDORES (grip en el borde derecho)
        El grip lo crea el JS y vive en <body> con position:fixed pegado al
        borde derecho del panel. NO va dentro del panel porque el panel
@@ -1913,6 +1962,7 @@
     <!-- Header -->
     <div class="panel-header">
       <h3><span class="user-dock-dot"></span> Control de Sala <span class="panel-header-badge">USER</span></h3>
+      <button class="btn-close-panel" id="btnUserPanelClose" title="Cerrar el panel (se vuelve a abrir con ⚙️ arriba a la izquierda)">✕</button>
     </div>
 
     <!-- Controles -->
@@ -1985,6 +2035,9 @@
       </button>
     </div>
   </div>
+
+  <!-- ⚙️ Abrir el Control de Sala (aparece sólo cuando el panel está cerrado) -->
+  <button id="btnUserPanelOpen" type="button" title="Abrir el Control de Sala" aria-label="Abrir el Control de Sala">⚙️</button>
 
   <!-- 🎛️ MINI BOTONERA (ventanita flotante: la botonera adentro del 3D) -->
   <div id="miniBotonera" aria-label="Botonera">
@@ -3401,7 +3454,7 @@
     // BUILD del 3D: cambia con cada deploy de esta página. Si el badge del
     // header NO muestra esta fecha, el navegador está corriendo una copia vieja
     // (recargar con Ctrl+Shift+R).
-    const BUILD_3D = '2026-10-21 · presupuesto+embed';
+    const BUILD_3D = '2026-10-24 · control de sala cerrar/abrir';
     let jpCanvas = document.createElement('canvas');
     let jpView3D = null;
     let jpShaderName3D = null;
@@ -12793,6 +12846,80 @@
           window.open(window.BACKEND_URL ? window.BACKEND_URL + '/jpstagedesign/presupuesto.html' : '/jpstagedesign/presupuesto.html', '_blank');
         });
       }
+
+      // ============================================================
+      // 🧰 CONTROL DE SALA: cerrar (✕) / abrir (⚙️)
+      // ------------------------------------------------------------
+      // El panel de la izquierda no se podía cerrar. Ahora:
+      //   · la ✕ del header lo cierra,
+      //   · la ruedita ⚙️ de arriba a la izquierda lo vuelve a abrir,
+      //   · el estado se recuerda por dispositivo (localStorage) y
+      //     en celular arranca CERRADO (es lo que tapaba la escena).
+      // ============================================================
+      const USER_PANEL_KEY = 'fsc_user_panel_open:v1';
+
+      function userPanelEls() {
+        return {
+          panel: document.getElementById('userModeFloatingBar'),
+          gear: document.getElementById('btnUserPanelOpen')
+        };
+      }
+
+      function userPanelIsOpen() {
+        const { panel } = userPanelEls();
+        return !!panel && !panel.classList.contains('user-panel-collapsed');
+      }
+
+      function userPanelDefaultOpen() {
+        // celular / pantalla angosta => cerrado
+        const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        return !(coarse || window.innerWidth <= 900);
+      }
+
+      function setUserPanelOpen(open, opts) {
+        const { panel, gear } = userPanelEls();
+        if (!panel) return;
+        const abierto = !!open;
+        panel.classList.toggle('user-panel-collapsed', !abierto);
+        if (gear) gear.classList.toggle('show', !abierto && !isAdminMode);
+        if (!opts || opts.persist !== false) {
+          try { localStorage.setItem(USER_PANEL_KEY, abierto ? '1' : '0'); } catch (e) { /* noop */ }
+        }
+        // el grip de "estirar" vive fuera del panel: se esconde/mueve solo
+        if (typeof placePanelGrips === 'function') placePanelGrips();
+      }
+
+      function initUserPanelState() {
+        let guardado = null;
+        try { guardado = localStorage.getItem(USER_PANEL_KEY); } catch (e) { /* noop */ }
+        const abierto = (guardado === '1' || guardado === '0') ? guardado === '1' : userPanelDefaultOpen();
+        setUserPanelOpen(abierto, { persist: false });
+      }
+
+      // Hook de verificación / QA
+      window.JPStageUserPanel = {
+        open: () => setUserPanelOpen(true),
+        close: () => setUserPanelOpen(false),
+        toggle: () => setUserPanelOpen(!userPanelIsOpen()),
+        isOpen: () => userPanelIsOpen(),
+        reset: () => { try { localStorage.removeItem(USER_PANEL_KEY); } catch (e) { /* noop */ } initUserPanelState(); }
+      };
+
+      const btnUPClose = document.getElementById('btnUserPanelClose');
+      if (btnUPClose) btnUPClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setUserPanelOpen(false);
+      });
+
+      const btnUPOpen = document.getElementById('btnUserPanelOpen');
+      if (btnUPOpen) btnUPOpen.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setUserPanelOpen(true);
+      });
+
+      initUserPanelState();
 
       // Controles Modo User (Barra flotante)
       const btnUSync = document.getElementById('btnUserToggleSync');
